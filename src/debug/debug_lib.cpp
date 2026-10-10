@@ -1516,6 +1516,7 @@ void Tree_004da8d0::Init()
 {
     std::_Lockit lock;
     if (g_blockMapNil == 0) {
+        // The allocator is the tree's +0 member, which this view types as char.
         Node_004da8d0* nil =
             (Node_004da8d0*)((BlockMapAllocator*)this)->Allocate(0x40);
         nil->parent = 0;
@@ -4819,6 +4820,7 @@ struct Node_004e18c0 {
     Node_004e18c0* right;              // +0x8
 };
 
+// ++ views ptr as a NameMapIter (out-of-line _Inc); a different node view.
 class Iter_004e18c0 {
 public:
     Node_004e18c0* ptr;
@@ -4874,6 +4876,8 @@ public:
         size = 0;
         head->left = head;
         head->right = head;
+        // Begin is defined on the other view of this tree (Class_004e2240);
+        // joining the views removes this cast.
         return ((Class_004e2240*)this)->Begin();
     }
 
@@ -4998,6 +5002,7 @@ BOOL __stdcall PerformanceDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 {
     if (msg == WM_INITDIALOG) {
         SetWindowLongA(hwnd, GWL_USERDATA, lParam);
+        // lParam is a parameter, so it cannot be retyped.
         ((PerformanceDialog*)lParam)->hwnd = hwnd;
     }
     PerformanceDialog* obj = (PerformanceDialog*)GetWindowLongA(hwnd, GWL_USERDATA);
@@ -5231,6 +5236,7 @@ BOOL PerformanceDialog::HandlePerformanceMessage(UINT msg, WPARAM wParam, LPARAM
             Map_004df590* names = (Map_004df590*)&info->names;
             Node_004df590* node = names->head->left;
             SendDlgItemMessageA(hwnd, 0x3f4, 0x184, 0, 0);
+            // Clear lives on this view of the map; the local keeps its own type.
             ((Class_004e18c0*)&map)->Clear();
             // Guarded do-while: a while or for loop moves the loop registers.
             if (Iterator_004df590(node) != Iterator_004df590(names->head)) {
@@ -5686,6 +5692,7 @@ BOOL __stdcall MemoryStatusDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
 {
     if (msg == WM_INITDIALOG) {
         SetWindowLongA(hwnd, GWL_USERDATA, lParam);
+        // lParam is a parameter, so it cannot be retyped.
         ((MemoryStatusDialog*)lParam)->hwnd = hwnd;
     }
     MemoryStatusDialog* obj = (MemoryStatusDialog*)GetWindowLongA(hwnd, GWL_USERDATA);

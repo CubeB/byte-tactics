@@ -1749,8 +1749,8 @@ address,size,file,symbol,status,similarity
 0x481550,70,src/map/line_of_sight.cpp,?GetMapCell@@YGPAUCell@@HH@Z,matched,100.0
 0x4815a0,77,src/map/line_of_sight.cpp,?GetMapCellAtPosition@@YGPAUCell@@PAUVec3@@@Z,matched,100.0
 0x4815f0,166,src/map/line_of_sight.cpp,?GetOriginCellAtPosition@@YGPAUCell@@PAUVec3@@@Z,matched,100.0
-0x4816a0,654,src/map/line_of_sight_4816a0.cpp,?RecalculateLineOfSight@@YGXH@Z,matched,100.0
-0x481930,1052,src/map/line_of_sight_481930.cpp,?RevealAroundUnit@@YGXPAUSightQuery@@@Z,matched,100.0
+0x4816a0,654,src/map/line_of_sight.cpp,?RecalculateLineOfSight@@YGXH@Z,matched,100.0
+0x481930,1052,src/map/line_of_sight.cpp,?RevealAroundUnit@@YGXPAUSightQuery@@@Z,matched,100.0
 0x481d50,821,src/map/line_of_sight_481d50.cpp,?RemoveLineOfSight@@YGXPAUSightQuery@@@Z,matched,100.0
 0x482090,127,src/map/line_of_sight.cpp,?RemoveUnitLineOfSight@@YGXPAUUnit@@@Z,matched,100.0
 0x482110,28,src/map/line_of_sight.cpp,?IsEyeballExpired@@YGHPAUEye@@@Z,matched,100.0
@@ -1759,8 +1759,8 @@ address,size,file,symbol,status,similarity
 0x4825b0,504,src/map/line_of_sight.cpp,?UpdateLineOfSight@@YGXPAUSightQuery@@@Z,matched,100.0
 0x4827b0,127,src/map/line_of_sight.cpp,?UpdateUnitLineOfSight@@YGXPAUUnit@@@Z,matched,100.0
 0x482830,221,src/map/line_of_sight.cpp,?InitUnitSightCircleReveal@@YGXPAUSightQuery@@@Z,matched,100.0
-0x482910,418,src/map/line_of_sight_482910.cpp,?AddEyeball@@YGXPAUVec3_482910@@HHH@Z,matched,100.0
-0x482ac0,342,src/map/line_of_sight_482ac0.cpp,?RevealNewUnit@@YGXPAUUnit@@@Z,matched,100.0
+0x482910,418,src/map/line_of_sight.cpp,?AddEyeball@@YGXPAUVec3@@HHH@Z,matched,100.0
+0x482ac0,342,src/map/line_of_sight.cpp,?RevealNewUnit@@YGXPAUUnit@@@Z,matched,100.0
 0x482c20,1519,src/map/line_of_sight.cpp,?BuildDerivedLayers@@YGXXZ,matched,100.0
 0x483210,347,src/map/line_of_sight.cpp,?UpdateCellHeightRange@@YGXUPoint@@0@Z,matched,100.0
 0x483370,63,src/map/line_of_sight.cpp,?UpdateAllCellHeightRanges@@YGXXZ,matched,100.0

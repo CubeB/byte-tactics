@@ -1,5 +1,6 @@
 // Decompiled by deepseek-v4.1-flash, finished by space-bunny-free, deepseek-v4.1-flash, GPT-6, GPT-6.1-sol, deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by mimo-v2.6-pro, finished by Space Bunny Free. Names are provisional.
-// Kept out of line_of_sight.cpp: the merged file's symbol ids move its registers.
+// Not gathered into line_of_sight.cpp: merged, the player grid address folds in
+// the other operand order.
 // Unused by the code but needed: it flips the operand order of `i * frame->width`.
 #include <math.h>
 #include <windows.h>

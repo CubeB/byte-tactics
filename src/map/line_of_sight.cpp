@@ -6,9 +6,11 @@
 // the map cell lookups by grid and world position, line-of-sight add, remove
 // and update, the eye expiry pass, the map grids and fog tiles, the map loader
 // and its shutdown, and the cell height range and terrain lookups. The module's
-// parts joined in address order; 0x4816a0, 0x481930, 0x481d50, 0x482270,
-// 0x482910, 0x482ac0 and 0x4843c0 keep their own files: their register plans
-// follow their old files' symbol ids.
+// parts joined in address order. 0x4816a0, 0x481930, 0x482910 and 0x482ac0
+// follow 0x484b50, out of address order: at their addresses their
+// bodies' symbol ids would move the register windows the other functions match
+// in. 0x481d50, 0x482270 and 0x4843c0 keep their own files
+// (docs/split-modules.md).
 #include <memory>
 #include <string.h>
 #include <math.h>
@@ -1491,3 +1493,277 @@ done:
     *out = p;
 }
 
+
+// The functions below are kept after 0x484b50 and out of address order: at their
+// addresses their bodies' symbol ids would move the register windows the other
+// functions match in (docs/c2-regalloc.md).
+// FUNCTION: 0x4816a0
+void __stdcall RecalculateLineOfSight(int arg)
+{
+    if (arg != 0) {
+        memset(g_game->visibilityMask, (g_game->mapFlags.raw & 1) ? 0 : 0xFFFF,
+               g_game->mapWidthTiles * g_game->mapHeightTiles * sizeof(short) / 4);
+    }
+    for (unsigned char i = 0; i < 10; i++) {
+        if (i >= 10) continue;
+        Player* p = &g_game->players[i];
+        if (p->active == 0) continue;
+        if (p->type != 1 && p->type != 2 && p->type != 3) continue;
+        if (p->index == 10) continue;
+        memset(p->explored, (unsigned char)~((unsigned char)g_game->mapFlags.raw >> 1) & 1, p->exploredSize);
+    }
+    for (Unit* u = g_game->units + 1; u <= g_game->unitsEnd; u++) {
+        if (u->unitDefIndex == 0)
+            continue;
+        SightQuery params;
+        params.player = u->player;
+        params.cacheCell = &u->losCacheCellX;
+        params.sightDistance = u->def->range;
+        params.frameIdx = u->losSightFrameIdx;
+        params.pos = u->pos;
+        params.eyeHeight = u->def->field_170;
+        if (params.pos.y < (int)((g_game->seaLevel + 1) << 16))
+            params.pos.y = (g_game->seaLevel + 1) << 16;
+        if ((g_game->mapFlags.raw & 2) == 2) {
+            *params.frameIdx = 0;
+            if ((g_game->mapFlags.raw & 4) == 4) {
+                UpdateLineOfSight(&params);
+            } else {
+                int i = params.sightDistance / 32 - 5;
+                if (i < 0)
+                    i = 0;
+                else if (i >= g_game->losTable->count)
+                    i = g_game->losTable->count - 1;
+                // The original reads this as a 16 bit load of the high word of
+                // pos.y, so it is spelled as one here; a plain shift of pos.y
+                // would be a 32 bit load plus `sar`.
+                int y = ((short*)&params.pos.y)[1] / 64;
+                int cx = params.pos.x / 0x200000;
+                int cy = params.pos.z / 0x200000 - y;
+                GafFrame* e = GetGafFrame(g_game->losTable, i);
+                // Full 32 bit subtractions, truncated only at the stores.
+                int vx = cx - e->xOffset;
+                int vz = cy - e->yOffset;
+                params.cacheCell[0] = (short)vx;
+                params.cacheCell[1] = (short)vz;
+                *params.frameIdx = (unsigned char)i;
+                AddLineOfSight(&params);
+                RevealAroundUnit(&params);
+            }
+        }
+    }
+    g_game->viewDirtyFlags.mapChanged = 1;
+    g_game->mapFlags.raw &= 0xfff7;
+    UpdateRadarMapped();
+    DrawRadarUnits();
+}
+
+inline int LodRaw(SightQuery* params)
+{
+    return params->sightDistance / 32;
+}
+
+inline int Lod(SightQuery* params)
+{
+    int v = LodRaw(params);
+    return v < 0 ? 0 : v;
+}
+
+// FUNCTION: 0x481930
+void __stdcall RevealAroundUnit(SightQuery* params)
+{
+    // Both branches' locals, x and y included, are declared here and assigned
+    // later; frame stays declared after bit.
+    int changed = 0;
+    int x, y;
+    int limitX, limitY, nx, ny;
+    int i, stride, off;
+    unsigned int bit = 1 << ((Player*)params->player)->index;
+    GafFrame* frame;
+    int halfW = g_game->mapWidthTiles / 2;
+    int halfH = g_game->mapHeightTiles / 2;
+    x = params->cacheCell[0];
+    y = params->cacheCell[1];
+    if (g_game->mapFlags.flag2 == 1) {
+        Grid* grid = &g_game->losHalfResHeightBand;
+        if ((unsigned)x < grid->width && (unsigned)y < grid->height) {
+            LosTable* table =
+                (LosTable*)g_losTables
+                    .GetLosTable(
+                        (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32) <
+                                (short)g_losTables.GetLosTableCount() - 1
+                            ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
+                            : (short)g_losTables.GetLosTableCount() - 1);
+            short count = table->GetLosLineCount();
+            unsigned short* cell = &g_game->visibilityMask[halfW * y + x];
+            if ((unsigned short)(bit & *cell) == 0) {
+                *cell ^= bit;
+                changed = 1;
+            }
+            int ref = *params->frameIdx;
+            for (short i = 0; (short)i < count; i++) {
+                LosLine* line = (LosLine*)table->GetLosLine(i);
+                short num = line->GetLosLineStepCount();
+                // Declared in this order: bestIdx, j1, bestDiff; j1 is set in the guard.
+                int bestIdx = 0;
+                int j1;
+                int bestDiff = -1;
+                short j = 0;
+                if ((short)num > 0) {
+                    j1 = 1;
+                    do {
+                        int y2, x2;
+                        line->GetLosLineStep((short)j, &x2, &y2);
+                        x2 += x;
+                        y2 += y;
+                        if ((unsigned)(short)x2 < grid->width &&
+                            (unsigned)(short)y2 < grid->height) {
+                            unsigned char* c =
+                                (unsigned char*)grid->cells + ((short)y2 * grid->width + (short)x2) * 2;
+                            int d1 = c[1] - ref;
+                            int d0 = c[0] - ref;
+                            if (d0 * bestIdx > bestDiff * j1) {
+                                unsigned short* q = &g_game->visibilityMask[
+                                    halfW * (short)y2 + (short)x2];
+                                if ((unsigned short)(bit & *q) == 0) {
+                                    *q ^= bit;
+                                    changed = 1;
+                                }
+                                if (d1 * bestIdx > bestDiff * j1) {
+                                    bestIdx = j1;
+                                    bestDiff = d1;
+                                }
+                            }
+                        }
+                        j++;
+                        j1++;
+                    } while ((short)j < (short)num);
+                }
+            }
+        }
+    } else {
+        int lod = LodRaw(params) - 5;
+        if (lod < 0)
+            lod = 0;
+        else if (lod >= g_game->losTable->count)
+            lod = g_game->losTable->count - 1;
+        frame = GetGafFrame(g_game->losTable, lod);
+        limitX = (x + frame->width < halfW) ? frame->width : halfW - x;
+        limitY = (y + frame->height >= halfH) ? halfH - y : frame->height;
+        nx = x < 0 ? -x : 0;
+        ny = y < 0 ? -y : 0;
+        changed = 0;
+        i = ny;
+        if (i < limitY) {
+            stride = halfW * 2;
+            off = ((y + ny) * halfW + nx + x) * 2;
+            do {
+                // dst is declared before src, the reverse of the order of use.
+                unsigned short* dst =
+                    (unsigned short*)((unsigned char*)g_game->visibilityMask + off);
+                unsigned char* src = frame->pixelsOrLayers + i * frame->width + nx;
+                if (nx < limitX) {
+                    int n = limitX - nx;
+                    do {
+                        if (*src != frame->transparency && (unsigned short)(bit & *dst) == 0) {
+                            changed = 1;
+                            *dst ^= bit;
+                        }
+                        dst++;
+                        src++;
+                    } while (--n);
+                }
+                i++;
+                off += stride;
+            } while (i < limitY);
+        }
+    }
+    if (changed && ((Player*)params->player)->index == g_game->playerIndex) {
+        g_game->mapFlags.flag3 = 0;
+        g_game->viewDirtyFlags.rawByte |= 4;
+    }
+}
+
+// FUNCTION: 0x482910
+// Plain int parameters: a char or unsigned char one changes the stack frame.
+void __stdcall AddEyeball(Vec3* src, int a, int b, int c)
+{
+    if ((g_game->mapFlags.raw & 2) == 2 && g_game->count < 0x14) {
+        Eye* e = &g_game->eyes[g_game->count];
+        e->player = &g_game->players[g_game->playerIndex];
+        // Assigned before screen: &e->screenPos would clobber ecx, which holds g_game.
+        e->screen = &e->screenPos;
+        e->x = a;
+        e->flagPtr = &e->flagB;
+        e->pos = *src;
+        e->flagA = b;
+        int minY = (g_game->seaLevel + 1) << 16;
+        if (e->pos.y < minY) {
+            e->pos.y = minY;
+        }
+        e->expires = g_game->gameTick + c;
+        if ((g_game->mapFlags.raw & 2) == 2) {
+            *e->flagPtr = 0;
+            if ((g_game->mapFlags.raw & 4) == 4) {
+                UpdateLineOfSight((SightQuery*)e);
+            } else {
+                int lod = e->x / 32 - 5;
+                if (lod < 0) {
+                    lod = 0;
+                } else if (lod >= g_game->losTable->count) {
+                    lod = g_game->losTable->count - 1;
+                }
+                int cell_x = e->pos.x / 0x200000;
+                int cell_y = e->pos.z / 0x200000 - ((short*)&e->pos.y)[1] / 64;
+                GafFrame* ce = GetGafFrame(g_game->losTable, lod);
+                cell_x -= ce->xOffset;
+                cell_y -= ce->yOffset;
+                e->screen->x = (short)cell_x;
+                e->screen->y = (short)cell_y;
+                *e->flagPtr = (char)lod;
+                AddLineOfSight((SightQuery*)e);
+                RevealAroundUnit((SightQuery*)e);
+            }
+        }
+        g_game->count++;
+    }
+}
+
+// FUNCTION: 0x482ac0
+void __stdcall RevealNewUnit(Unit* unit)
+{
+    SightQuery p;
+    p.player = unit->player;
+    p.cacheCell = &unit->losCacheCellX;
+    p.sightDistance = unit->def->range;
+    p.frameIdx = unit->losSightFrameIdx;
+    p.pos = unit->pos;
+    p.eyeHeight = unit->def->field_170;
+    int min_y = (g_game->seaLevel + 1) << 16;
+    if (p.pos.y < min_y) {
+        p.pos.y = min_y;
+    }
+    if ((g_game->mapFlags.raw & 2) == 2) {
+        *p.frameIdx = 0;
+        if ((g_game->mapFlags.raw & 4) == 4) {
+            UpdateLineOfSight(&p);
+        } else {
+            int i = p.sightDistance / 32 - 5;
+            if (i < 0) {
+                i = 0;
+            } else if (i >= g_game->losTable->count) {
+                i = g_game->losTable->count - 1;
+            }
+            int cell_x = p.pos.x / 0x200000;
+            int cell_y = p.pos.z / 0x200000 - ((short*)&p.pos.y)[1] / 64;   // high half of y
+            GafFrame* e = GetGafFrame(g_game->losTable, i);
+            cell_x -= e->xOffset;
+            cell_y -= e->yOffset;
+            p.cacheCell[0] = (short)cell_x;
+            p.cacheCell[1] = (short)cell_y;
+            *p.frameIdx = i;
+            AddLineOfSight(&p);
+            RevealAroundUnit(&p);
+        }
+    }
+}

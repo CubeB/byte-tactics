@@ -650,13 +650,13 @@ public:
 // insert under this name.
 class Class_00476210 {
 public:
-    void FUN_00476210(std::vector<SmokeParticle>::iterator p, unsigned int m,
-                     const SmokeParticle& x);
+    void insert(std::vector<SmokeParticle>::iterator p, unsigned int m,
+                 const SmokeParticle& x);
 };
 
 class Vec_00476490 {
 public:
-    void FUN_00476490(TimedSubParticle* pos, int count, const TimedSubParticle* src);
+    void insert(TimedSubParticle* pos, int count, const TimedSubParticle* src);
 };
 
 // The vector's own out-of-line size() (0x475840) under the name

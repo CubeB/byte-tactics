@@ -145,8 +145,8 @@ typedef std::vector<SmokeParticle> Vec_00474cd0;
 // The particle vector, to call its out-of-line insert under this name.
 class Class_00476210 {
 public:
-    void FUN_00476210(Vec_00474cd0::iterator p, unsigned int m,
-                     const SmokeParticle& x);
+    void insert(Vec_00474cd0::iterator p, unsigned int m,
+                const SmokeParticle& x);
 };
 
 #include "particle_system.h"

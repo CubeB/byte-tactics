@@ -4,7 +4,7 @@
 // The polymorphic view, for the files that delete the object through its
 // virtual destructor or call its slots (order_queue_4384a0.cpp and
 // victory.cpp). order_targets.cpp keeps its own view of the base: the
-// constructors it matches store the vtable by hand (`vtable = DAT_004fd2f8`),
+// constructors it matches store the vtable by hand (`vtable = g_orderFxVtable`),
 // which a class with virtual functions cannot spell.
 #ifndef ORDER_FX_H
 #define ORDER_FX_H

@@ -205,7 +205,7 @@ address,size,file,symbol,status,similarity
 0x40f1e0,25,src/ai/pathfind.cpp,?FreeNode@Pathfinder@@QAEXH@Z,matched,100.0
 0x40f200,158,src/orders/vtol_orders.cpp,?PrepVtolClimb@@YGXPAUUnit@@PAUOrder@@I@Z,matched,100.0
 0x40f2a0,1260,src/orders/vtol_orders.cpp,?VtolLandIfCanOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
-0x40f790,51,src/orders/vtol_orders_40f790.cpp,?AddVec3@@YG?AUVec3_0040f790@@ABU1@0@Z,matched,100.0
+0x40f790,51,src/orders/vtol_orders_40f790.cpp,?AddVec3@@YG?AUVec3@@ABU1@0@Z,matched,100.0
 0x40f7d0,590,src/orders/vtol_orders.cpp,?VtolStandbyOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x40fa20,435,src/orders/vtol_orders.cpp,?VtolMoveOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0
 0x40fbe0,1976,src/orders/vtol_orders_40fbe0.cpp,?VtolFollowOrder@@YGHPAUUnit@@PAUOrder@@H@Z,matched,100.0

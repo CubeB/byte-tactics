@@ -12,11 +12,7 @@
 // order; 0x49a120 (a gap region), 0x49b090, 0x49b720 and 0x49be60 keep their
 // own files: their register plans follow their old files' symbol ids.
 
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 typedef Vec3 Vec3_0049e1a0;
 

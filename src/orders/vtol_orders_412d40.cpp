@@ -60,10 +60,10 @@ struct Order {
     char padA[0x16 - 0xa]; Unit* target;
     char pad1a[0x22 - 0x1a]; Vec3 pos;
     short x; short z;
-    char pad32[0x36 - 0x32]; int field_36;
+    char pad32[0x36 - 0x32]; int ticks;
     char pad3a[0x3e - 0x3a]; int range;
-    unsigned int field_42;
-    char pad46[4]; int field_4a;
+    unsigned int flags_42;
+    char pad46[4]; int next;
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     void SetDeadlineTicks(int);
@@ -159,12 +159,12 @@ static inline int IsAhead(Unit* unit, Order* order)
 int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 0x10008) {
-        if (order->field_4a == 0 && (unit->flags & 0x300000))
+        if (order->next == 0 && (unit->flags & 0x300000))
             AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
         return 5;
     }
-    if (order->target == 0 && (order->field_42 & 0x200)) {
-        if (order->field_4a == 0)
+    if (order->target == 0 && (order->flags_42 & 0x200)) {
+        if (order->next == 0)
             AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }
@@ -188,7 +188,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
             order->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             order->SetDeadlineTicks(1);
-            order->field_36 = 0;
+            order->ticks = 0;
             return 1;
         }
         break;
@@ -204,15 +204,15 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
                 obj->SetAltitude(unit->def->altitude);
                 order->SetAttachedFx((int)obj);
                 order->SetDeadlineTicks(RandomInt(0x1e) + 0x3c);
-                order->field_36 = 0;
+                order->ticks = 0;
                 return 2;
             }
         }
-        if (!(flags & 0xe0) && order->field_36 < 0x5a) {
+        if (!(flags & 0xe0) && order->ticks < 0x5a) {
             if (IsAhead(unit, order))
-                order->field_36 = 0;
+                order->ticks = 0;
             else
-                order->field_36 += 0x2d;
+                order->ticks += 0x2d;
             Fixed d;
             d.v = (int)_hypot(unit->pos.x - order->target->pos.x, unit->pos.z - order->target->pos.z);
             if (d.p.whole > 0xa0) {
@@ -228,7 +228,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
         }
         order->SetAttachedFx(0);
         AppendOrder(unit, new Order("VTOL_EVADE", (int)order->target, 0, 0, 0, 0));
-        order->field_36 = 0;
+        order->ticks = 0;
         order->flags = 0;
         return 0;
     }

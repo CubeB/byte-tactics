@@ -2044,53 +2044,70 @@ Class_004c90b0* Class_004c90b0::Append(const Class_004c90b0& other)
 extern int g_emptyStringRefs;
 extern void* g_emptyString;
 
-class Class_004c9180
-{
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them. The constructors are
+// 0x4c9180 (empty), 0x4c91a0 (copy) and 0x4c91b0 (from text); copying and
+// assignment bump the count and ReleaseRef decrements it and frees the block
+// at zero. 0x4c9230 builds from a length, 0x4c9290 and 0x4c9310 change the
+// case, 0x4c93f0 assigns text and 0x4c9490 takes a substring.
+class StringRef {
 public:
-    void* vtable;
-    Class_004c9180();
+    char* data;              // refcount lives in the dword before data
+
+    StringRef();
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    ~StringRef() { ReleaseRef(); }
+    StringRef& operator=(const StringRef& other)
+    {
+        Assign(&other);
+        return *this;
+    }
+    StringRef* Assign(const StringRef* other);
+    void ReleaseRef();
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    // Copies the characters into a block of their own unless the count is 1.
+    char* GetUnique()
+    {
+        int len = (int)strlen(data);
+        if (*(int*)(data - 4) != 1) {
+            int* block = (int*)malloc(len + 5);
+            *block = 1;
+            char* copy = (char*)(block + 1);
+            strcpy(copy, data);
+            (*(int*)(data - 4))--;
+            if (*(int*)(data - 4) == 0) {
+                free(data - 4);
+            }
+            data = copy;
+            return copy;
+        }
+        return data;
+    }
+    int IsEmpty() const;
+    StringRef SubString(int start, int end) const;
 };
 
-// FUNCTION: 0x4c9180
-Class_004c9180::Class_004c9180()
+// FUNCTION: 0x4c9180 ??0StringRef@@QAE@XZ
+StringRef::StringRef()
 {
     g_emptyStringRefs++;
-    vtable = &g_emptyString;
+    data = (char*)&g_emptyString;
 }
 
-// Copy constructor of a reference-counted string handle: the handle points at
-// character data whose reference count is stored just before it. The
-// assignment operator of the same handle is at 0x4c93b0.
-class Class_004c91a0 {
-public:
-    char* ptr;
-
-    Class_004c91a0(const Class_004c91a0& other);
-};
-
-// FUNCTION: 0x4c91a0
-Class_004c91a0::Class_004c91a0(const Class_004c91a0& other)
+// FUNCTION: 0x4c91a0 ??0StringRef@@QAE@ABV0@@Z
+StringRef::StringRef(const StringRef& other)
 {
-    ptr = other.ptr;
-    ((int*)ptr)[-1]++;
+    data = other.data;
+    ((int*)data)[-1]++;
 }
 
-// Constructor of the reference-counted string handle from a C string (see
-// 0x4c9180 for the default constructor, 0x4c91a0 for the copy constructor and
-// 0x4c93b0 for assignment). The handle points at the characters; the
-// reference count is the int just before them. An empty or null string shares
-// the global empty string, whose count is g_emptyStringRefs. The class is named
-// after this address because data/symbols.csv maps one name per constructor
-// (Class_004c91a0::Class_004c91a0 is already the copy constructor).
-class Class_004c91b0 {
-public:
-    char* ptr;
-
-    Class_004c91b0(const char* text);
-};
-
-// FUNCTION: 0x4c91b0
-Class_004c91b0::Class_004c91b0(const char* text)
+// FUNCTION: 0x4c91b0 ??0StringRef@@QAE@PBD@Z
+StringRef::StringRef(const char* text)
 {
     char* chars;
     if (text == 0 || *text == 0) {
@@ -2102,117 +2119,51 @@ Class_004c91b0::Class_004c91b0(const char* text)
         chars = (char*)(block + 1);
         strcpy(chars, text);
     }
-    ptr = chars;
+    data = chars;
 }
 
-// Constructor of the reference-counted string handle (see 0x4c91b0) from the
-// first len characters of a string. A null string shares the global empty
-// string, whose count is g_emptyStringRefs. The class is named after this address
-// because data/symbols.csv maps one name per constructor.
-class Class_004c9230 {
-public:
-    char* ptr;
-
-    Class_004c9230(const char* text, int len);
-};
-
-// FUNCTION: 0x4c9230
-Class_004c9230::Class_004c9230(const char* text, int len)
+// The constructor from the first len characters of a string: a null string
+// shares the global empty string, whose count is g_emptyStringRefs.
+// FUNCTION: 0x4c9230 ??0StringRef@@QAE@PBDH@Z
+StringRef::StringRef(const char* text, int len)
 {
     if (text == 0) {
         g_emptyStringRefs++;
-        ptr = (char*)&g_emptyString;
+        data = (char*)&g_emptyString;
     } else {
         int* block = (int*)malloc(len + 1 + sizeof(int));
         *block = 1;
         char* chars = (char*)(block + 1);
         strncpy(chars, text, len);
         chars[len] = 0;
-        ptr = chars;
+        data = chars;
     }
 }
 
-class Class_004c9290 {
-public:
-    char* data;              // refcount lives in the dword before data
-
-    char* GetUnique()
-    {
-        int len = (int)strlen(data);
-        if (*(int*)(data - 4) != 1) {
-            int* block = (int*)malloc(len + 5);
-            *block = 1;
-            char* copy = (char*)(block + 1);
-            strcpy(copy, data);
-            (*(int*)(data - 4))--;
-            if (*(int*)(data - 4) == 0) {
-                free(data - 4);
-            }
-            data = copy;
-            return copy;
-        }
-        return data;
-    }
-
-    Class_004c9290* MakeLower();
-};
-
 // FUNCTION: 0x4c9290
-Class_004c9290* Class_004c9290::MakeLower()
+StringRef* StringRef::MakeLower()
 {
     _strlwr(GetUnique());
     return this;
 }
 
-class Class_004c9310 {
-public:
-    char* data;              // refcount lives in the dword before data
-
-    char* GetUnique()
-    {
-        int len = (int)strlen(data);
-        if (*(int*)(data - 4) != 1) {
-            int* block = (int*)malloc(len + 5);
-            *block = 1;
-            char* copy = (char*)(block + 1);
-            strcpy(copy, data);
-            (*(int*)(data - 4))--;
-            if (*(int*)(data - 4) == 0) {
-                free(data - 4);
-            }
-            data = copy;
-            return copy;
-        }
-        return data;
-    }
-
-    Class_004c9310* MakeUpper();
-};
-
 // FUNCTION: 0x4c9310
-Class_004c9310* Class_004c9310::MakeUpper()
+StringRef* StringRef::MakeUpper()
 {
     _strupr(GetUnique());
     return this;
 }
 
-// Reference-count decrement and free for a reference-counted string handle
-// (see the copy constructor at 0x4c91a0 and assignment at 0x4c93b0, which
-// share the same shape). data/symbols.csv names this address and its class
-// Class_004c9390::ReleaseRef, and every caller (map_list.cpp, 0x432c00.cpp,
-// 0x488a00.cpp, 0x4b75d0.cpp) calls it as a plain method of that class.
+// The type's reference-count decrement and free, called by every file that
+// spells the handle and by the scalar deleting destructors 0x432c00 and
+// 0x432c20. ReleaseRef is data/symbols.csv's established name for this
+// address; the destructor spelling StringRef::~StringRef in
+// data/aliases.csv is the same function.
 
 extern "C" void __cdecl free(void*);
 
-class Class_004c9390 {
-public:
-    char* data;
-
-    void ReleaseRef();
-};
-
 // FUNCTION: 0x4c9390
-void Class_004c9390::ReleaseRef()
+void StringRef::ReleaseRef()
 {
     ((int*)data)[-1]--;
     int* p = (int*)data - 1;
@@ -2221,25 +2172,17 @@ void Class_004c9390::ReleaseRef()
     }
 }
 
-// Assignment of a C string to the reference-counted string handle (see
-// 0x4c91b0 for the constructor from a C string and 0x4c93b0 for assignment
-// from another handle): releases the old characters, then shares the global
-// empty string or copies the text into a new block whose first int is the
-// reference count.
-class Class_004c93f0 {
-public:
-    char* ptr;
-
-    Class_004c93f0* AssignText(const char* text);
-};
-
+// Assignment of a C string to the handle (see 0x4c91b0 for the constructor
+// from a C string and 0x4c93b0 for assignment from another handle): releases
+// the old characters, then shares the global empty string or copies the text
+// into a new block whose first int is the reference count.
 // FUNCTION: 0x4c93f0
-Class_004c93f0* Class_004c93f0::AssignText(const char* text)
+StringRef* StringRef::AssignText(const char* text)
 {
     // The release, phrased as in the destructor body 0x4c9390.
-    ((int*)ptr)[-1]--;
-    int* old = (int*)ptr - 1;
-    if (((int*)ptr)[-1] == 0)
+    ((int*)data)[-1]--;
+    int* old = (int*)data - 1;
+    if (((int*)data)[-1] == 0)
         free(old);
     char* chars;
     if (text == 0 || *text == 0) {
@@ -2251,50 +2194,21 @@ Class_004c93f0* Class_004c93f0::AssignText(const char* text)
         chars = (char*)(block + 1);
         strcpy(chars, text);
     }
-    ptr = chars;
+    data = chars;
     return this;
 }
 
-// Substring of the reference-counted string handle (see 0x4c9180 for the
-// default constructor and 0x4c9230 for the constructor from the first len
-// characters of a string): returns a new handle for ptr[start..end), with
-// start clamped to 0 and end to the string length. The class is named after this address.
-class Class_004c9490 {
-public:
-    char* ptr;
-
-    Class_004c9490()
-    {
-        g_emptyStringRefs++;
-        ptr = (char*)&g_emptyString;
-    }
-    Class_004c9490(const char* text, int len)
-    {
-        if (text == 0) {
-            g_emptyStringRefs++;
-            ptr = (char*)&g_emptyString;
-        } else {
-            int* block = (int*)malloc(len + 1 + sizeof(int));
-            *block = 1;
-            char* chars = (char*)(block + 1);
-            strncpy(chars, text, len);
-            chars[len] = 0;
-            ptr = chars;
-        }
-    }
-
-    Class_004c9490 SubString(int start, int end) const;
-};
-
+// Substring of the handle: returns a new handle for data[start..end), with
+// start clamped to 0 and end to the string length.
 // FUNCTION: 0x4c9490
-Class_004c9490 Class_004c9490::SubString(int start, int end) const
+StringRef StringRef::SubString(int start, int end) const
 {
-    int len = strlen(ptr);
+    int len = strlen(data);
     if (start < 0)
         start = 0;
     if (end > len)
         end = len;
     if (start >= end)
-        return Class_004c9490();
-    return Class_004c9490(ptr + start, end - start);
+        return StringRef();
+    return StringRef(data + start, end - start);
 }

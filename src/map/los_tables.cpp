@@ -30,53 +30,50 @@
 #include <vector>
 #include "los_tables.h"
 
-class Class_004c9390 {
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them. The views in this file are the
+// copy constructor 0x4c91a0, the assignment 0x4c93b0, ReleaseRef 0x4c9390 and
+// the scalar deleting destructors 0x432c00 and 0x432c20.
+class StringRef {
 public:
-    char* data;                        // +0x0
+    char* ptr;                         // +0x0
+
+    StringRef();
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    StringRef& operator=(const StringRef& other);
     void ReleaseRef();
+    StringRef* Assign(StringRef* param_1);
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    char* GetUnique();
+    int IsEmpty() const;
+    StringRef SubString(int start, int end) const;
+    void* FUN_00432c00(unsigned char param_1);
+    void* FUN_00432c20(unsigned char param_1);
 };
 
 struct Elem_00432be0 {
     char* data;                        // +0x0
 
-    ~Elem_00432be0() { ((Class_004c9390*)this)->ReleaseRef(); }
-};
-
-class Class_004c91a0 {
-public:
-    char* ptr;
-
-    Class_004c91a0(const Class_004c91a0& other);
+    ~Elem_00432be0() { ((StringRef*)this)->ReleaseRef(); }
 };
 
 struct Entry_00432cf0 {
-    Class_004c91a0 name;     // +0x0
-    int value;               // +0x4
+    StringRef name;         // +0x0
+    int value;                 // +0x4
+
+    void* AssignPair(Entry_00432cf0* param);
 };
 
-class Class_004c93b0 {
-public:
-    char* ptr;                         // +0x0
-    int field_4;                       // +0x4
-
-    void* AssignPair(Class_004c93b0* param);
-    Class_004c93b0* Assign(Class_004c93b0* param_1);
-};
-
-// An 8-byte element: the string handle itself (the decomp's separate int
-// field is the handle's field_4, so the two views agree on the layout).
+// An 8-byte element: the string handle and the int after it, the same pair as
+// Entry_00432cf0.
 struct Elem_432cb0 {
-    Class_004c93b0 handle;
-};
-
-class Class_00432c00 {
-public:
-    void* FUN_00432c00(unsigned char param_1);
-};
-
-class Class_00432c20 {
-public:
-    void* FUN_00432c20(unsigned char param_1);
+    StringRef handle;               // +0x0
+    int field_4;                       // +0x4
 };
 
 #pragma pack(push, 1)
@@ -154,6 +151,7 @@ struct ApproachRadius { int GetType(); };
 struct RingApproach { int GetType(); };
 struct PointMarker { int GetType(); };
 int FUN_00490200();
+int GetBuildRating(int, unsigned short);
 
 extern void __cdecl operator delete(void*);
 
@@ -180,9 +178,9 @@ typedef Vec_00432be0::size_type (Vec_00432be0::*SizeFn_00432be0)() const;
 SizeFn_00432be0 g_size_00432be0 = &Vec_00432be0::size;
 
 // FUNCTION: 0x432c00
-void* Class_00432c00::FUN_00432c00(unsigned char param_1)
+void* StringRef::FUN_00432c00(unsigned char param_1)
 {
-    ((Class_004c9390*)this)->ReleaseRef();
+    ReleaseRef();
     if ((param_1 & 1) != 0) {
         operator delete(this);
     }
@@ -191,12 +189,12 @@ void* Class_00432c00::FUN_00432c00(unsigned char param_1)
 
 // Same shape as the matched sibling 0x432c00 above: a scalar deleting
 // destructor that calls the reference-count release at 0x4c9390 (already
-// named Class_004c9390::ReleaseRef in data/symbols.csv and called as a plain
+// named StringRef::ReleaseRef in data/symbols.csv and called as a plain
 // method by every other caller) then conditionally frees this.
 // FUNCTION: 0x432c20
-void* Class_00432c20::FUN_00432c20(unsigned char param_1)
+void* StringRef::FUN_00432c20(unsigned char param_1)
 {
-    ((Class_004c9390*)this)->ReleaseRef();
+    ReleaseRef();
     if ((param_1 & 1) != 0) {
         operator delete(this);
     }
@@ -227,7 +225,7 @@ void __stdcall AssignRange(Elem_432cb0* first, Elem_432cb0* last, Elem_432cb0* v
 {
     for (; first != last; ++first) {
         first->handle.Assign(&value->handle);
-        first->handle.field_4 = value->handle.field_4;
+        first->field_4 = value->field_4;
     }
 }
 
@@ -238,7 +236,7 @@ Elem_432cb0* __stdcall AssignRangeBack(Elem_432cb0* param_1, Elem_432cb0* param_
         --param_2;
         --param_3;
         param_3->handle.Assign(&param_2->handle);
-        param_3->handle.field_4 = param_2->handle.field_4;
+        param_3->field_4 = param_2->field_4;
     }
     return param_3;
 }
@@ -255,17 +253,17 @@ ConstructFn_00432cf0 g_construct_00432cf0 = &Alloc_00432cf0::construct;
 // A reference-counted string handle, with the count in the dword before the
 // characters, and an int after it.
 // FUNCTION: 0x432d20
-void* Class_004c93b0::AssignPair(Class_004c93b0* param)
+void* Entry_00432cf0::AssignPair(Entry_00432cf0* param)
 {
-    Assign(param);
-    field_4 = param->field_4;
+    name.Assign(&param->name);
+    value = param->value;
     return this;
 }
 
 // The original calls this from 0x432d20 above rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4c93b0
-Class_004c93b0* Class_004c93b0::Assign(Class_004c93b0* param_1)
+StringRef* StringRef::Assign(StringRef* param_1)
 {
     *(int*)(param_1->ptr - 4) += 1;
     *(int*)(ptr - 4) -= 1;

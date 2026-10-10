@@ -1013,24 +1013,27 @@ int __stdcall CountDirectoryEntries(const char* path, int flag)
     return count;
 }
 
-// The caller's std::vector<Class_004c91a0>, written by hand so that insert
+// The caller's std::vector<StringRef>, written by hand so that insert
 // (0x4be6c0, which has its own file) stays an out-of-line call under its real
-// name.
-class Class_004c9390 {
+// name. The handle is a pointer to the characters with the reference count in
+// the int just before them.
+class StringRef {
 public:
     char* data;                        // +0x0
+
+    StringRef();
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    ~StringRef() { ReleaseRef(); }
     void ReleaseRef();
-};
-
-class Class_004c91a0 : public Class_004c9390 {
-public:
-    Class_004c91a0(const Class_004c91a0& other);
-};
-
-class Class_004c91b0 : public Class_004c91a0 {
-public:
-    Class_004c91b0(const char* text);
-    ~Class_004c91b0() { ReleaseRef(); }
+    StringRef* Assign(const StringRef* other);
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    int IsEmpty() const;
+    StringRef SubString(int start, int end) const;
 };
 
 namespace std {
@@ -1044,7 +1047,7 @@ public:
     void insert(T* pos, unsigned int n, const T& x);
 };
 }
-typedef std::vector<Class_004c91a0> FileList;
+typedef std::vector<StringRef> FileList;
 
 // FUNCTION: 0x4bca30
 void __stdcall ListDirectory(const char* path, int param_2, FileList* param_3)
@@ -1055,7 +1058,7 @@ void __stdcall ListDirectory(const char* path, int param_2, FileList* param_3)
         do {
             if (strcmp(fd.name, ".") != 0 && strcmp(fd.name, "..") != 0
                 && (param_2 == 0 || (fd.attrib & 0x10) != 0)) {
-                Class_004c91b0 key(fd.name);
+                StringRef key(fd.name);
                 param_3->insert(param_3->_Last, 1, key);
             }
         } while (HAPI_FindNext((FindFiles*)h, &fd) != -1);
@@ -1095,7 +1098,7 @@ void __stdcall FindFilesRecursive(char* path, const char* pat, FileList* tree, i
                     FindFilesRecursive(buf, pat, tree, f->state, 0);
                 } else if (MatchWildcard(fd.name, pat)) {
                     sprintf(buf, "%s\\%s", path, fd.name);
-                    Class_004c91b0 key(buf);
+                    StringRef key(buf);
                     tree->insert(tree->_Last, 1, key);
                 }
             }

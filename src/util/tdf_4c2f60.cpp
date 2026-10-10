@@ -10,21 +10,24 @@
 #include <vector>
 #include <string.h>
 
-class Class_004c9390 {
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them.
+class StringRef {
 public:
-    char* data;
-    void ReleaseRef();
-};
+    char* p;                           // count in the dword before p
 
-class Class_004c91a0 {
-public:
-    char* p;
+    StringRef(const StringRef& other);
+    void ReleaseRef();
+    StringRef* Assign(const StringRef* other);
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
 };
 
 // One key/value entry of a section: two reference-counted string handles.
 struct Elem_004c2f60 {
-    Class_004c91a0 a;                  // +0x0 key
-    Class_004c91a0 b;                  // +0x4 value
+    StringRef a;                // +0x0 key
+    StringRef b;                // +0x4 value
 };
 
 void __stdcall ReleasePair(char* p);

@@ -6,23 +6,26 @@
 // root section.
 #include <vector>
 
-class Class_004c9390 {
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them.
+class StringRef {
 public:
-    char* data;
-    void ReleaseRef();
-};
+    char* p;                           // count in the dword before p
 
-class Class_004c91a0 {
-public:
-    char* p;
-    Class_004c91a0();
-    Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
+    StringRef();
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    ~StringRef() { ReleaseRef(); }
+    void ReleaseRef();
+    StringRef* Assign(const StringRef* other);
+    StringRef* AssignText(const char* text);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
 };
 
 struct TdfField {
-    Class_004c91a0 a;                  // +0x0 key
-    Class_004c91a0 b;                  // +0x4 value
+    StringRef a;                // +0x0 key
+    StringRef b;                // +0x4 value
 };
 
 void __cdecl GameFreeThunk(int* param_1);

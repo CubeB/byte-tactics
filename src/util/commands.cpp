@@ -11,11 +11,12 @@
 
 class CommandEntry;
 
-class Class_004c9390 {
-public:
-    char* data;                        // +0x0
-    void ReleaseRef();
-};
+class StringRef;
+
+// Unused here: the symbol ids these declarations take keep the file-local
+// s_commandTable's id (data/symbols.csv's s_commandTable$S4554) at 4554; the
+// handle itself is declared where its first methods were (docs/c2-regalloc.md).
+int GetLocalizedString(void*, char*, const char*, int, char*, char*);
 
 struct Pair_004b7620 {
     int fn;
@@ -43,27 +44,30 @@ extern int g_defaultCommandHandler;
 extern int g_defaultCommandMask;
 extern char DAT_005119b8[];
 
-class Class_004c91a0 : public Class_004c9390 {
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them.
+class StringRef {
 public:
-    Class_004c91a0(const Class_004c91a0& other);
+    char* data;                        // +0x0, count in the dword before
+
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    ~StringRef() { ReleaseRef(); }
+    void ReleaseRef();
+    StringRef* Assign(const StringRef* other);
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    char* GetUnique();
+    StringRef SubString(int start, int end) const;
 };
 
-static inline bool operator==(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline bool operator==(const StringRef& a, const StringRef& b)
 {
     return strcmp(a.data, b.data) == 0;
 }
-
-class Class_004c91b0 : public Class_004c91a0 {
-public:
-    Class_004c91b0(const char* text);
-    ~Class_004c91b0() { ReleaseRef(); }
-};
-
-class Class_004c9290 {
-public:
-    char* data;                        // +0x0
-    Class_004c9290* MakeLower();
-};
 
 struct NameLess_004b7620 {
     bool operator()(const char* a, const char* b) const
@@ -73,7 +77,7 @@ struct NameLess_004b7620 {
 };
 
 struct NameNe_004b7620 {
-    bool operator()(const Class_004c91a0& a, const Class_004c91a0& b) const
+    bool operator()(const StringRef& a, const StringRef& b) const
     {
         return !(a == b);
     }
@@ -87,28 +91,26 @@ struct ConsoleCommand {
     int mask;                          // +0x8
 };
 
-struct Class_004c93b0 {
-    void Assign(int);
-};
-
+// No explicit destructor: the implicit one destroys handle through
+// StringRef's destructor (an explicit handle.ReleaseRef() would release it
+// twice).
 class CommandEntry {
 public:
-    Class_004c91a0 handle;             // +0x0
+    StringRef handle;             // +0x0
     int value1;                        // +0x4
     int value2;                        // +0x8
 
-    CommandEntry(const Class_004c91a0& h, Pair_004b7620 pp);
+    CommandEntry(const StringRef& h, Pair_004b7620 pp);
     CommandEntry(const CommandEntry& other);
     CommandEntry& operator=(const CommandEntry& other)
     {
         AssignEntry((int*)&other);
         return *this;
     }
-    ~CommandEntry() { handle.ReleaseRef(); }
     void* AssignEntry(int* param_1);
 };
 
-CommandEntry::CommandEntry(const Class_004c91a0& h, Pair_004b7620 pp) : handle(h)
+CommandEntry::CommandEntry(const StringRef& h, Pair_004b7620 pp) : handle(h)
 {
     *(Pair_004b7620*)&value1 = pp;
 }
@@ -272,7 +274,7 @@ void __stdcall RegisterCommand(const char* name, Handler_004b7620 fn, int mask)
 {
     // Built before key: the tail copies the pair from this local.
     Pair_004b7620 p((int)fn, mask);
-    Class_004c91b0 key(name);
+    StringRef key(name);
     CommandEntry* first = s_commandTable.begin();
     CommandEntry* last = s_commandTable.end();
     NameLess_004b7620 less;
@@ -304,7 +306,7 @@ void __stdcall RegisterCommands(ConsoleCommand* rec)
     for (; rec->name; rec++) {
         int mask = rec->mask;
         Handler_004b7620 fn = rec->fn;
-        Class_004c91b0 key(rec->name);
+        StringRef key(rec->name);
         CommandEntry* first = s_commandTable.begin();
         CommandEntry* last = s_commandTable.end();
         NameLess_004b7620 less;
@@ -374,8 +376,8 @@ int __stdcall ExecuteCommand(CommandArgs* obj, int param_2)
 {
     int result = 0;
     if (obj->count >= 1) {
-        Class_004c91b0 key((char*)obj->GetArg(0, (int)DAT_005119b8));
-        ((Class_004c9290*)&key)->MakeLower();
+        StringRef key((char*)obj->GetArg(0, (int)DAT_005119b8));
+        key.MakeLower();
         HandlerSlot_004b7900* h = Find_004b7900(key.data);
         if (h != 0 && (h->mask & param_2)) {
             result = h->mask;
@@ -454,7 +456,7 @@ InsertFn_004b7b00 g_insert_004b7b00 = &Vec_004b7b00::insert;
 // FUNCTION: 0x4b7e00
 void* CommandEntry::AssignEntry(int* param_1)
 {
-    ((Class_004c93b0*)&handle)->Assign((int)param_1);
+    handle.Assign((StringRef*)param_1);
     value1 = param_1[1];
     value2 = param_1[2];
     return this;

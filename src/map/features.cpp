@@ -473,6 +473,9 @@ struct Game {
 };
 #pragma pack(pop)
 
+// The reference-counted string handle (StringRef elsewhere). It keeps this
+// view: under /Gi the length of the type's name moves this file's symbol ids,
+// and 0x424050, 0x424840 and 0x424890 only match at the current ones.
 class Class_004c9390 {
 public:
     char* data;                        // +0x0

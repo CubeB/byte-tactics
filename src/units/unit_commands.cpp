@@ -594,45 +594,48 @@ Item_00485940** __stdcall Partition(Item_00485940** first, Item_00485940** last,
 // its initialiser (0x4889d0) and the destructor it registers with atexit
 // (0x488a00). The element is 8 bytes and its destructor releases the
 // reference-counted string at +0 through ReleaseRef.
-class Class_004c9390 {
+// The reference-counted string handle: a pointer to the characters with the
+// reference count in the int just before them (0x4c91a0 copies, 0x4c91b0
+// builds from text, 0x4c9390 releases, 0x4c93b0 assigns).
+class StringRef {
 public:
-    char* data;                        // +0x0
+    char* data;                        // +0x0, count in the dword before
+
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    ~StringRef() { ReleaseRef(); }
+    StringRef& operator=(const StringRef& other)
+    {
+        Assign(&other);
+        return *this;
+    }
     void ReleaseRef();
+    StringRef* Assign(const StringRef* other);
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    char* GetUnique();
+    int IsEmpty() const;
+    StringRef SubString(int start, int end) const;
 };
 
-// Copy constructor of the reference-counted string handle (0x4c91a0).
-class Class_004c91a0 : public Class_004c9390 {
-public:
-    Class_004c91a0(const Class_004c91a0& other);
-};
-
-// Constructor of the same handle from a C string (0x4c91b0).
-class Class_004c91b0 : public Class_004c91a0 {
-public:
-    Class_004c91b0(const char* text);
-    ~Class_004c91b0() { ReleaseRef(); }
-};
-
-// Assignment of the same handle (0x4c93b0).
-struct Class_004c93b0 {
-    char* ptr;
-
-    Class_004c93b0* Assign(Class_004c93b0* param_1);
-};
-
+// No explicit destructor: the implicit one destroys name through
+// StringRef's destructor (an explicit name.ReleaseRef() would release it
+// twice).
 class UnitCategory {
 public:
-    Class_004c91a0 name;               // +0x0
+    StringRef name;                    // +0x0
     void* value;                       // +0x4
 
-    UnitCategory(const Class_004c91a0& n, void* v) : name(n) { value = v; }
+    UnitCategory(const StringRef& n, void* v) : name(n) { value = v; }
     UnitCategory(const UnitCategory& other);
     UnitCategory& operator=(const UnitCategory& other)
     {
         AssignCategory((int*)&other);
         return *this;
     }
-    ~UnitCategory() { name.ReleaseRef(); }
     void* AssignCategory(int* other);
 };
 
@@ -758,7 +761,7 @@ UnitTypeSet* __stdcall GetCategoryMask(char* name)
         return (UnitTypeSet*)first->value;
 
     UnitTypeSet* p = new UnitTypeSet;
-    s_unitCategories.insert(first, UnitCategory(Class_004c91b0(name), p));
+    s_unitCategories.insert(first, UnitCategory(StringRef(name), p));
     return p;
 }
 
@@ -844,7 +847,7 @@ InsertFn_00488fb0 g_insert_00488fb0 = &Vec_00488fb0::insert;
 // FUNCTION: 0x489240
 void* UnitCategory::AssignCategory(int* other)
 {
-    ((Class_004c93b0*)&name)->Assign((Class_004c93b0*)other);
+    name.Assign((StringRef*)other);
     value = (void*)other[1];
     return this;
 }

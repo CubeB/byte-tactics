@@ -19,61 +19,45 @@ extern char DAT_005119b8[];
 
 void __cdecl AllocNotifyNop(int);
 
-// The string handle (see tdf.cpp): 0x4c9180 builds the empty one,
-// 0x4c91a0 copies, 0x4c91b0 builds from text, 0x4c9390 releases, 0x4c93b0 and
-// 0x4c93f0 assign.
-class Class_004c91a0;
-
-class Class_004c9390 {
+// The reference-counted string handle (see tdf.cpp): 0x4c9180 builds the
+// empty one, 0x4c91a0 copies, 0x4c91b0 builds from text, 0x4c9390 releases,
+// 0x4c93b0 assigns and 0x4c93f0 assigns from a C string.
+class StringRef {
 public:
     char* ptr;
 
-    void ReleaseRef();
-};
-
-class Class_004c93b0 {
-public:
-    char* ptr;
-
-    Class_004c93b0* Assign(const Class_004c91a0* other);
-};
-
-class Class_004c93f0 {
-public:
-    char* ptr;
-
-    Class_004c93f0* AssignText(const char* text);
-};
-
-class Class_004c91a0 {
-public:
-    char* ptr;
-
-    Class_004c91a0(const Class_004c91a0& other);
-    ~Class_004c91a0() { ((Class_004c9390*)this)->ReleaseRef(); }
-    Class_004c91a0& operator=(const Class_004c91a0& other)
+    StringRef();
+    StringRef(const StringRef& other);
+    StringRef(const char* text);
+    StringRef(const char* text, int len);
+    ~StringRef() { ReleaseRef(); }
+    StringRef& operator=(const StringRef& other)
     {
-        ((Class_004c93b0*)this)->Assign(&other);
+        Assign(&other);
         return *this;
     }
+    void ReleaseRef();
+    StringRef* Assign(const StringRef* other);
+    StringRef* Append(const StringRef& other);
+    StringRef* MakeLower();
+    StringRef* MakeUpper();
+    StringRef* AssignText(const char* text);
+    char* GetUnique();
+    StringRef SubString(int start, int end) const;
 };
 
-class Class_004c91b0 : public Class_004c91a0 {
-public:
-    Class_004c91b0(const char* text);
-};
+// Unused here: the symbol ids these declarations take keep the allocation of
+// the functions below (docs/c2-regalloc.md).
+int RIReport(int, int, int, int, int, int, int, int, int, int);
+void CopyDwordIfNonNull(int*, int*);
+int GetBuildRating(int, unsigned short);
 
-class Class_004c9180 : public Class_004c91a0 {
-public:
-    Class_004c9180();
-};
-
-static inline bool operator==(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline bool operator==(const StringRef& a, const StringRef& b)
 {
     return strcmp(a.ptr, b.ptr) == 0;
 }
 
-static inline bool Ne(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline bool Ne(const StringRef& a, const StringRef& b)
 {
     return !(a == b);
 }
@@ -81,10 +65,10 @@ static inline bool Ne(const Class_004c91a0& a, const Class_004c91a0& b)
 // One entry of the translations: a key and a value, both string handles. Its
 // destructor (0x4c5190) is in tdf.cpp.
 struct TdfField {
-    Class_004c91a0 key;                  // +0x0
-    Class_004c91a0 value;                // +0x4
+    StringRef key;                  // +0x0
+    StringRef value;                // +0x4
 
-    TdfField(const Class_004c91a0& a, const Class_004c91a0& b);
+    TdfField(const StringRef& a, const StringRef& b);
     ~TdfField();
 };
 
@@ -92,14 +76,14 @@ struct TdfField {
 namespace std {
 inline void _Destroy(TdfField* p)
 {
-    ((Class_004c9390*)&p->value)->ReleaseRef();
-    ((Class_004c9390*)&p->key)->ReleaseRef();
+    ((StringRef*)&p->value)->ReleaseRef();
+    ((StringRef*)&p->key)->ReleaseRef();
 }
 }
 
 // Builds the new entry as a by-value result (the exe passes the address of a
 // hidden result slot, not the constructor's return value).
-static inline TdfField MakeElem(const Class_004c91a0& a, const Class_004c91a0& b)
+static inline TdfField MakeElem(const StringRef& a, const StringRef& b)
 {
     return TdfField(a, b);
 }
@@ -142,9 +126,9 @@ extern TranslationTable* g_translations;
 // Inserts a new entry for the key at e, with an empty value, and returns its
 // value handle. The temporaries (the empty handle and the entry) live until
 // the end of the return statement.
-static inline Class_004c93f0* InsertNew(TranslationTable* s, TdfField* e, const Class_004c91a0& key)
+static inline StringRef* InsertNew(TranslationTable* s, TdfField* e, const StringRef& key)
 {
-    return (Class_004c93f0*)&((TdfFieldVector*)&s->v)->Insert(e, MakeElem(key, Class_004c9180()))->value;
+    return (StringRef*)&((TdfFieldVector*)&s->v)->Insert(e, MakeElem(key, StringRef()))->value;
 }
 
 #include "tdf.h"
@@ -181,16 +165,16 @@ void __stdcall LoadTranslations(char* filename, char* section)
                 f.current->CopyRecordName(name, 0xff);
                 f.current->GetFieldString(value, g_language, 0xff, DAT_005119b8);
                 if (strlen(value) != 0) {
-                    Class_004c91b0 key(name);
+                    StringRef key(name);
                     TdfField* e;
                     s = g_translations;
                     e = g_translations->FindLowerBound(key.ptr);
-                    Class_004c93f0* r;
+                    StringRef* r;
                     // Nested inline == and Ne helpers give the exe's bool sequence.
                     if (e == s->v.end() || Ne(e->key, key)) {
                         r = InsertNew(s, e, key);
                     } else {
-                        r = (Class_004c93f0*)&e->value;
+                        r = (StringRef*)&e->value;
                     }
                     r->AssignText(value);
                 }

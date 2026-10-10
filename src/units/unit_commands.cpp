@@ -282,7 +282,8 @@ struct MissionUnit {               // 0x24 bytes
     Vec3_00487bf0 pos;                // +0xc
     short angle;                      // +0x18
     short health;                     // +0x1a
-    char unknown_1c[0x22 - 0x1c];
+    int creationCountdown;            // +0x1c
+    short buildPriority;              // +0x20
     unsigned char player;             // +0x22
     unsigned char flags;              // +0x23
 };

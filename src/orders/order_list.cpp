@@ -284,14 +284,14 @@ struct Game {
     char unknown_14280[0x142b7 - 0x14280];
     int overflowBucket;                // +0x142b7
     char unknown_142bb[0x1438f - 0x142bb];
-    int unitTypeCount;                 // +0x1438f
+    int unitDefCount;                  // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    UnitType_0043cd20* unitTypes;      // +0x1439b
+    UnitType_0043cd20* unitDefs;       // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
     union {
         unsigned int frame;            // +0x38a47
         int field_38a47;               // +0x38a47
-        unsigned int ticks;            // +0x38a47
+        unsigned int gameTick;         // +0x38a47
     };
 };
 
@@ -639,7 +639,7 @@ void __stdcall EnsurePatrolReturnOrder(Unit* p, Order* item)
 // FUNCTION: 0x43a0c0
 Order::Order(unsigned char k, Unit* o, Vec3* p, int a, int b, int c)
     : kind(k), link(o, 0), start(PointInit_0043a1f0(0, 0)), cached(PointInit_0043a1f0(0, 0)),
-      id(a), amount(b), progress(c), created(g_game->ticks)
+      id(a), amount(b), progress(c), created(g_game->gameTick)
 {
     // Through the inline method: a plain `link.value = this` reorders the
     // position pointer's compare before the vtable store.
@@ -676,8 +676,8 @@ void __stdcall WriteUnitTypeNameKey(HapiBank* file, unsigned short id)
 {
     char key[0x80];
     sprintf(key, "UTYPENAME%4d", id);
-    if (!file->HasItem(key) && id >= 1 && id < g_game->unitTypeCount)
-        file->SetStringItem(key, g_game->unitTypes[id].name);
+    if (!file->HasItem(key) && id >= 1 && id < g_game->unitDefCount)
+        file->SetStringItem(key, g_game->unitDefs[id].name);
 }
 
 // Resolves a unit definition slot number to a unit type id. The parsed text
@@ -694,8 +694,8 @@ short __stdcall ResolveUnitTypeKey(HapiBank* file, unsigned short id)
         return FindUnitTypeId(file->GetStringItem(key, 0));
     int i, n = 0;                     // n counts every table entry, k only the
     unsigned short k = 0;             // ones without flag bit 5
-    for (i = 1; i < g_game->unitTypeCount; i++, n++) {
-        if (!(g_game->unitTypes[(unsigned short)i].flags & 0x20)) {
+    for (i = 1; i < g_game->unitDefCount; i++, n++) {
+        if (!(g_game->unitDefs[(unsigned short)i].flags & 0x20)) {
             if (k == id)
                 return n;
             k++;

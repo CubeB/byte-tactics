@@ -126,17 +126,17 @@ struct Game {
     int scrollY;                       // +0x14323
     char unknown_14327[0x33a0f - 0x14327];
     int soundCount;                    // +0x33a0f
-    int soundIds[256];                 // +0x33a13
+    int sounds[256];                   // +0x33a13
     char soundNames[512][0x20];        // +0x33e13
-    SoundCat_0047fd70* categories;     // +0x37e13
+    SoundCat_0047fd70* soundCategories;     // +0x37e13
     char unknown_37e17[0x37f0c - 0x37e17];
-    int volume1;                       // +0x37f0c
+    int fxVolume;                      // +0x37f0c
     char unknown_37f10[0x37f17 - 0x37f10];
     unsigned char unitChat;            // +0x37f17
     unsigned char unitChatText;        // +0x37f18
     unsigned char flags_37f19;         // +0x37f19
     char unknown_37f1a[0x38a47 - 0x37f1a];
-    unsigned int frame;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
 
     Player* Current() { return &players[playerIndex]; }
     Player* Current2() { int i = playerIndex; return &players[i]; }
@@ -388,13 +388,13 @@ void __stdcall StreamSoundDelayed(char* param_1, int param_2, int param_3)
 int __stdcall PlaySoundByIndex(int index, int param_2)
 {
     if (index != 0xffff) {
-        int sound = g_game->soundIds[index];
+        int sound = g_game->sounds[index];
         if (g_useWindowsSound) {
             if (g_playLooping)
                 return PlayLoopingWavMemory(sound);
             return PlayWavMemory(sound);
         }
-        if (g_game->volume1 != 0 && (g_game->flags_37f19 & 7) != 0
+        if (g_game->fxVolume != 0 && (g_game->flags_37f19 & 7) != 0
             && g_noDirectSound == 0) {
             if (param_2) {
                 Packet_0047f0c0 packet;
@@ -445,7 +445,7 @@ int __stdcall PlaySoundFile(char* name)
 {
     if (g_useWindowsSound)
         return PlayWavFromDisk(name);
-    if (name && strlen(name) && g_game->volume1 && (g_game->flags_37f19 & 7) && !g_noDirectSound)
+    if (name && strlen(name) && g_game->fxVolume && (g_game->flags_37f19 & 7) && !g_noDirectSound)
         return g_game->sound->PlaySample(name, -0x249, 0);
     return 0;
 }
@@ -455,7 +455,7 @@ static inline int MapContains(unsigned int w, unsigned int h, int tx, int ty)
     return tx < w && ty < h;
 }
 
-// Plays the sound at soundIds[index] when the position is visible to the local
+// Plays the sound at sounds[index] when the position is visible to the local
 // player: explored (fog) map when g_game->mapFlags has bit 1 set, the shared
 // per-player visibility mask otherwise. Sends the 0x13 packet first when
 // param_3 is set, and picks the near (-585) or far (-1585) variant depending on
@@ -467,14 +467,14 @@ int __stdcall PlaySoundAt(int index, Pos_0047f300* pos, int param_3)
         return PlaySoundByIndex(index, param_3);
     if (index == 0xffff)
         return 0;
-    if (g_game->volume1 == 0)
+    if (g_game->fxVolume == 0)
         return 0;
     if ((g_game->flags_37f19 & 7) == 0)
         return 0;
     if (g_noDirectSound != 0)
         return 0;
 
-    int sound = g_game->soundIds[index];
+    int sound = g_game->sounds[index];
 
     if (param_3) {
         Packet_0047f300 packet;
@@ -555,9 +555,9 @@ void PlayNextSpeech()
     SpeechQueue* driver = g_speechQueue;
     int& count = g_speechQueue->count;
     if (count) {
-        if (g_game->frame >= g_speechQueue->lastFrame + g_speechQueue->interval) {
+        if (g_game->gameTick >= g_speechQueue->lastFrame + g_speechQueue->interval) {
             g_speechQueue->PlaySpeech(0, 1, 1);
-            driver->lastFrame = g_game->frame;
+            driver->lastFrame = g_game->gameTick;
         } else {
             g_speechQueue->PlaySpeech(0, 0, 1);
         }
@@ -660,7 +660,7 @@ void SpeechQueue::ClearSpeechEntries(void)
 // FUNCTION: 0x47fad0
 void SpeechQueue::EnqueueSpeech(Unit* unit, int kind, char* text)
 {
-    if (g_game->frame < g_speechTypes[kind].minFrame)
+    if (g_game->gameTick < g_speechTypes[kind].minFrame)
         return;
 
     for (int i = 0; i < count; i++)
@@ -691,7 +691,7 @@ void SpeechQueue::EnqueueSpeech(Unit* unit, int kind, char* text)
     }
 
     entries[j].kind = kind;
-    entries[j].frame = g_game->frame;
+    entries[j].frame = g_game->gameTick;
     entries[j].unit = unit;
     entries[j].priority = g_speechTypes[kind].priority;
     if (text) {
@@ -711,9 +711,9 @@ void SpeechQueue::PlayNextSpeechEntry()
     if (count == 0) {
         return;
     }
-    if (g_game->frame >= interval + lastFrame) {
+    if (g_game->gameTick >= interval + lastFrame) {
         this->PlaySpeech(0, 1, 1);
-        lastFrame = g_game->frame;
+        lastFrame = g_game->gameTick;
     } else {
         this->PlaySpeech(0, 0, 1);
     }
@@ -742,7 +742,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
     int slot = entries[index].kind;
     unsigned int catIndex = 0;
     catIndex = (unsigned short)entries[index].unit->def->soundcategory;
-    SoundCat_0047fd70* cat = &g_game->categories[catIndex];
+    SoundCat_0047fd70* cat = &g_game->soundCategories[catIndex];
     int count = cat->slots[slot].count;
     int idx = (int)((__int64)rand() * count / 0x8000);
 
@@ -750,7 +750,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
         && (g_game->flags_37f19 & 0x40)) {
         char* name;
         if (DAT_0051e698)
-            name = ((g_game->frame / 30) & 7) ? "sing" : "honk";
+            name = ((g_game->gameTick / 30) & 7) ? "sing" : "honk";
         else
             name = cat->slots[slot].table1 + idx * 0x40;
 
@@ -758,12 +758,12 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
         BuildDataPath(path, "sounds", name, "WAV");
         if (g_useWindowsSound) {
             PlayWavFromDisk(path);
-        } else if (path && strlen(path) && g_game->volume1
+        } else if (path && strlen(path) && g_game->fxVolume
                    && (g_game->flags_37f19 & 7) && g_noDirectSound == 0) {
             g_game->sound->PlaySample(path, -0x249, 0);
         }
         g_speechTypes[slot].minFrame =
-            g_game->frame + g_speechTypes[slot].cooldown * 0x1e;
+            g_game->gameTick + g_speechTypes[slot].cooldown * 0x1e;
     }
 
     if (param_3 != 0 && (int)e->priority > 10 - g_game->unitChatText) {

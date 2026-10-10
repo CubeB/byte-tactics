@@ -181,11 +181,11 @@ struct Game {
     Unit* units;                       // +0x14357
     Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x1439b - 0x1435f];
-    UnitDef* unitTypes;                // +0x1439b
+    UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x37eee - 0x1439f];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38a47 - 0x37ef2];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
 };
 
 struct Sub_403010 {
@@ -651,7 +651,7 @@ int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
     case 1:
         if ((unsigned int)unit->health >= unit->def->maxHealth)
             return 1;
-        unit->workTime = g_game->ticks + 0x96;
+        unit->workTime = g_game->gameTick + 0x96;
         if (AddRepairProgress(order->target.owner, unit, (float)(order->target.owner->def->workerTime / 30))) {
             Vec3 nano;
             GetNanoPiecePosition(order->target.owner, &nano);
@@ -747,7 +747,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         int piece = -1;
         unit->script->QueryScript("QueryBuildInfo", &piece, 0, 0, 0);
         order->pos = GetPiecePosition(unit, piece);
-        UnitDef* ut = &g_game->unitTypes[order->unitType];
+        UnitDef* ut = &g_game->unitDefs[order->unitType];
         Point16 cell = GridCell(order->pos, ut->footprint);
         if (!CanPlaceUnitFootprint(ut, 0, cell, unit->flags & 3)) {
             order->SetDeadlineTicks(15);
@@ -1367,7 +1367,7 @@ int __stdcall SuppressOrder(Unit* unit,Order* order,unsigned flags)
 
 // Unused here (0x403a20 stays in its own file): the symbol ids these helpers
 // take keep the allocation (docs/c2-regalloc.md).
-static inline UnitDef* Definitions() { return g_game->unitTypes; }
+static inline UnitDef* Definitions() { return g_game->unitDefs; }
 
 static inline Point16 WorldToCell(Vec3 v, Point16 footprint)
 {
@@ -1466,7 +1466,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         bounds[1].z += order->target.Get()->def->bounds.hi.z;
         bounds[1].y += order->target.Get()->def->bounds.hi.y;
         EmitReverseNanoParticles(bounds, &start, 6);
-        unit->workTime = g_game->ticks + 900;
+        unit->workTime = g_game->gameTick + 900;
         order->elapsed += 2;
         order->SetDeadlineTicks(2);
         return 2;
@@ -1554,7 +1554,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
                 DamageUnit(unit, order->target.Get(), order->elapsed, 5, 0);
                 order->duration = 0;
             }
-            unit->workTime = g_game->ticks + 900;
+            unit->workTime = g_game->gameTick + 900;
             Vec3 start;
             GetNanoPiecePosition(order->source, &start);
             Vec3 bounds[2];
@@ -1632,7 +1632,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             order->SetDeadlineTicks(15);
             return 0;
         }
-        unit->workTime = g_game->ticks + 150;
+        unit->workTime = g_game->gameTick + 150;
         if (AddRepairProgress(unit, order->target.owner, (float)(unit->def->workerTime / 30))) {
             Vec3 nano;
             GetNanoPiecePosition(order->source, &nano);
@@ -1677,7 +1677,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
     case 1: {
         if ((unsigned int)target->health >= target->def->maxHealth) return 1;
         if (target->flags & 0xc) return 1;
-        unit->workTime = g_game->ticks + 150;
+        unit->workTime = g_game->gameTick + 150;
         int rate = 0;
         rate = unit->def->workerTime;
         if (AddRepairProgress(unit, order->target.Get(), (float)(rate / 30))) {

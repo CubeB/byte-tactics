@@ -170,11 +170,12 @@ struct Game {
     unsigned char hudPalette14;       // +0xdd9, Gui palette index 14
     unsigned char shadowColor;        // +0xdda
     char unknown_ddb[0x1439b - 0xddb];
-    UnitType* types;                  // +0x1439b
+    UnitType* unitDefs;               // +0x1439b
     char unknown_1439f[0x1487f - 0x1439f];
-    Anim* anims[22];                  // +0x1487f, this function uses [21]
+    Anim* cursorModeSeq[21];          // +0x1487f
+    Anim* cursorPathIconSeq;          // +0x148d3
     char unknown_148d7[0x38a47 - 0x148d7];
-    unsigned int frame;               // +0x38a47
+    unsigned int gameTick;            // +0x38a47
     char unknown_38a4b[0x391bf - 0x38a4b];
     int showRanges;                   // +0x391bf
 };
@@ -206,7 +207,7 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
                             Pos* out, int unused);
 
 // MATCH. Draws the footprint box of the unit type an order is about to build
-// (order->type indexes g_game->types), as two nested "#" shapes whose inner
+// (order->type indexes g_game->unitDefs), as two nested "#" shapes whose inner
 // lines slide in by level/10 of the box size, level being the frames since
 // order->timestamp clamped to 0..10. The outer shape is drawn one pixel bigger
 // in color1, the inner one in color2, and the order's position is copied to
@@ -255,7 +256,7 @@ void __stdcall DrawBuildFootprint(void* surface, View* view, Order* order,
 {
     if (order->type == 0)
         return;
-    UnitType* type = &g_game->types[order->type];
+    UnitType* type = &g_game->unitDefs[order->type];
     Pos lo = order->pos + type->lo;
     Pos hi = order->pos + type->hi;
     Rect r;
@@ -263,7 +264,7 @@ void __stdcall DrawBuildFootprint(void* surface, View* view, Order* order,
     r.top = ScreenY(view, lo.z.whole, lo.y.whole);
     r.right = ScreenX(view, hi.x.whole);
     r.bottom = ScreenY(view, hi.z.whole, lo.y.whole);
-    int level = __min(__max(g_game->frame - order->timestamp, 0), 10);
+    int level = __min(__max(g_game->gameTick - order->timestamp, 0), 10);
     int dx = (r.right - r.left) * level / 10;
     int dy = (r.bottom - r.top) * level / 10;
     unsigned char outer;
@@ -377,7 +378,7 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
         if ((def->flags & 0x10000000) && def->weapon_220 != 0) {
             int r = def->weapon_220->areaOfEffect;
             r = r >> 1;
-            unsigned int t = (g_game->frame % 60) * r * 2 / 60;
+            unsigned int t = (g_game->gameTick % 60) * r * 2 / 60;
             // Single ternary: any if-form spills radius.
             int radius = (t < 8) ? 8 : t;
             if (radius >= r)
@@ -431,7 +432,7 @@ void __stdcall DrawUnitRangeRings(void* surface, View* view, Order* order,
                          g_game->hudPalette14, "kamikazedistance", index);
         }
         int color;
-        if (g_game->frame & 1)
+        if (g_game->gameTick & 1)
             color = g_game->color1;
         else
             color = g_game->hudPalette12;
@@ -500,7 +501,7 @@ struct Trail_004394e0 {
 // Snapshots the position the caller passed in `out`,
 // calls DrawWeaponCoverage (which draws the order's icon and writes the new position
 // to `out`), and when `flag` is set walks the line from the snapshot to the
-// new position in 0x300000 steps, drawing frame `idx` of g_game->anims[21] at
+// new position in 0x300000 steps, drawing frame `idx` of g_game->cursorPathIconSeq at
 // each step. idx starts at (frames since order->timestamp, clamped at 0) /
 // max(1, anim->duration) % anim->count.
 // FUNCTION: 0x4394e0
@@ -514,7 +515,7 @@ void __stdcall DrawPathAnim(void* surface, View* view,
 
     // Order matters: end, then the clamped age, then the deltas; no `int&` for the timestamp.
     Pos end = *out;
-    int t = __max(g_game->frame - order->timestamp, 0);
+    int t = __max(g_game->gameTick - order->timestamp, 0);
     // Plain-int Vec3: Length() converts each component to its own double.
     Vec3 d;
     d.x = end.x.value - start.x.value;
@@ -524,7 +525,7 @@ void __stdcall DrawPathAnim(void* surface, View* view,
     if (dist < 0x10000)
         return;
 
-    Anim* anim = g_game->anims[21];
+    Anim* anim = g_game->cursorPathIconSeq;
     int pos = (t % 30) * 0x300000 / 30;
     unsigned short len = anim->duration;
     int frames = len < 1 ? 1 : (int)len;
@@ -571,7 +572,7 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
     if (g_game->showRanges != 0 &&
         (g_missionOrderTableBegin[order->kind].markerAnim == 1 || g_missionOrderTableBegin[order->kind].markerAnim == 2)) {
         int color;
-        if (g_game->frame & 1)
+        if (g_game->gameTick & 1)
             color = g_game->color1;
         else
             color = g_game->hudPalette12;
@@ -591,8 +592,8 @@ void __stdcall DrawWeaponCoverage(void* surface, View* view, Order* order,
         if (len != 0)
             DrawRangeCircle(surface, view, &pos, len, color, "attack length", 2);
     }
-    Anim* anim = g_game->anims[g_missionOrderTableBegin[order->kind].markerAnim];
-    unsigned int n = g_game->frame / ((unsigned int)anim->duration * 2);
+    Anim* anim = g_game->cursorModeSeq[g_missionOrderTableBegin[order->kind].markerAnim];
+    unsigned int n = g_game->gameTick / ((unsigned int)anim->duration * 2);
     n = n % anim->count;
     void* bmp = *(void**)((char*)anim + n * 8 + 0x28);
     DrawFrameBlended(surface, bmp, pos.x.whole - view->scroll_x + 0x80,

@@ -80,11 +80,11 @@ struct Game {
     char unknown_0[0x14357];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x1438f - 0x1435b];
-    int unitTypeCount;                 // +0x1438f
+    int unitDefCount;                  // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    UnitType* unitTypes;               // +0x1439b
+    UnitType* unitDefs;                // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
 };
 
 struct SaveDesc_0043a1f0 {             // the 0x3a-byte snapshot, read and written raw
@@ -642,8 +642,8 @@ short __stdcall ResolveUnitTypeKey(HapiBank* file, unsigned short id)
         return FindUnitTypeId(file->GetStringItem(key, 0));
     int i, n = 0;
     unsigned short k = 0;
-    for (i = 1; i < g_game->unitTypeCount; i++, n++) {
-        if (!(g_game->unitTypes[(unsigned short)i].flags & 0x20)) {
+    for (i = 1; i < g_game->unitDefCount; i++, n++) {
+        if (!(g_game->unitDefs[(unsigned short)i].flags & 0x20)) {
             if (k == id)
                 return n;
             k++;
@@ -697,7 +697,7 @@ Order::Order(Unit* punit, HapiBank* file, char* name)
     link.SetUnit(0);
     next = 0;
     attached = 0;
-    created = g_game->ticks;
+    created = g_game->gameTick;
     if (file == 0)
         return;
     if (name == 0)
@@ -836,8 +836,8 @@ int Order::SerializeToSave(Unit* punit, HapiBank* file, char* name)
         unsigned short id = unitType;
         char buf2[0x80];
         sprintf(buf2, "UTYPENAME%4d", id);
-        if (!file->HasItem(buf2) && id >= 1 && id < g_game->unitTypeCount)
-            file->SetStringItem(buf2, g_game->unitTypes[id].name);
+        if (!file->HasItem(buf2) && id >= 1 && id < g_game->unitDefCount)
+            file->SetStringItem(buf2, g_game->unitDefs[id].name);
     }
 
     if (desc.field_4 != 0) {

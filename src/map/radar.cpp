@@ -282,9 +282,9 @@ struct Game {
     Unit* units;                         // +0x14357
     Unit* unitsEnd;                      // +0x1435b
     char unknown_1435f[0x14363 - 0x1435f];
-    unsigned short* hotRadar;            // +0x14363
+    unsigned short* hotRadarUnitList;    // +0x14363
     char unknown_14367[0x1436b - 0x14367];
-    int hotRadarCount;                   // +0x1436b
+    int hotRadarUnitCount;               // +0x1436b
     char unknown_1436f[0x147df - 0x1436f];
     void* radlogo;                       // +0x147df
     void* radlogohigh;                   // +0x147e3
@@ -584,9 +584,9 @@ static inline int ScaleY_00466dc0(Unit* u)
 void DrawRadarUnits(void)
 {
     unsigned char* base = (unsigned char*)g_game + 0xdcb;
-    unsigned short* out = g_game->hotRadar;
+    unsigned short* out = g_game->hotRadarUnitList;
 
-    g_game->hotRadarCount = 0;
+    g_game->hotRadarUnitCount = 0;
     void* surface = g_game->finalSurface;
     DrawSurface(surface, g_game->mappedSurface, 0, 0);
 
@@ -664,7 +664,7 @@ void DrawRadarUnits(void)
                     *(int*)(out + 1) = g_game->minimapGadgetX + x;
                     *(int*)(out + 3) = g_game->minimapGadgetY + y;
                     out += 5;
-                    g_game->hotRadarCount++;
+                    g_game->hotRadarUnitCount++;
                 }
             }
             u = (Unit*)((char*)u + 0x118);

@@ -112,17 +112,17 @@ struct ProjectileDetonatePacket {
 
 struct Game_0049a120 {
     char unknown_0[0x141f3];
-    int numWeapons;                    // +0x141f3
-    Weapon_0049a120* weapons;          // +0x141f7
+    int projectileCount;               // +0x141f3
+    Weapon_0049a120* projectiles;      // +0x141f7
     char unknown_141fb[0x1420b - 0x141fb];
     Spot_0049a120* spots;              // +0x1420b
     char unknown_1420f[0x14233 - 0x1420f];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x1426f - 0x1423b];
     FeatureDef_0049a120* features;     // +0x1426f
     char unknown_14273[0x14287 - 0x14273];
-    Cell* cells;                       // +0x14287
+    Cell* heightMap;                   // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
     Unit_0049a120* units;              // +0x14357
 };
@@ -226,12 +226,12 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
     int z1 = cz / 16 + r;
     if (x0 < 0)
         x0 = 0;
-    if (x1 > g_game->width)
-        x1 = g_game->width;
+    if (x1 > g_game->mapWidthTiles)
+        x1 = g_game->mapWidthTiles;
     if (z0 < 0)
         z0 = 0;
-    if (z1 > g_game->height)
-        z1 = g_game->height;
+    if (z1 > g_game->mapHeightTiles)
+        z1 = g_game->mapHeightTiles;
     int enemyDamage = 0;
     int friendlyDamage = 0;
 
@@ -322,10 +322,10 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
             unsigned short feature = origin->feature;
             if (feature >= 0xfffb)
                 continue;
-            int index = cell - g_game->cells;
+            int index = cell - g_game->heightMap;
             CellPos_0049a120 cp;
-            cp.x = index % g_game->width;
-            cp.z = index / g_game->width;
+            cp.x = index % g_game->mapWidthTiles;
+            cp.z = index / g_game->mapWidthTiles;
             CellPos_0049a120 at = cp;
             Spot_0049a120* spot = &g_game->spots[cell->spot];
             int distance;
@@ -350,10 +350,10 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
     }
 
     if (weapon->def->flags.b.f30) {
-        // Every field is read through `other` (no weapons[j]): the derived
+        // Every field is read through `other` (no projectiles[j]): the derived
         // pointer is stepped after it.
-        Weapon_0049a120* other = g_game->weapons;
-        for (int j = 0; j < g_game->numWeapons; j++, other++) {
+        Weapon_0049a120* other = g_game->projectiles;
+        for (int j = 0; j < g_game->projectileCount; j++, other++) {
             if ((other->flags & 2) || other == weapon)
                 continue;
             Vec3_0049a120* p = &other->pos;

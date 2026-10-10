@@ -165,9 +165,9 @@ struct Game {
     char unknown_1428b[0x14357 - 0x1428b];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x14377 - 0x1435b];
-    MapInfo_0048a490** maps;           // +0x14377
+    MapInfo_0048a490** unitModels;     // +0x14377
     char unknown_1437b[0x38a47 - 0x1437b];
-    int frame;                         // +0x38a47
+    int gameTick;                      // +0x38a47
 };
 #pragma pack(pop)
 
@@ -789,7 +789,7 @@ void __cdecl FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
 // FUNCTION: 0x48a490
 void __stdcall AlignUnitToGround(Unit* u)
 {
-    MapInfo_0048a490* m = g_game->maps[u->map];
+    MapInfo_0048a490* m = g_game->unitModels[u->map];
     MapRow_0048a490* row = m->rows + m->count;
     if (m->count < 0)
         return;
@@ -850,7 +850,7 @@ void __stdcall AlignUnitToGround(Unit* u)
                 // The 64-bit part is one expression, not an __int64 local.
                 int w = (int)((((__int64)q << 16) / s));
                 int mm = 2 - (int)((((__int64)w * 2) >> 16));
-                unsigned int n = g_game->frame - o->age;
+                unsigned int n = g_game->gameTick - o->age;
                 // Clamp inline as a ternary, not a separate if.
                 mm -= (unsigned int)(mm * (n < 60 ? n : 60)) / 60;
                 hs[k].h = FUN_004b7123(p, mm) + hs[k].h;

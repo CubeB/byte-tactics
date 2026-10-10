@@ -155,7 +155,7 @@ struct Game {
     Record_00440af0* units;            // +0x14357
     Record_00440af0* unitsEnd;         // +0x1435b
     char unknown_1435f[0x38a47 - 0x1435f];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x38d73 - 0x38a4b];
     unsigned char progress;            // +0x38d73
     char unknown_38d74[0x391e9 - 0x38d74];
@@ -506,7 +506,7 @@ void __stdcall RefreshPassMapsForUnit(Struct_00440a70* p)
 {
     if (p->unit != 0) {
         unsigned int last = p->unit->lastTick;
-        p->unit->lastTick = g_game->ticks;
+        p->unit->lastTick = g_game->gameTick;
         for (int i = 0; i < 32; i++) {
             if (last < MovementClassTable::g_movementClasses.entries[i].lastTick) {
                 ((MovementClass*)&MovementClassTable::g_movementClasses.entries[i])->RefreshPassMap(p->a, p->b);
@@ -523,7 +523,7 @@ void __stdcall RefreshPassMapsForUnit(Struct_00440a70* p)
 // FUNCTION: 0x440af0
 void MovementClass::RefreshMovedUnits(Object_00440af0* p)
 {
-    unsigned int now = g_game->ticks;
+    unsigned int now = g_game->gameTick;
     unsigned int old = lastTick;
     if (now <= 0x1e) {
         now = 0x1e;
@@ -531,7 +531,7 @@ void MovementClass::RefreshMovedUnits(Object_00440af0* p)
     unsigned int start = now - 0x1e;
     lastTick = start;
     unsigned int prev = p->unit->lastTick;
-    p->unit->lastTick = g_game->ticks;
+    p->unit->lastTick = g_game->gameTick;
     if (prev < old) {
         this->RefreshPassMap(p->a, p->b);
     }

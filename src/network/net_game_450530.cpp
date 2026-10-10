@@ -16,7 +16,7 @@ struct Game {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x391f1 - 0x2a43];
-    int mode;                          // +0x391f1
+    int frontendState;                 // +0x391f1
 };
 
 struct Msg_00450530 {
@@ -90,7 +90,7 @@ void SendLobbySyncRequests()
 {
     // Function scope, before the mode == 6 guard: orders the stores in the three branches.
     Msg_00450530 msg;
-    if (g_game->mode == 6)
+    if (g_game->frontendState == 6)
         return;
     for (int i = 0; i < 10; i++) {
         Player* p = &g_game->players[i];

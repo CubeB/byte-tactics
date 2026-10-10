@@ -174,7 +174,7 @@ struct Game {
     char unknown_142bb[0x14357 - 0x142bb];
     Unit* units;                        // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
-    int ticks;                          // +0x38a47
+    int gameTick;                       // +0x38a47
 };
 
 #include "../units/movement_class.h"

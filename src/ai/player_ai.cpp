@@ -35,13 +35,13 @@ struct Game {
     Unit* units;                       // +0x14357
     Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x1438f - 0x1435f];
-    int count;                         // +0x1438f
+    int unitDefCount;                  // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    Def* defs;                         // +0x1439b
+    Def* unitDefs;                     // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 
 #include "player_ai.h"

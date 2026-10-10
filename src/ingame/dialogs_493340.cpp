@@ -126,9 +126,9 @@ struct Game {
     char unknown_1439f[0x148db - 0x1439f];
     int logos32;                   // +0x148db
     char unknown_148df[0x37ea0 - 0x148df];
-    char guiName[0x1e];                // +0x37ea0
+    char mainHudLayoutName[0x1e];      // +0x37ea0
     union {
-        unsigned short flags_37ebe;    // +0x37ebe
+        unsigned short ordersPanelFlags;    // +0x37ebe
         unsigned char byte_37ebe;
         struct {
             unsigned short pad_37ebe : 6;
@@ -142,20 +142,20 @@ struct Game {
         };
     };
     char unknown_37ec0[0x37ef6 - 0x37ec0];
-    int commanderDeath;                // +0x37ef6
+    int battleCommanderDeath;          // +0x37ef6
     char unknown_37efa[0x37f06 - 0x37efa];
     unsigned char visualFlags;         // +0x37f06
     char unknown_37f07[0x37f2f - 0x37f07];
     unsigned short uiOptionFlags;      // +0x37f2f, bit 1 is the "verbose" bit
     char unknown_37f31[0x38a37 - 0x37f31];
-    unsigned int lastTick;             // +0x38a37
-    int steps;                         // +0x38a3b
-    int elapsed;                       // +0x38a3f
+    unsigned int lastSimBudgetTick;    // +0x38a37
+    int simStepsPending;               // +0x38a3b
+    int simBudgetDtTicks;              // +0x38a3f
     float carry;                       // +0x38a43
-    int ticks;                         // +0x38a47
-    unsigned short maxSpeed;           // +0x38a4b
-    unsigned short speed;              // +0x38a4d
-    short streak;                      // +0x38a4f
+    int gameTick;                      // +0x38a47
+    unsigned short speedCtrl;          // +0x38a4b
+    unsigned short effectiveGameSpeed; // +0x38a4d
+    short speedHysteresis;             // +0x38a4f
     unsigned short paused : 1;         // +0x38a51
     unsigned short lagging : 1;
     unsigned short faster : 1;
@@ -163,9 +163,9 @@ struct Game {
     char unknown_38a53[0x38d75 - 0x38a53];
     volatile unsigned short netFlags;  // +0x38d75, 16-bit flags word (volatile: see below)
     char unknown_38d77[0x38d85 - 0x38d77];
-    FrameTimers prof;                  // +0x38d85
+    FrameTimers profileTimingBars;     // +0x38d85
     char unknown_38dd5[0x391e9 - 0x38dd5];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned short bit0_3923b : 1;     // +0x3923b
     unsigned short rest_3923b : 15;
@@ -364,7 +364,7 @@ void __stdcall HandleShareDialogEvent(Gui* obj)
     if (obj->hotGadgetIndex == -1) {
         Gadget* e = FindGadgetChecked(data, "PLYRLIST");
         GameFreeThunk(e->u.list.records);
-        g_game->flags_37ebe &= ~0x40;
+        g_game->ordersPanelFlags &= ~0x40;
         return;
     }
     if (IsCurrentGadgetNamed(obj, "MAPINFO")) {
@@ -549,7 +549,7 @@ void __stdcall HandleTalkDialogEvent(Gui* gadget)
     Gadget* entries = gadget->layer->entries;
     // current is read directly, not through an id local.
     if (gadget->hotGadgetIndex == -1) {
-        g_game->flags_37ebe &= ~4;
+        g_game->ordersPanelFlags &= ~4;
         return;
     }
     if (_strnicmp(entries[gadget->hotGadgetIndex].name, g_livePlayerPrefix, 8) == 0) {
@@ -673,19 +673,19 @@ void OpenTalkDialog()
         g_chatDraftInitialized = 1;
         memset(g_chatDraftText, 0, 0x81);
     }
-    if (g_game->flags_37ebe & 0x800)
+    if (g_game->ordersPanelFlags & 0x800)
         return;
     int multi = (g_game->lobbyUiDirtyFlags & 0x100)
-                && g_game->net->GetGameType() == 3;
+                && g_game->mapInfo->GetGameType() == 3;
     Layer* d = LoadGuiLayer(&g_game->gui,
                             multi ? "TALK2.GUI" : "TALK.GUI",
                             multi ? 0x800 : 0x880);
     Gadget* entries = d->entries;
     d->handler = (void (__stdcall*)(void*))HandleTalkDialogEvent;
-    g_game->flags_37ebe |= 4;
+    g_game->ordersPanelFlags |= 4;
     SetTranslatedTextByName(&g_game->gui, "TALK", g_chatDraftText, 0);
     SetButtonStageByName(&g_game->gui, "SENDTO", multi);
-    if (g_game->net->GetGameType() != 3) {
+    if (g_game->mapInfo->GetGameType() != 3) {
         SetGadgetActiveByName(&g_game->gui, "SENDTO", 0);
     } else if (multi) {
         SetButtonStageByName(&g_game->gui, "SENDTYPE", g_game->chatMode);
@@ -704,7 +704,7 @@ void __stdcall HandleUnitInfoDialogEvent(Gui* gadget)
     if (gadget->hotGadgetIndex == -1) {
         Gadget* e = FindGadgetChecked_E(gadget->layer->entries, "HOTR");
         FreeSurface((void*)e->u.anim.value);
-        g_game->flags_37ebe &= ~0x800;
+        g_game->ordersPanelFlags &= ~0x800;
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "DONE")) {
@@ -990,11 +990,11 @@ void __stdcall DrawScorePanel(void* surface)
             DrawFrameQuad(surface, frame, &dst, &src);
 
             DrawTextClipped(surface, p->name, dst.p[0].x + 2, dst.p[0].y + 5, maxw, 0);
-            int kills = g_game->commanderDeath == 2 ? p->commanderKills : p->kills;
+            int kills = g_game->battleCommanderDeath == 2 ? p->commanderKills : p->kills;
             sprintf(buf, "%d", kills);
             DrawTextClipped(surface, buf, dst.p[0].x + 2, dst.p[0].y + 0x14, maxw,
                          g_scorePanelKillFlash[n]);
-            int losses = g_game->commanderDeath == 2 ? p->commanderLosses : p->losses;
+            int losses = g_game->battleCommanderDeath == 2 ? p->commanderLosses : p->losses;
             sprintf(buf, "%d", losses);
             DrawTextClipped(surface, buf, dst.p[1].x - GetTextPixelWidth(buf) - 2,
                          dst.p[0].y + 0x14, maxw, g_scorePanelLossFlash[n]);
@@ -1147,7 +1147,7 @@ void ToggleTabMenu()
         count++;
     }
     // The players[localPlayer] scale by 0x14b is left to the compiler.
-    int mode = g_game->net->GetGameType();
+    int mode = g_game->mapInfo->GetGameType();
     if (mode == 3 && !g_game->players[g_game->localPlayer].info->bit6) {
         int v = count > 0;
         SetGadgetActiveByName(&g_game->gui, "ALLIES", v);
@@ -1170,7 +1170,7 @@ void ToggleTabMenu()
 // FUNCTION: 0x495200
 void OpenMain2Layout()
 {
-    Layer* gadget = LoadGuiLayer(&g_game->gui, g_game->guiName, 0x20);
+    Layer* gadget = LoadGuiLayer(&g_game->gui, g_game->mainHudLayoutName, 0x20);
     gadget->handler = (void (__stdcall*)(void*))HandleMain2LayoutEvent;
     gadget->data = g_game;
 }
@@ -1187,13 +1187,13 @@ void OpenMain2Layout()
 void UpdateFramePacing()
 {
     unsigned int now = GetTicks();
-    g_game->elapsed = now - g_game->lastTick;
-    g_game->lastTick = now;
-    unsigned short speed = g_game->speed;
+    g_game->simBudgetDtTicks = now - g_game->lastSimBudgetTick;
+    g_game->lastSimBudgetTick = now;
+    unsigned short speed = g_game->effectiveGameSpeed;
     double rate = speed * 0.1;
-    g_game->faster = speed < g_game->maxSpeed;
+    g_game->faster = speed < g_game->speedCtrl;
 
-    int best = g_game->ticks;
+    int best = g_game->gameTick;
     g_game->slowest = 0;
     for (Player* p = g_game->players; p != g_game->players + 10; p++) {
         if (p->active != 0 && p->type == 3 && p->unitCount > 0) {
@@ -1204,7 +1204,7 @@ void UpdateFramePacing()
             }
         }
     }
-    g_game->lag = g_game->ticks - best;
+    g_game->lag = g_game->gameTick - best;
 
     if (g_game->lag >= 900) {
         int lag = g_game->lag;
@@ -1219,76 +1219,76 @@ void UpdateFramePacing()
         g_game->lagging = 0;
     }
 
-    double x = g_game->elapsed * rate + g_game->carry;
+    double x = g_game->simBudgetDtTicks * rate + g_game->carry;
     double whole = floor(x);
-    g_game->steps = (int)whole;
+    g_game->simStepsPending = (int)whole;
     // No (float) cast: with it the fsub moves after the steps store.
     g_game->carry = x - whole;
-    if (g_game->steps < 0)
-        g_game->steps = 0;
+    if (g_game->simStepsPending < 0)
+        g_game->simStepsPending = 0;
     if (g_game->paused) {
-        g_game->steps = 0;
+        g_game->simStepsPending = 0;
         return;
     }
-    if (g_game->steps > 5) {
-        g_game->steps = 5;
-        g_game->streak++;
-        if (g_game->streak > 10) {
-            g_game->streak = 0;
-            if (g_game->speed > 1)
-                g_game->speed--;
+    if (g_game->simStepsPending > 5) {
+        g_game->simStepsPending = 5;
+        g_game->speedHysteresis++;
+        if (g_game->speedHysteresis > 10) {
+            g_game->speedHysteresis = 0;
+            if (g_game->effectiveGameSpeed > 1)
+                g_game->effectiveGameSpeed--;
         }
     } else {
-        g_game->streak--;
-        if (g_game->streak < -100) {
-            g_game->streak = 0;
-            if (g_game->speed < g_game->maxSpeed)
-                g_game->speed++;
+        g_game->speedHysteresis--;
+        if (g_game->speedHysteresis < -100) {
+            g_game->speedHysteresis = 0;
+            if (g_game->effectiveGameSpeed < g_game->speedCtrl)
+                g_game->effectiveGameSpeed++;
         }
     }
 }
 
-// Runs one game update per pending time step (g_game->steps), profiling each
-// phase into g_game->prof.acc[]; the profile object also lives at +0x38d85 with
+// Runs one game update per pending time step (g_game->simStepsPending), profiling each
+// phase into g_game->profileTimingBars.acc[]; the profile object also lives at +0x38d85 with
 // total at +4, the display copy at +8 and the accumulators at +0x2c.
 
 // FUNCTION: 0x495490
 void __stdcall RunGameSteps(int showStats)
 {
-    int n = g_game->steps;
+    int n = g_game->simStepsPending;
 
     while (n--) {
-        g_game->ticks++;
+        g_game->gameTick++;
 
         if (showStats) {
             HandleNetPackets();
-            g_game->prof.AccumulateProfileTime(0);
+            g_game->profileTimingBars.AccumulateProfileTime(0);
         }
         UpdateAllUnits();
-        g_game->prof.AccumulateProfileTime(1);
+        g_game->profileTimingBars.AccumulateProfileTime(1);
         UpdateProjectiles();
-        g_game->prof.AccumulateProfileTime(7);
+        g_game->profileTimingBars.AccumulateProfileTime(7);
         UpdateExplosions();
-        g_game->prof.AccumulateProfileTime(8);
+        g_game->profileTimingBars.AccumulateProfileTime(8);
         UpdatePlayers();
-        g_game->prof.AccumulateProfileTime(2);
+        g_game->profileTimingBars.AccumulateProfileTime(2);
 
         UpdateFeatures();
         StepAllGafSequences();
         UpdateWind();
         UpdateMeteors();
         UpdateCameraFollow();
-        g_game->prof.AccumulateProfileTime(8);
+        g_game->profileTimingBars.AccumulateProfileTime(8);
 
         UpdateParticles();
-        g_game->prof.AccumulateProfileTime(6);
+        g_game->profileTimingBars.AccumulateProfileTime(6);
         UpdateBlink();
-        g_game->prof.AccumulateProfileTime(8);
+        g_game->profileTimingBars.AccumulateProfileTime(8);
 
         if (showStats && g_usePacketManager != 0) {
             UpdateResourceSharing(&g_game->players[g_game->localPlayer]);
             g_packetManager.SendAllQueued(0);
-            g_game->prof.AccumulateProfileTime(0);
+            g_game->profileTimingBars.AccumulateProfileTime(0);
         }
     }
 
@@ -1297,7 +1297,7 @@ void __stdcall RunGameSteps(int showStats)
     EmptyPostSimStepHook_C();
     ExpireOldestMessage();
     ExpireEyeballs();
-    g_game->prof.AccumulateProfileTime(8);
+    g_game->profileTimingBars.AccumulateProfileTime(8);
 }
 
 // Mission-script event dispatcher: the argument selects one of six cases out

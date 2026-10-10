@@ -178,13 +178,13 @@ struct Game {
     char unknown_14327[0x14357 - 0x14327];
     Unit* units;                       // +0x14357
     Unit* unitsEnd;                    // +0x1435b
-    unsigned short* list;              // +0x1435f
-    Slot_0048cd80* list2;              // +0x14363
+    unsigned short* visibleUnitIdList; // +0x1435f
+    Slot_0048cd80* hotRadarUnitList;   // +0x14363
     int count;                         // +0x14367
-    int count2;                        // +0x1436b
+    int hotRadarUnitCount;             // +0x1436b
     unsigned short focusUnitId;        // +0x1436f
     char unknown_14371[0x14377 - 0x14371];
-    void** models;                     // +0x14377
+    void** unitModels;                 // +0x14377
     char unknown_1437b[0x37e27 - 0x1437b];
     Rect rect;                         // +0x37e27
     char unknown_37e37[0x37e9c - 0x37e37];
@@ -205,7 +205,7 @@ void __stdcall CenterCameraOnMapPosition(Vec3* p, int param_2);
 UnitTypeSet* __stdcall GetCategoryMask(char* name);
 
 // The unit's screen bounding box: the six shorts of the type's 3D box, the
-// scroll offsets, and the game's rubber-band rect. Builds g_game->list (short
+// scroll offsets, and the game's rubber-band rect. Builds g_game->visibleUnitIdList (short
 // array at +0x1435f, count at +0x14367) with the ids of every unit whose screen
 // bounding box intersects the limit rect at +0x37e27 and which the local player
 // can see.
@@ -223,7 +223,7 @@ int __stdcall IsUnitVisibleToPlayer(Player* player, Unit* unit);
 void CollectVisibleUnitIds(void)
 {
     int count = 0;
-    unsigned short* out = g_game->list;
+    unsigned short* out = g_game->visibleUnitIdList;
     Rect* rect = &g_game->rect;
     Player* player = &g_game->players[g_game->playerIndex];
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++) {
@@ -269,7 +269,7 @@ void CollectVisibleUnitIds(void)
 // FUNCTION: 0x48bcb0
 int __stdcall IsUnitVisible(char* unit)
 {
-    short* ids = (short*)g_game->list;
+    short* ids = (short*)g_game->visibleUnitIdList;
     int n = g_game->count;
     for (int i = 0; i < n; i++) {
         if (ids[i] == *(short*)(unit + 0xa8))
@@ -405,7 +405,7 @@ void SelectAllVisibleUnits(void)
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++)
         u->flags.raw &= 0xffffff2f;
     PopUntilNamedLayout(0);
-    unsigned short* list = g_game->list;
+    unsigned short* list = g_game->visibleUnitIdList;
     for (int i = 0; i < g_game->count; i++) {
         Unit* u = &g_game->units[list[i]];
         unsigned int flags = u->flags.raw;
@@ -481,7 +481,7 @@ Unit* __stdcall FindNextSelectedUnit(Unit* unit, int dir)
 // FUNCTION: 0x48c320
 void MarkLocalVisibleUnits(void)
 {
-    unsigned short* list = g_game->list;
+    unsigned short* list = g_game->visibleUnitIdList;
     for (int i = 0; i < g_game->count; i++) {
         Unit* u = &g_game->units[list[i]];
         if (u->player == g_game->localPlayer)
@@ -542,7 +542,7 @@ int __stdcall SelectUnitsInBox(void* param_1)
     g_game->unitIndex = 0;
     for (Unit* v = g_game->units; v <= g_game->unitsEnd; v++)
         v->flags.raw &= 0xffffff3f;
-    unsigned short* list = g_game->list;
+    unsigned short* list = g_game->visibleUnitIdList;
     for (int i = 0; i < g_game->count; i++) {
         Unit* v = &g_game->units[list[i]];
         if (v->player == g_game->localPlayer)
@@ -570,7 +570,7 @@ int __stdcall PointInPolygon(Point* pts, int n, int px, int py);
 // FUNCTION: 0x48c6a0
 int __stdcall HitTestUnitScreenHull(Unit* obj, Point* p)
 {
-    void** models = g_game->models;
+    void** models = g_game->unitModels;
     Vec3 corners[4];
     Point pts[4];
     int i;
@@ -643,7 +643,7 @@ void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
     for (Unit* u = g_game->units; u <= g_game->unitsEnd; u++)
         u->flags.raw &= 0xffffff2f;
     PopUntilNamedLayout(0);
-    unsigned short* list = g_game->list;
+    unsigned short* list = g_game->visibleUnitIdList;
     for (int i = 0; i < g_game->count; i++) {
         Unit* u = &g_game->units[list[i]];
         if (u->player == g_game->localPlayer)
@@ -730,7 +730,7 @@ unsigned short __stdcall PickUnitUnderCursor(void)
     unsigned short result = 0;
     if (PointInRect(&g_game->rect, p->x, p->y)) {
         int best = 0x7fff0000;
-        unsigned short* ids = g_game->list;
+        unsigned short* ids = g_game->visibleUnitIdList;
         if (ids == 0)
             return 0;
         // Walk the id list with the pointer itself (i++, ids++), not ids[i].
@@ -750,8 +750,8 @@ unsigned short __stdcall PickUnitUnderCursor(void)
         }
     } else if (PointInRect(&g_game->minimapHitRect, p->x, p->y)) {
         int best = 99999;
-        Slot_0048cd80* s = g_game->list2;
-        for (int i = g_game->count2; i > 0; i--) {
+        Slot_0048cd80* s = g_game->hotRadarUnitList;
+        for (int i = g_game->hotRadarUnitCount; i > 0; i--) {
             // Both coordinates are read through p, dy first.
             int dy = s->y - p->y;
             int dx = s->x - p->x;
@@ -864,7 +864,7 @@ Unit* FindNextUnmarkedLocalUnit(void)
 }
 
 // Picks a unit of the local player, scrolls the map to it and marks it (and
-// every unit in g_game->list with the same owner) as selected. When the first
+// every unit in g_game->visibleUnitIdList with the same owner) as selected. When the first
 // search fails, the selected flag of every unit is cleared and the search is
 // repeated, so search, clear and search form one inlined helper.
 static inline Unit* PickUnit(Player* player)
@@ -902,7 +902,7 @@ void FocusNextLocalUnit(void)
     g_game->focusUnitId = u->id;
     CenterCameraOnMapPosition((Vec3*)&u->pos_x, 1);
     CollectVisibleUnitIds();
-    unsigned short* list = g_game->list;
+    unsigned short* list = g_game->visibleUnitIdList;
     for (int i = 0; i < g_game->count; i++) {
         Unit* unit = &g_game->units[list[i]];
         if (unit->player == g_game->localPlayer)

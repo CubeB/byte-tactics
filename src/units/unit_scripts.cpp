@@ -50,7 +50,7 @@ struct Game {
     char unknown_14277[0x1427f - 0x14277];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x37efa - 0x14280];
-    int multiplayer; // +0x37efa
+    int interfaceType; // +0x37efa
 };
 
 struct Object {
@@ -661,7 +661,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 5;
         return 0xe;
     case 1:
-        if (g_game->multiplayer == 1) {
+        if (g_game->interfaceType == 1) {
             if (Selectable(target))
                 return 0xf;
             if (enemy)

@@ -177,9 +177,9 @@ struct Game {
     char version_major;                // +0x1
     char version_minor;                // +0x2
     char unknown_3[0x1438c];
-    int unit_count;                    // +0x1438f
+    int unitDefCount;                  // +0x1438f
     char unknown_14393[8];
-    UnitDef* unitinfo;                 // +0x1439b
+    UnitDef* unitDefs;                 // +0x1439b
 };
 #pragma pack(pop)
 
@@ -254,26 +254,26 @@ int LoadUnitInfo()
 
     LoadWeaponTDFs();
 
-    if (g_game->unitinfo) {
-        ProtectBlockReadWrite(g_game->unitinfo);
-        GameFreeThunk(g_game->unitinfo);
-        g_game->unitinfo = 0;
+    if (g_game->unitDefs) {
+        ProtectBlockReadWrite(g_game->unitDefs);
+        GameFreeThunk(g_game->unitDefs);
+        g_game->unitDefs = 0;
     }
 
     BuildDataPath(path, "units", "*", "FBI");
     FileList files;
     ListDirectory(path, 0, &files);
     int count = files.size() + 1;
-    g_game->unit_count = count;
+    g_game->unitDefCount = count;
     int size = count * sizeof(UnitDef);
-    g_game->unitinfo = (UnitDef*)GameAllocIgnoreTag("UNITINFO", size);
-    memset(g_game->unitinfo, 0, size);
-    strcpy(g_game->unitinfo->unitname, "None");
-    g_game->unitinfo->flags1 |= 0x800000;
+    g_game->unitDefs = (UnitDef*)GameAllocIgnoreTag("UNITINFO", size);
+    memset(g_game->unitDefs, 0, size);
+    strcpy(g_game->unitDefs->unitname, "None");
+    g_game->unitDefs->flags1 |= 0x800000;
     int offset = strstr(COPYRIGHT, "0000") - COPYRIGHT;
 
     for (unsigned short i = 1; i < count; i++) {
-        UnitDef* u = &g_game->unitinfo[i];
+        UnitDef* u = &g_game->unitDefs[i];
         u->id = i;
         BuildDataPath(path, "units", files[i - 1], "FBI");
         void* f = HAPI_OpenFileRead(path);
@@ -351,22 +351,22 @@ int LoadUnitInfo()
 
     // Drop the units marked incompatible, moving the last kept one into each
     // hole; `size` is the byte offset of the end of the kept units.
-    // Keep `size` and decrement it; indexing unitinfo[count - 1] loses ebp.
+    // Keep `size` and decrement it; indexing unitDefs[count - 1] loses ebp.
     int oldcount = count;
     for (unsigned short j = count - 1; j > 0; j--) {
-        UnitDef* u = &g_game->unitinfo[j];
+        UnitDef* u = &g_game->unitDefs[j];
         if (!(u->flags1 & 0x800000)) {
             if (j != count - 1) {
-                *u = *(UnitDef*)((char*)g_game->unitinfo + size - sizeof(UnitDef));
+                *u = *(UnitDef*)((char*)g_game->unitDefs + size - sizeof(UnitDef));
                 u->id = j;
             }
             count--;
             size -= sizeof(UnitDef);
         }
     }
-    g_game->unit_count = count;
+    g_game->unitDefCount = count;
     if (oldcount != count && !bad)
         ShowErrorBox(Translate("Incompatible units found.  They will be ignored.  Please download the latest version of the game."), DAT_005119b8);
-    ProtectBlockReadOnly(g_game->unitinfo);
+    ProtectBlockReadOnly(g_game->unitDefs);
     return 1;
 }

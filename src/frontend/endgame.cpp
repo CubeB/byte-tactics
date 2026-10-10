@@ -243,18 +243,18 @@ struct Game {
     int field_142af;                   // +0x142af
     int field_142b3;                   // +0x142b3
     char unknown_142b7[0x14813 - 0x142b7];
-    unsigned short* image_14813;       // +0x14813
-    unsigned short* image_14817;       // +0x14817
+    unsigned short* endgameBadgeSeqA;  // +0x14813
+    unsigned short* endgameBadgeSeqB;  // +0x14817
     char unknown_1481b[0x148db - 0x1481b];
     void* logos32;                     // +0x148db
     char unknown_148df[0x37e1b - 0x148df];
     void* surface;                     // +0x37e1b
-    int width;                         // +0x37e1f
-    int height;                        // +0x37e23
+    int screenWidth;                   // +0x37e1f
+    int screenHeight;                  // +0x37e23
     char unknown_37e27[0x37eee - 0x37e27];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38a47 - 0x37ef2];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x38dd9 - 0x38a4b];
     EndGamePlayerStat slots[10];       // +0x38dd9
     char unknown_3901d[0x39057 - 0x3901d];
@@ -265,7 +265,7 @@ struct Game {
     int steps;                         // +0x39067
     int bar;                           // +0x3906b
     float savedPaletteBrightness;      // +0x3906f
-    int skip;                          // +0x39073
+    int noMovie;                       // +0x39073
     void* lastFrame;                   // +0x39077
     void* image_3907b;                 // +0x3907b
     unsigned char* palette_3907f;      // +0x3907f
@@ -289,7 +289,7 @@ struct Game {
     int won;                           // +0x391af
     char unknown_391b3[0x391cf - 0x391b3];
     char missionFlags[0x1a];           // +0x391cf
-    Mission* campaign;                 // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned short bits0_3923b : 2;    // +0x3923b
     unsigned short bit2_3923b : 1;
@@ -438,10 +438,10 @@ void SetUpEndMissionScreen()
     g_game->savedPaletteBrightness = display->paletteBrightness;
     display->paletteBrightness = 1.0f;
     unsigned char* palette = (unsigned char*)GameAllocIgnoreTag("Palette", 0x400);
-    char* name = g_game->campaign->GetNameSlot(5);
+    char* name = g_game->mapInfo->GetNameSlot(5);
     if (name == 0)
         g_game->image_3907b = 0;
-    if (g_game->campaign->GetGameType() == 1
+    if (g_game->mapInfo->GetGameType() == 1
         && g_game->bit4_3923b && name != 0) {
         BuildDataPath(path, "bitmaps\\glamour", name + 1, "PCX");
         if (HAPI_FileLengthByName(path) == 0)
@@ -452,7 +452,7 @@ void SetUpEndMissionScreen()
         g_game->palette_3907f = palette;
         return;
     }
-    if (g_game->campaign->GetGameType() == 1)
+    if (g_game->mapInfo->GetGameType() == 1)
         LoadPictureCached("Outcome1", 0, 0, 1);
     else
         LoadPictureCached("Outcome0", 0, 0, 1);
@@ -473,8 +473,8 @@ void StepScreenFade(void)
 {
     Rect rect;
     rect.left = rect.top = 0;
-    rect.right = g_game->width;
-    rect.bottom = g_game->height;
+    rect.right = g_game->screenWidth;
+    rect.bottom = g_game->screenHeight;
     if (g_game->nextTime < GetTicks()) {
         FadeRectangle(0, &rect, g_game->steps - 0x1d);
         g_game->nextTime = GetTicks() + 1;
@@ -774,7 +774,7 @@ void __stdcall HandleEndMissionClick(Gui* gadget)
         g_game->frontendSubstateRequest = 10;
         SetCursorOverlayEnabled(1);
         SetCursorMode(0x14);
-        if (g_game->campaign->SelectMission(FindGadgetChecked(entries, "Missions")->selected)) {
+        if (g_game->mapInfo->SelectMission(FindGadgetChecked(entries, "Missions")->selected)) {
             EnterMainMenuState();
             g_game->bit2_2a44 = 0;
             g_game->bit3_2a44 = 1;
@@ -820,10 +820,10 @@ void __stdcall HandleEndMissionClick(Gui* gadget)
 // FUNCTION: 0x41f040
 int ShouldShowNextMission()
 {
-    if (g_game->campaign->GetGameType() == 1 &&
+    if (g_game->mapInfo->GetGameType() == 1 &&
         ((g_game->won == 0 &&
-          g_game->campaign->MissionExists(g_game->mission + 1) == 0) ||
-         g_game->campaign->MissionExists(g_game->mission + 1) != 0)) {
+          g_game->mapInfo->MissionExists(g_game->mission + 1) == 0) ||
+         g_game->mapInfo->MissionExists(g_game->mission + 1) != 0)) {
         return 1;
     }
     return 0;
@@ -835,10 +835,10 @@ static inline int HasNextMission()
     // Casts stay: this helper is inlined into OpenEndMissionScreen and
     // EnableEndMissionButtons, which RunEndGameState calls, so its allocation
     // follows them (docs/c2-regalloc.md).
-    if (g_game->campaign->GetGameType() == 1 &&
+    if (g_game->mapInfo->GetGameType() == 1 &&
         ((g_game->won == 0 &&
-          ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) == 0) ||
-         ((Mission*)g_game->campaign)->MissionExists(g_game->mission + 1) != 0)) {
+          ((Mission*)g_game->mapInfo)->MissionExists(g_game->mission + 1) == 0) ||
+         ((Mission*)g_game->mapInfo)->MissionExists(g_game->mission + 1) != 0)) {
         return 1;
     }
     return 0;
@@ -864,7 +864,7 @@ void __stdcall OpenEndMissionScreen()
     char* entries = (char*)layer->entries;
     char next = HasNextMission();
     if (next) {
-        g_game->campaign->SelectMission(g_game->mission);
+        g_game->mapInfo->SelectMission(g_game->mission);
         LoadPictureCached("outcome1", 1, 1, 0);
         strcpy(layer->entries->okName, "Start");
     } else {
@@ -873,7 +873,7 @@ void __stdcall OpenEndMissionScreen()
     }
     next = HasNextMission();
     if (next) {
-        int count = g_game->campaign->BuildMissionList((int*)&data->items);
+        int count = g_game->mapInfo->BuildMissionList((int*)&data->items);
         data->items = BuildScrollItems1((char*)data->items, g_game->missionFlags, count);
         // Suspected original bug: this finds the first 'U' mission flag but
         // the index is never used (perhaps a lost "select the first
@@ -891,11 +891,11 @@ void __stdcall OpenEndMissionScreen()
         ApplyDifficultyButtons();
     }
     Player* player = &g_game->players[g_game->localPlayer];
-    int x = g_game->width / 2;
+    int x = g_game->screenWidth / 2;
     if (g_game->won != 0 && (player->active == 0 || !player->info->bit6)) {
-        DrawFrame(layer->surface, GetGafFrame(g_game->image_14813, 0), x, 0x1c);
+        DrawFrame(layer->surface, GetGafFrame(g_game->endgameBadgeSeqA, 0), x, 0x1c);
     } else {
-        DrawFrame(layer->surface, GetGafFrame(g_game->image_14817, 0), x, 0x1c);
+        DrawFrame(layer->surface, GetGafFrame(g_game->endgameBadgeSeqB, 0), x, 0x1c);
     }
     if (g_game->flag4)
         SetTranslatedTextByName(&g_game->gui, "MainMenu", "OK", 0);
@@ -1040,7 +1040,7 @@ void __stdcall RunEndGameState()
     HandleNetPackets();
     switch(g_game->state) {
     case 0:
-        if(g_game->campaign->GetGameType()==3) {
+        if(g_game->mapInfo->GetGameType()==3) {
             Display* e=GetDisplay();
             g_game->lastFrame=AllocSurface("Copy of last game frame",e->width,e->height);
             DrawSurface(g_game->lastFrame,g_game->surface,e->width,e->height);
@@ -1079,7 +1079,7 @@ void __stdcall RunEndGameState()
     case 3:
         if(!g_game->done) {
             event[1]=0; event[0]=0;
-            event[2]=g_game->width; event[3]=g_game->height;
+            event[2]=g_game->screenWidth; event[3]=g_game->screenHeight;
             if(g_game->nextTime<GetTicks()) {
                 FadeRectangle(0,event,g_game->steps-29);
                 g_game->nextTime=GetTicks()+1;
@@ -1092,7 +1092,7 @@ void __stdcall RunEndGameState()
         }
         break;
     case 4:
-        if(g_game->campaign->GetGameType()==1 && !FindGameCdDrive(0)) {
+        if(g_game->mapInfo->GetGameType()==1 && !FindGameCdDrive(0)) {
             Layer* l=LoadGuiLayer(&g_game->gui,"CDCHECK.GUI",0x101);
             l->handler=(void (__stdcall*)(void*))HandleCdCheckClick;
             SetCursorOverlayEnabled(1);
@@ -1103,14 +1103,14 @@ void __stdcall RunEndGameState()
         break;
     case 5: {
         SetUpEndMissionScreen();
-        int next=g_game->campaign->MissionExists(g_game->mission+1);
-        if(g_game->campaign->GetGameType()==1 && g_game->bit4_3923b && !next && !g_game->skip) {
+        int next=g_game->mapInfo->MissionExists(g_game->mission+1);
+        if(g_game->mapInfo->GetGameType()==1 && g_game->bit4_3923b && !next && !g_game->noMovie) {
             if((unsigned char)GetDisplay()->network) {
                 if(!g_game->players[0].info->side) SetFrontendState(4,0x4ce,"c:\\cavedog\\wargame\\endgame.cpp");
                 else SetFrontendState(5,0x4d3,"c:\\cavedog\\wargame\\endgame.cpp");
             } else SetFrontendState(2,0x4d9,"c:\\cavedog\\wargame\\endgame.cpp");
             SetGameMode(2);
-        } else if(g_game->campaign->GetGameType()==1 && g_game->bit4_3923b && g_game->image_3907b) {
+        } else if(g_game->mapInfo->GetGameType()==1 && g_game->bit4_3923b && g_game->image_3907b) {
             memset(palette,0,sizeof(palette));
             StartPaletteFade(g_game->palette_3907f,(unsigned char*)palette,5);
             g_game->nextTime=GetTicks()+1;
@@ -1142,7 +1142,7 @@ void __stdcall RunEndGameState()
                 }
                 unsigned deadline=GetTickRate()*5+g_game->deadline;
                 if(deadline<GetTicks())
-                    DrawOutlinedString(g_game->surface,Translate("Click to continue."),g_game->gui.colours[0],g_game->gui.colours[0xf],g_game->height-20);
+                    DrawOutlinedString(g_game->surface,Translate("Click to continue."),g_game->gui.colours[0],g_game->gui.colours[0xf],g_game->screenHeight-20);
             }
         }
         break;
@@ -1155,7 +1155,7 @@ void __stdcall RunEndGameState()
         UpdateMenu(&g_game->gui); BlitMenuLayers(&g_game->gui,0,0);
         int skip=0;
         int clicked=PopKey();
-        if(clicked && g_game->campaign->GetGameType()!=3) skip=1;
+        if(clicked && g_game->mapInfo->GetGameType()!=3) skip=1;
         if(g_game->deadline<GetTicks() || skip) {
             if(clicked) {
                 { ENABLE_BARS("Kills") }
@@ -1176,7 +1176,7 @@ void __stdcall RunEndGameState()
             case 5: { ENABLE_BARS("MWasted") } PlaySoundByName("EndGameStatBar",0); break;
             case 6: { ENABLE_BARS("Score") } PlaySoundByName("EndGameScore",0); break;
             }
-            if(g_game->campaign->GetGameType()==3) {
+            if(g_game->mapInfo->GetGameType()==3) {
                 Player* player=&g_game->players[g_game->localPlayer];
                 for(int j=0;j<2;++j) SendPlayerEconomy(player,0,0);
             }

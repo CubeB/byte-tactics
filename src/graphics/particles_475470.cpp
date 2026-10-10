@@ -70,11 +70,11 @@ struct Game {
     void* unknown_147cf;               // +0x147cf, the smoke animation
     void* unknown_147d3;               // +0x147d3, the other smoke animation
     char unknown_147d7[0x37ecc - 0x147d7];
-    int windX;                         // +0x37ecc
+    int windVelX;                      // +0x37ecc
     char unknown_37ed0[4];
     int windZ;                         // +0x37ed4
     char unknown_37ed8[0x38a47 - 0x37ed8];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
 };
 #pragma pack(pop)
 

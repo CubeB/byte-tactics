@@ -233,10 +233,10 @@ struct Game {
     char unknown_14280[0x142b7 - 0x14280];
     int overflowBucket;                // +0x142b7
     char unknown_142bb[0x1439b - 0x142bb];
-    UnitDef* defs;                     // +0x1439b
+    UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
     union {
-        int ticks;                     // +0x38a47
+        int gameTick;                  // +0x38a47
         unsigned int tick;
     };
     char unknown_38a4b[0x391e9 - 0x38a4b];
@@ -1120,7 +1120,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
         }
         break;
     case 1: {
-        UnitDef* def=&g_game->defs[order->type];
+        UnitDef* def=&g_game->unitDefs[order->type];
         order->retries=0;
         Point origin=def->origin;
         Point cell=WorldToCell(order->pos,origin);
@@ -1133,8 +1133,8 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
     }
     case 2: {
         if (flags&0x40) return 8;
-        UnitDef* def=&g_game->defs[order->type];
-        if (!CanPlaceUnitFootprint(def,0,WorldToCell(order->pos,g_game->defs[order->type].origin),1)) {
+        UnitDef* def=&g_game->unitDefs[order->type];
+        if (!CanPlaceUnitFootprint(def,0,WorldToCell(order->pos,g_game->unitDefs[order->type].origin),1)) {
             if (!order->retries) QueueUnitSpeech(unit,7,"Waiting for target area to clear");
             else if (order->retries>10) { QueueUnitSpeech(unit,7,"Target area was blocked"); return 8; }
             ++order->retries;

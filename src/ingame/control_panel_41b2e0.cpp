@@ -102,7 +102,7 @@ struct Game_0041b2e0 {
     char unknown_2a43[0x14357 - 0x2a43];
     Unit_0041b2e0* units;              // +0x14357
     char unknown_1435b[0x1439b - 0x1435b];
-    BuildType_0041b2e0* buildTypes;    // +0x1439b
+    BuildType_0041b2e0* unitDefs;      // +0x1439b
     char unknown_1439f[0x37e9c - 0x1439f];
     unsigned short unitIndex;          // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
@@ -241,7 +241,7 @@ void RefreshSelectionOrders()
         if (page > 0 || (first->type->flags_241 & 0x80000000)) {
             char name[256];
             char gui[256];
-            strncpy(name, g_game->buildTypes[first->typeIndex].name, 0x20);
+            strncpy(name, g_game->unitDefs[first->typeIndex].name, 0x20);
             name[0x1f] = 0;
             sprintf(gui, "%s%d.GUI", name, page);
             if ((IsScreenNamed(&g_game->menu, gui) == 0 || g_game->unitIndex != first->id)

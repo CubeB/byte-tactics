@@ -98,9 +98,9 @@ struct Game {
     char unknown_37e9e[0x37efa - 0x37e9e];
     int interfaceType;                 // +0x37efa
     char unknown_37efe[0x391e9 - 0x37efe];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int mode;                          // +0x391f1
+    int frontendState;                 // +0x391f1
     void (*handler)(void);             // +0x391f5
     char unknown_391f9[0x3923b - 0x391f9];
     Flags16_00499200 endGameFlags;     // +0x3923b
@@ -355,20 +355,20 @@ void BattleFrame(void)
     }
 
     if (g_game->endGameFlags.bits.b2 || g_game->endGameFlags.bits.b4) {
-        if (g_game->net->GetGameType() != 3 ||
-            (g_game->net->GetGameType() == 3 &&
+        if (g_game->mapInfo->GetGameType() != 3 ||
+            (g_game->mapInfo->GetGameType() == 3 &&
              BroadcastPendingViewState() != 0)) {
             SetCursor(0x13);
             PopUntilNamedLayout(1);
             CloseTopScreen(g_game->menu);
-            if (g_game->net->GetGameType() == 3) {
+            if (g_game->mapInfo->GetGameType() == 3) {
                 ResetChatHudIndices();
                 MainLoopTick();
             }
             ShutdownIngameSystems();
             ClearKeyQueue();
             g_game->sound->SetTrackCategory(4);
-            g_game->mode = 7;
+            g_game->frontendState = 7;
             g_game->handler = EndGameFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
             SetEndGameState(0);
@@ -377,19 +377,19 @@ void BattleFrame(void)
 
     if (g_game->restartMissionRequest != 0) {
         // Each arm keeps its own copy of the hook stores, and `|= 4` in both: the compiler merges them.
-        if (g_game->net->GetGameType() == 1) {
+        if (g_game->mapInfo->GetGameType() == 1) {
             ShutdownIngameSystems();
             PopUntilNamedLayout(1);
             CloseTopScreen(g_game->menu);
             BlankScreen();
-            int a = g_game->net->GetMissionIndex();
-            char* b = g_game->net->GetCampaignName();
-            g_game->net->LoadCampaign(b);
-            if (g_game->net->SelectMission(a) != 0) {
+            int a = g_game->mapInfo->GetMissionIndex();
+            char* b = g_game->mapInfo->GetCampaignName();
+            g_game->mapInfo->LoadCampaign(b);
+            if (g_game->mapInfo->SelectMission(a) != 0) {
                 g_game->flags_2a44.bits.b3 = 1;
                 g_game->flags_2a44.value |= 4;
             }
-            g_game->mode = 2;
+            g_game->frontendState = 2;
             g_game->handler = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         } else {
@@ -400,10 +400,10 @@ void BattleFrame(void)
             BlankScreen();
             SetCursor(0x14);
             g_game->numPlayers = saved;
-            g_game->net->LoadMissionByName(g_game->options + 0x11c);
+            g_game->mapInfo->LoadMissionByName(g_game->options + 0x11c);
             ApplySlotsToGamePlayers();
             g_game->flags_2a44.value |= 4;
-            g_game->mode = 2;
+            g_game->frontendState = 2;
             g_game->handler = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         }

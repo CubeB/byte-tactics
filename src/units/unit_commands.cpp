@@ -301,10 +301,10 @@ struct Game {
     char unknown_14393[0x1439b - 0x14393];
     UnitType_00488b10* unitDefs;      // +0x1439b
     char unknown_1439f[0x37ede - 0x1439f];
-    float windStrength;               // +0x37ede
+    float windFraction;               // +0x37ede
     char unknown_37ee2[0x391e9 - 0x37ee2];
-    Mission* net;                     // +0x391e9
-    MissionConditions* mission;       // +0x391ed
+    Mission* mapInfo;                 // +0x391e9
+    MissionConditions* victoryConditions;       // +0x391ed
 };
 #pragma pack(pop)
 
@@ -362,10 +362,10 @@ void __cdecl CreateMissionUnits()
 {
     Player_00488310* p;
     char buf[100];
-    int n = g_game->net->unitCount;        // only the constructor takes it; the
-    std::vector<Unit*> units(n);       // loops re-read net->unitCount themselves
-    for (int i = 0; i < g_game->net->unitCount; i++) {
-        MissionUnit* e = &g_game->net->units[i];
+    int n = g_game->mapInfo->unitCount;        // only the constructor takes it; the
+    std::vector<Unit*> units(n);       // loops re-read mapInfo->unitCount themselves
+    for (int i = 0; i < g_game->mapInfo->unitCount; i++) {
+        MissionUnit* e = &g_game->mapInfo->units[i];
         UnitType_00488b10* item = FindUnitType(e->name);
         if (item == 0) {
             units[i] = 0;
@@ -389,13 +389,13 @@ void __cdecl CreateMissionUnits()
             units[i] = u;
         }
     }
-    for (int j = 0; j < g_game->net->unitCount; j++) {
-        MissionUnit* e = &g_game->net->units[j];
+    for (int j = 0; j < g_game->mapInfo->unitCount; j++) {
+        MissionUnit* e = &g_game->mapInfo->units[j];
         if (e->initialMission && units[j])
             RunInitialMission(units[j], e->initialMission, (Table_00487bf0*)&units);
     }
-    if (g_game->net->unitCount <= 0)
-        g_game->mission->Deactivate();
+    if (g_game->mapInfo->unitCount <= 0)
+        g_game->victoryConditions->Deactivate();
 }
 
 // Moves a unit to another player. Does nothing when the unit already belongs
@@ -434,7 +434,7 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
         return;
     if (unit->flags & 0x4000)
         return;
-    g_game->mission->NotifyUnitCaptured(unit);
+    g_game->victoryConditions->NotifyUnitCaptured(unit);
 
     Player_00488310* cur = unit->player;
     if (cur->active != 0 && (cur->type == 1 || cur->type == 2)) {
@@ -818,7 +818,7 @@ float __stdcall GetEnergyUse(UnitDef* def)
         return def->energyuse;
     }
     if (def->windgenerator > 0.0f) {
-        return -(g_game->windStrength * def->windgenerator);
+        return -(g_game->windFraction * def->windgenerator);
     }
     if (def->tidalgenerator > 0.0f) {
         return -(g_game->tidal * def->tidalgenerator);

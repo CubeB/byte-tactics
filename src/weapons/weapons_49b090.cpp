@@ -127,12 +127,12 @@ struct Game {
     char unknown_14280[0x142f7 - 0x14280];
     Proj_0049b090* cameraFollowTrackObj;  // +0x142f7
     char unknown_142fb[0x1433f - 0x142fb];
-    Vec3 lastPos;                      // +0x1433f
-    unsigned short lastSound;          // +0x1434b
+    Vec3 cameraSnapPos;                // +0x1433f
+    unsigned short cameraSnapTicks;    // +0x1434b
     char unknown_1434d[0x14357 - 0x1434d];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x391e9 - 0x1435b];
-    Net* net;                          // +0x391e9
+    Net* mapInfo;                      // +0x391e9
 };
 #pragma pack(pop)
 
@@ -153,8 +153,8 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
 
     if (!cell) {
         if (proj == g_game->cameraFollowTrackObj) {
-            g_game->lastPos = *(Vec3*)&g_game->cameraFollowTrackObj->px;
-            g_game->lastSound = proj->type->sound;
+            g_game->cameraSnapPos = *(Vec3*)&g_game->cameraFollowTrackObj->px;
+            g_game->cameraSnapTicks = proj->type->sound;
             g_game->cameraFollowTrackObj = 0;
         }
         proj->flags.bits.dead = 1;
@@ -240,7 +240,7 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
         return;
     } else if (proj->py.s.hi >= g_game->seaLevel) {
         return;
-    } else if (g_game->net->noSeaLevelTrigger) {
+    } else if (g_game->mapInfo->noSeaLevelTrigger) {
         return;
     }
     DetonateProjectile(proj, 0);

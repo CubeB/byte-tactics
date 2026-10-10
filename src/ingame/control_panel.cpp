@@ -340,20 +340,20 @@ struct Game {
     int value_14333;                   // +0x14333
     int sum_x;                         // +0x14337
     int sum_y;                         // +0x1433b
-    Vec3 jump;                         // +0x1433f
-    unsigned short value_1434b;        // +0x1434b
+    Vec3 cameraSnapPos;                // +0x1433f
+    unsigned short cameraSnapTicks;    // +0x1434b
     unsigned char scrollSpeed;         // +0x1434d
     unsigned char flags_1434e;         // +0x1434e
     char unknown_1434f[0x14357 - 0x1434f];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x1439b - 0x1435b];
-    UnitType* buildTypes;              // +0x1439b
+    UnitType* unitDefs;                // +0x1439b
     char unknown_1439f[0x37e1f - 0x1439f];
-    int width;                         // +0x37e1f
-    int height;                        // +0x37e23
+    int screenWidth;                   // +0x37e1f
+    int screenHeight;                  // +0x37e23
     char unknown_37e27[0x37e37 - 0x37e27];
-    int viewWidth;                     // +0x37e37
-    int viewHeight;                    // +0x37e3b
+    int viewPixelWidth;                // +0x37e37
+    int viewPixelHeight;               // +0x37e3b
     char unknown_37e3f[0x37e9c - 0x37e3f];
     unsigned short unitIndex;          // +0x37e9c
     unsigned short unitDefIndex;       // +0x37e9e
@@ -370,7 +370,7 @@ struct Game {
         SideName sideNames[8];         // +0x37f5b
         struct {
             char unknown_37f5b[0x38a3f - 0x37f5b];
-            int scrollScale;           // +0x38a3f
+            int simBudgetDtTicks;      // +0x38a3f
         };
     };
     char unknown_390eb[0x391c7 - 0x390eb];
@@ -514,7 +514,7 @@ void InitCommands()
 // FUNCTION: 0x4195f0
 void __stdcall CopyMenuEntryName(char* dest, unsigned short index)
 {
-    strncpy(dest, g_game->buildTypes[index].name, 0x20);
+    strncpy(dest, g_game->unitDefs[index].name, 0x20);
     dest[0x1f] = 0;
 }
 
@@ -537,7 +537,7 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 {
     unsigned int remove = (arg->keyFlags >> 2) & 1;
     unsigned short index = g_game->buildTypeIndex;
-    UnitType* def = &g_game->buildTypes[index];
+    UnitType* def = &g_game->unitDefs[index];
     Vec3 pos = g_game->pos;
     // origin read once into a local: passing def->origin to each helper changes the frame.
     Point16 origin = def->origin;
@@ -564,7 +564,7 @@ void __stdcall IssueMobileBuildOrders(Arg_00419670* arg)
 // FUNCTION: 0x4197d0
 int UpdatePlacementGhostValidity(void)
 {
-    UnitType* item = &g_game->buildTypes[g_game->buildTypeIndex];
+    UnitType* item = &g_game->unitDefs[g_game->buildTypeIndex];
     Point16 cell = WorldToCell(g_game->pos, item->origin);
     g_game->boxStartX = cell.x << 4;
     g_game->boxStartZ = cell.y << 4;
@@ -588,7 +588,7 @@ int UpdatePlacementGhostValidity(void)
 // FUNCTION: 0x419940
 void __stdcall SetBuildCountText(Gui* obj, unsigned short index, int n)
 {
-    Gadget* e = FindGadgetOrNull(obj->layer->entries, g_game->buildTypes[index].name);
+    Gadget* e = FindGadgetOrNull(obj->layer->entries, g_game->unitDefs[index].name);
     if (e) {
         if (n)
             sprintf(e->u.text, "+%d", n);
@@ -1067,7 +1067,7 @@ void __stdcall HandleBuildPanelClick(Gui* menu)
         } else if (strstr(name, "BUILD")) {
             g_game->orderState.bits.build = 1;
             PlaySoundByName("buildbutton", 0);
-        } else if (id != 0 && g_game->buildTypes[id].mobile == 0) {
+        } else if (id != 0 && g_game->unitDefs[id].mobile == 0) {
             g_game->orderMode = 0xe;
             g_game->buildTypeIndex = id;
             PlaySoundByName("addbuild", 0);
@@ -1243,7 +1243,7 @@ int __stdcall GetBuildMenuPage(Unit* obj)
 void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n)
 {
     char name[256];
-    strncpy(name, g_game->buildTypes[index].name, 0x20);
+    strncpy(name, g_game->unitDefs[index].name, 0x20);
     name[0x1f] = 0;
     sprintf(dest, "%s%d.GUI", name, n);
 }
@@ -1575,7 +1575,7 @@ void FindLocalCommander()
 // FUNCTION: 0x41c390
 void __cdecl ClearCameraFollowState()
 {
-    g_game->value_1434b = 0;
+    g_game->cameraSnapTicks = 0;
     g_game->cameraFollowUnit = 0;
     g_game->cameraFollowTrackObj = 0;
 }
@@ -1585,8 +1585,8 @@ void __cdecl ClearCameraFollowState()
 // FUNCTION: 0x41c3c0
 void ClampCameraPosition()
 {
-    int maxX = g_game->mapPixelWidth - g_game->viewWidth;
-    int maxY = g_game->mapPixelHeight - g_game->viewHeight;
+    int maxX = g_game->mapPixelWidth - g_game->viewPixelWidth;
+    int maxY = g_game->mapPixelHeight - g_game->viewPixelHeight;
     if (g_game->scrollX < 0) {
         g_game->scrollX = 0;
     } else if (g_game->scrollX > maxX) {
@@ -1605,8 +1605,8 @@ void ClampCameraPosition()
 // FUNCTION: 0x41c450
 void ClampCameraTarget()
 {
-    int maxX = g_game->mapPixelWidth - g_game->viewWidth;
-    int maxY = g_game->mapPixelHeight - g_game->viewHeight;
+    int maxX = g_game->mapPixelWidth - g_game->viewPixelWidth;
+    int maxY = g_game->mapPixelHeight - g_game->viewPixelHeight;
     if (g_game->x2 < 0) {
         g_game->x2 = 0;
     } else if (g_game->x2 > maxX) {
@@ -1625,8 +1625,8 @@ void __stdcall SetCameraPosition(int x, int y, int instant)
     if (instant != 0) {
         g_game->x2 = x;
         g_game->y2 = y;
-        int maxX = g_game->mapPixelWidth - g_game->viewWidth;
-        int maxY = g_game->mapPixelHeight - g_game->viewHeight;
+        int maxX = g_game->mapPixelWidth - g_game->viewPixelWidth;
+        int maxY = g_game->mapPixelHeight - g_game->viewPixelHeight;
         if (g_game->x2 < 0) {
             g_game->x2 = 0;
         } else if (g_game->x2 > maxX) {
@@ -1709,13 +1709,13 @@ void UpdateScreenShake()
 // FUNCTION: 0x41c7c0
 void __stdcall CenterCameraOnPoint(int a, int b, int c)
 {
-    int cy = b - g_game->viewHeight / 2;
-    int cx = a - g_game->viewWidth / 2;
+    int cy = b - g_game->viewPixelHeight / 2;
+    int cx = a - g_game->viewPixelWidth / 2;
     if (c != 0) {
         g_game->x2 = cx;
         g_game->y2 = cy;
-        int maxX = g_game->mapPixelWidth - g_game->viewWidth;
-        int maxY = g_game->mapPixelHeight - g_game->viewHeight;
+        int maxX = g_game->mapPixelWidth - g_game->viewPixelWidth;
+        int maxY = g_game->mapPixelHeight - g_game->viewPixelHeight;
         if (g_game->x2 < 0) {
             g_game->x2 = 0;
         } else if (g_game->x2 > maxX) {
@@ -1740,13 +1740,13 @@ void __stdcall CenterCameraOnPoint(int a, int b, int c)
 // FUNCTION: 0x41c8e0
 void __stdcall CenterCameraOnMapPosition(Vec3* p, int param_2)
 {
-    int cy = (short)((p->z - (p->y >> 1)) >> 16) - g_game->viewHeight / 2;
-    int cx = (short)(p->x >> 16) - g_game->viewWidth / 2;
+    int cy = (short)((p->z - (p->y >> 1)) >> 16) - g_game->viewPixelHeight / 2;
+    int cx = (short)(p->x >> 16) - g_game->viewPixelWidth / 2;
     if (param_2 != 0) {
         g_game->x2 = cx;
         g_game->y2 = cy;
-        int maxX = g_game->mapPixelWidth - g_game->viewWidth;
-        int maxY = g_game->mapPixelHeight - g_game->viewHeight;
+        int maxX = g_game->mapPixelWidth - g_game->viewPixelWidth;
+        int maxY = g_game->mapPixelHeight - g_game->viewPixelHeight;
         if (g_game->x2 < 0) {
             g_game->x2 = 0;
         } else if (g_game->x2 > maxX) {
@@ -1777,8 +1777,8 @@ static inline void SetTarget(int x, int y)
 
 static inline void ClampTarget()
 {
-    int maxX = g_game->mapPixelWidth - g_game->viewWidth;
-    int maxY = g_game->mapPixelHeight - g_game->viewHeight;
+    int maxX = g_game->mapPixelWidth - g_game->viewPixelWidth;
+    int maxY = g_game->mapPixelHeight - g_game->viewPixelHeight;
     if (g_game->x2 < 0) {
         g_game->x2 = 0;
     } else if (g_game->x2 > maxX) {
@@ -1816,23 +1816,23 @@ static inline int Approach(int cur, int target)
 void UpdateCameraFollow()
 {
     Vec3* p = 0;
-    if (g_game->value_1434b != 0) {
-        g_game->value_1434b--;
-        p = &g_game->jump;
+    if (g_game->cameraSnapTicks != 0) {
+        g_game->cameraSnapTicks--;
+        p = &g_game->cameraSnapPos;
     } else if (g_game->cameraFollowTrackObj != 0) {
         p = &g_game->cameraFollowTrackObj->pos;
     } else if (g_game->cameraFollowUnit != 0) {
         if (g_game->cameraFollowUnit->flags.raw & 0x10000000) {
             p = &g_game->cameraFollowUnit->pos;
         } else {
-            g_game->value_1434b = 0;
+            g_game->cameraSnapTicks = 0;
             g_game->cameraFollowUnit = 0;
             g_game->cameraFollowTrackObj = 0;
         }
     }
     if (p != 0) {
-        SetTarget((short)(p->x >> 16) - g_game->viewWidth / 2,
-                  (short)((p->z - (p->y >> 1)) >> 16) - g_game->viewHeight / 2);
+        SetTarget((short)(p->x >> 16) - g_game->viewPixelWidth / 2,
+                  (short)((p->z - (p->y >> 1)) >> 16) - g_game->viewPixelHeight / 2);
         ClampTarget();
         g_game->mapFlags &= 0xfff7;
     }
@@ -1853,7 +1853,7 @@ void UpdateCameraFollow()
 // FUNCTION: 0x41cc60
 void BeginMouseScroll()
 {
-    g_game->value_1434b = 0;
+    g_game->cameraSnapTicks = 0;
     g_game->cameraFollowUnit = 0;
     g_game->cameraFollowTrackObj = 0;
     HideSoftwareCursor();
@@ -1935,7 +1935,7 @@ void UpdateEdgeScroll()
     POINT pt;
     // Through a local: the direct spelling loads the scale into ebx.
     Game* g = g_game;
-    int speed = g->scrollSpeed * g->scrollScale;
+    int speed = g->scrollSpeed * g->simBudgetDtTicks;
     if (speed > 0x80)
         speed = 0x80;
     if (speed == 0)
@@ -1944,8 +1944,8 @@ void UpdateEdgeScroll()
     Display_0041ce90* d = GetDisplay();
     if (!(d->flags_f0 & 2)) {
         GetCursorPos(&pt);
-        int w = g_game->width;
-        int h = g_game->height;
+        int w = g_game->screenWidth;
+        int h = g_game->screenHeight;
         if ((pt.x >= w || pt.y >= h) && pt.x < w + 100 && pt.y < h + 100
             && GetFocus() == d->hwnd) {
             mouse.x = pt.x;
@@ -1956,8 +1956,8 @@ void UpdateEdgeScroll()
                 mouse.y = h - 1;
         }
     } else {
-        int w = g_game->width;
-        int h = g_game->height;
+        int w = g_game->screenWidth;
+        int h = g_game->screenHeight;
         if (mouse.x >= w)
             mouse.x = w - 1;
         if (mouse.y >= h)
@@ -1966,13 +1966,13 @@ void UpdateEdgeScroll()
     int talk = IsScreenNamed(&g_game->gui, "TALK.GUI");
     int x = g_game->scrollX;
     int y = g_game->scrollY;
-    if ((IsKeyDown(0xf4) && !talk) || (mouse.x == 0 && mouse.y < g_game->height))
+    if ((IsKeyDown(0xf4) && !talk) || (mouse.x == 0 && mouse.y < g_game->screenHeight))
         x -= speed;
-    else if ((IsKeyDown(0xf6) && !talk) || mouse.x == g_game->width - 1)
+    else if ((IsKeyDown(0xf6) && !talk) || mouse.x == g_game->screenWidth - 1)
         x += speed;
-    if ((IsKeyDown(0xf5) && !talk) || (mouse.y == 0 && mouse.x < g_game->width))
+    if ((IsKeyDown(0xf5) && !talk) || (mouse.y == 0 && mouse.x < g_game->screenWidth))
         y -= speed;
-    else if ((IsKeyDown(0xf7) && !talk) || mouse.y == g_game->height - 1)
+    else if ((IsKeyDown(0xf7) && !talk) || mouse.y == g_game->screenHeight - 1)
         y += speed;
     if (g_game->scrollX != x || g_game->scrollY != y) {
         g_game->scrollX = x;
@@ -1982,7 +1982,7 @@ void UpdateEdgeScroll()
         g_game->x2 = g_game->scrollX;
         g_game->y2 = g_game->scrollY;
         g_game->mapFlags &= 0xfff7;
-        g_game->value_1434b = 0;
+        g_game->cameraSnapTicks = 0;
         g_game->cameraFollowUnit = 0;
         g_game->cameraFollowTrackObj = 0;
     }

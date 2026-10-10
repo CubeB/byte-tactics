@@ -77,7 +77,7 @@ struct Game {
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
     char unknown_14327[0x37f06 - 0x14327];
-    unsigned short drawFlags;          // +0x37f06
+    unsigned short visualFlags;        // +0x37f06
 };
 #pragma pack(pop)
 

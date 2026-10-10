@@ -59,7 +59,7 @@ struct Game {
     char unknown_14277[0x14281 - 0x14277];
     unsigned short mapFlags;       // +0x14281
     char unknown_14283[0x37ecc - 0x14283];
-    int windX;                     // +0x37ecc
+    int windVelX;                  // +0x37ecc
     char unknown_37ed0[0x37ed4 - 0x37ed0];
     int windZ;                     // +0x37ed4
 };

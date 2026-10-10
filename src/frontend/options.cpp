@@ -331,11 +331,11 @@ struct Game {
             char unknown_37ee8[0x37eee - 0x37ee8];
             int difficulty;            // +0x37eee
             char unknown_37ef2[0x37ef6 - 0x37ef2];
-            int commanderDeath;        // +0x37ef6
+            int battleCommanderDeath;  // +0x37ef6
             int interfaceType;         // +0x37efa
             char unknown_37efe[0x37f06 - 0x37efe];
             union {
-                unsigned short flags;  // +0x37f06
+                unsigned short visualFlags;  // +0x37f06
                 Flags37f06_0045cf60 flags_37f06;
                 struct {
                     unsigned short bit0 : 1;
@@ -348,17 +348,17 @@ struct Game {
                     unsigned short rest : 9;
                 };
             };
-            int brightness;            // +0x37f08
+            int gamma;                 // +0x37f08
             union {
-                int volume1;           // +0x37f0c
+                int fxVolume;          // +0x37f0c
                 short volume1Word;
             };
             union {
-                int volume2;           // +0x37f10
+                int musicVolume;       // +0x37f10
                 short volume2Word;
             };
             union {
-                unsigned short flags14; // +0x37f14
+                unsigned short musicFlags; // +0x37f14
                 Flags37f14_0045cf60 flags_37f14;
                 struct {
                     char f_37f14;      // +0x37f14
@@ -369,15 +369,15 @@ struct Game {
             unsigned char unitChat; // +0x37f17
             unsigned char unitChatText; // +0x37f18
             SoundFlags_0045cf60 soundFlags; // +0x37f19
-            int width;                 // +0x37f1b
-            int height;                // +0x37f1f
+            int displayWidth;          // +0x37f1b
+            int displayHeight;         // +0x37f1f
             int textScroll;            // +0x37f23
             int textLines;             // +0x37f27
             char unknown_37f2b[0x37f39 - 0x37f2b];
         };
     };
     char unknown_37f39[0x38a4b - 0x37f39];
-    unsigned short gameSpeed;          // +0x38a4b
+    unsigned short speedCtrl;          // +0x38a4b
     short effectiveGameSpeed;          // +0x38a4d
     char unknown_38a4f[0x38a51 - 0x38a4f];
     union {
@@ -385,7 +385,7 @@ struct Game {
         unsigned short orders;         // 4609b0 clears it as a word
     };
     char unknown_38a53[0x391e9 - 0x38a53];
-    Mission* mode;                     // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned char flags_3923b;         // +0x3923b
     char unknown_3923c[0x39249 - 0x3923c];
@@ -922,9 +922,9 @@ static inline int SliderValue(Gadget* e)
 
 static inline void ApplySound()
 {
-    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-    g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+    SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+    g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+    g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
 }
 
 // FUNCTION: 0x45b800
@@ -1031,12 +1031,12 @@ void __stdcall UpdateVideoModeLabel(Menu_0045b800* param_1, Gadget* param_2)
     int count = param_2->list->count;
     if (count > 0) {
         Game* g = g_game;
-        int w = g->width;
+        int w = g->displayWidth;
         Mode_0045b800* m = param_2->list->modes;
         do {
             if (w != m->width)
                 goto next;
-            if (g->height != m->height)
+            if (g->displayHeight != m->height)
                 goto next;
             {
                 int max = param_2->max;
@@ -1073,8 +1073,8 @@ void __stdcall HandleVideoModeSlider(Menu_0045b800* obj, int unused)
     if (e != 0) {
         Mode_0045b800* r = &list->modes[SliderValue(e)];
         sprintf(FindGadgetChecked_C(obj->holder->entries, "VIDVAL") + 0xb6, "%d X %d", r->width, r->height);
-        g_game->width = r->width;
-        g_game->height = r->height;
+        g_game->displayWidth = r->width;
+        g_game->displayHeight = r->height;
     }
     MarkChanged(&g_game->menu);
 }
@@ -1084,9 +1084,9 @@ void __stdcall HandleVideoModeSlider(Menu_0045b800* obj, int unused)
 // FUNCTION: 0x45bcc0
 void ApplyBrightnessAndVolume()
 {
-    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-    g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+    SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+    g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+    g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
 }
 
 // Reads the "GAMMA" slider into the brightness setting, then applies the
@@ -1096,7 +1096,7 @@ void __stdcall HandleGammaSlider(Menu_0045b800* obj, int unused)
 {
     Gadget* e = FindGadgetChecked_D(obj->holder->entries, "GAMMA");
     if (e != 0) {
-        g_game->brightness = SliderValue(e);
+        g_game->gamma = SliderValue(e);
         ApplySound();
     }
 }
@@ -1108,7 +1108,7 @@ void __stdcall HandleEffectsVolumeSlider(Menu_0045b800* obj, int unused)
 {
     Gadget* e = FindGadgetChecked_D(obj->holder->entries, "FXVOL");
     if (e != 0) {
-        g_game->volume1 = SliderValue(e);
+        g_game->fxVolume = SliderValue(e);
         ApplySound();
     }
 }
@@ -1120,7 +1120,7 @@ void __stdcall HandleMusicVolumeSlider(Menu_0045b800* obj, int unused)
 {
     Gadget* e = FindGadgetChecked_D(obj->holder->entries, "MUSICVOL");
     if (e != 0) {
-        g_game->volume2 = SliderValue(e);
+        g_game->musicVolume = SliderValue(e);
         ApplySound();
     }
 }
@@ -1177,8 +1177,8 @@ void __stdcall HandleGameSpeedSlider(Menu_0045b800* obj, int unused)
         if (e != 0) {
             // Written twice, as in the original.
             int value = SliderValue(e);
-            g_game->gameSpeed = (unsigned short)(value < 1 ? 1 : SliderValue(e));
-            SetGameSpeed(g_game->gameSpeed, 1);
+            g_game->speedCtrl = (unsigned short)(value < 1 ? 1 : SliderValue(e));
+            SetGameSpeed(g_game->speedCtrl, 1);
             MarkChanged(obj);
         }
     }
@@ -1282,16 +1282,16 @@ void ApplyTrackType()
 // FUNCTION: 0x45c570
 void ApplyDefaultSoundOptions()
 {
-    g_game->volume1 = 0x1b;
+    g_game->fxVolume = 0x1b;
     g_game->soundFlags.bits.b4 = 1;
     g_game->soundFlags.bits.b5 = 1;
     g_game->soundFlags.bits.speech = 1;
     g_game->sound->Disable3D();
     g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
     g_game->unitChat = 10;
-    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-    g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+    SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+    g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+    g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
 }
 
 // Resets two settings (0x20 at +0x37f10, 4 at +0x37f16), enables the object at
@@ -1300,10 +1300,10 @@ void ApplyDefaultSoundOptions()
 // FUNCTION: 0x45c630
 void ApplyDefaultMusicOptions()
 {
-    g_game->volume2 = 0x20;
+    g_game->musicVolume = 0x20;
     g_game->cdMode = 4;
-    if (!(g_game->flags14 & 1)) {
-        g_game->flags14 |= 1;
+    if (!(g_game->musicFlags & 1)) {
+        g_game->musicFlags |= 1;
         g_game->sound->PlayNextTrack();
     }
     ApplyBrightnessAndVolume();
@@ -1314,7 +1314,7 @@ void ApplyDefaultUiOptions()
 {
     g_game->textScroll = 10;
     g_game->textLines = 10;
-    g_game->gameSpeed = 10;
+    g_game->speedCtrl = 10;
     g_game->effectiveGameSpeed = 10;
     g_game->scrollSpeed = 0x20;
     g_game->interfaceType = 0;
@@ -1334,15 +1334,15 @@ void ApplyDefaultVisualOptions()
     g_game->bit3 = 1;
     g_game->bit4 = 1;
     g_game->bit5 = 1;
-    g_game->brightness = 12;
+    g_game->gamma = 12;
     if (!g_game->flag_2a44) {
-        g_game->width = 640;
-        g_game->height = 480;
+        g_game->displayWidth = 640;
+        g_game->displayHeight = 480;
         g_game->bit6 = 0;
     }
-    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-    g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+    SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+    g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+    g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
 }
 
 // Loads the saved audio settings (globals around 0x512f42) into the game and
@@ -1350,16 +1350,16 @@ void ApplyDefaultVisualOptions()
 // FUNCTION: 0x45c950
 void LoadSavedAudioSettings()
 {
-    g_game->volume2 = g_optionsBackupMusicVolume;
+    g_game->musicVolume = g_optionsBackupMusicVolume;
     g_game->sound->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
     g_game->cdMode = g_optionsBackupCdMode;
     g_game->sound->SetPlaybackOrder(g_game->cdMode);
-    if (((unsigned char)g_game->flags14 ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
+    if (((unsigned char)g_game->musicFlags ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
         g_game->sound->PlayNextTrack();
     }
-    unsigned short f = g_game->flags14;
+    unsigned short f = g_game->musicFlags;
     f = f ^ ((f ^ g_optionsBackupMusicMode.i) & 1);
-    g_game->flags14 = f;
+    g_game->musicFlags = f;
     g_game->sound->SetLockedTrack(g_optionsBackupLockedTrack);
     ApplyBrightnessAndVolume();
 }
@@ -1369,7 +1369,7 @@ void LoadSavedAudioSettings()
 void RestoreUiOptions()
 {
     g_game->textScroll = g_optionsBackupTextScroll;
-    g_game->gameSpeed = g_optionsBackupGameSpeed.i;
+    g_game->speedCtrl = g_optionsBackupGameSpeed.i;
     g_game->effectiveGameSpeed = g_optionsBackupGameSpeed.i;
     g_game->scrollSpeed = g_optionsBackupEdgeScroll.i;
     g_game->interfaceType = g_optionsBackupInterfaceType;
@@ -1385,28 +1385,28 @@ void RestoreUiOptions()
 // FUNCTION: 0x45cae0
 void RestoreVisualOptions()
 {
-    unsigned short v = g_game->flags;
-    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 2);
-    v = g_game->flags;
-    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 4);
-    v = g_game->flags;
-    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 8);
-    v = g_game->flags;
-    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x10);
-    v = g_game->flags;
-    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x20);
-    v = g_game->flags;
-    g_game->flags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x40);
+    unsigned short v = g_game->visualFlags;
+    g_game->visualFlags = v ^ ((v ^ g_optionsBackupVisualFlags) & 2);
+    v = g_game->visualFlags;
+    g_game->visualFlags = v ^ ((v ^ g_optionsBackupVisualFlags) & 4);
+    v = g_game->visualFlags;
+    g_game->visualFlags = v ^ ((v ^ g_optionsBackupVisualFlags) & 8);
+    v = g_game->visualFlags;
+    g_game->visualFlags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x10);
+    v = g_game->visualFlags;
+    g_game->visualFlags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x20);
+    v = g_game->visualFlags;
+    g_game->visualFlags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x40);
 
-    g_game->brightness = g_optionsBackupGamma;
+    g_game->gamma = g_optionsBackupGamma;
     if (!(g_game->flags_2a44 & 4)) {
-        g_game->width = g_optionsBackupDisplayWidth;
-        g_game->height = g_optionsBackupDisplayHeight;
+        g_game->displayWidth = g_optionsBackupDisplayWidth;
+        g_game->displayHeight = g_optionsBackupDisplayHeight;
     }
 
-    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-    g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+    SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+    g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+    g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
 }
 
 // Loads the saved game settings (globals around 0x512f42) into the game and
@@ -1416,21 +1416,21 @@ void RestoreVisualOptions()
 void LoadSavedSettings()
 {
     RestoreSoundOptions();
-    g_game->volume2 = g_optionsBackupMusicVolume;
+    g_game->musicVolume = g_optionsBackupMusicVolume;
     g_game->sound->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
     g_game->cdMode = g_optionsBackupCdMode;
     g_game->sound->SetPlaybackOrder(g_game->cdMode);
-    if (((unsigned char)g_game->flags14 ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
+    if (((unsigned char)g_game->musicFlags ^ (unsigned char)g_optionsBackupMusicMode.i) & 1) {
         g_game->sound->PlayNextTrack();
     }
-    unsigned short f = g_game->flags14;
-    g_game->flags14 = f ^ ((f ^ g_optionsBackupMusicMode.i) & 1);
+    unsigned short f = g_game->musicFlags;
+    g_game->musicFlags = f ^ ((f ^ g_optionsBackupMusicMode.i) & 1);
     g_game->sound->SetLockedTrack(g_optionsBackupLockedTrack);
-    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-    g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+    SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+    g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+    g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
     g_game->textScroll = g_optionsBackupTextScroll;
-    g_game->gameSpeed = g_optionsBackupGameSpeed.i;
+    g_game->speedCtrl = g_optionsBackupGameSpeed.i;
     g_game->effectiveGameSpeed = g_optionsBackupGameSpeed.i;
     g_game->scrollSpeed = g_optionsBackupEdgeScroll.i;
     g_game->interfaceType = g_optionsBackupInterfaceType;
@@ -1451,7 +1451,7 @@ void SaveGameSettings()
     memcpy(g_optionsPrefsSnapshot.block, (char*)&g_game->block[0], 0x53);
     g_optionsPrefsSnapshot.bit0 = g_game->mapFlags.bits.bit1;
     g_optionsPrefsSnapshot.bit1 = g_game->mapFlags.bits.bit2;
-    g_optionsBackupGameSpeed.i = g_game->gameSpeed;
+    g_optionsBackupGameSpeed.i = g_game->speedCtrl;
     g_optionsBackupEdgeScroll.i = g_game->scrollSpeed;
     g_optionsBackupLockedTrack = g_game->sound->GetLockedTrack();
     for (int i = 0; i < 100; i++) {
@@ -1521,7 +1521,7 @@ int __cdecl OpenOptionsLayout()
     int result = LoadGuiLayer((void*)&g_game->gui, buf, 0x80);
     SetGrayedOutByName(&g_game->gui, "MUSIC", *(int*)g_game->sound == 0);
     EnableKeyCommands(&g_game->gui);
-    if (g_game->bits_2a44.prefsWord.prefs && g_game->mode->GetGameType() != 3) {
+    if (g_game->bits_2a44.prefsWord.prefs && g_game->mapInfo->GetGameType() != 3) {
         g_game->flags_38a51 |= 1;
     }
     return result;
@@ -1768,16 +1768,16 @@ void __stdcall HandleSoundOptionsClick(Object_0045da90* obj)
         return;
     }
     if (IsCurrentGadgetNamed(obj, g_restoreGadgetName)) {
-        g_game->volume1 = 0x1b;
+        g_game->fxVolume = 0x1b;
         g_game->soundFlags.bits.b4 = 1;
         g_game->soundFlags.bits.b5 = 1;
         g_game->soundFlags.bits.speech = 1;
         g_game->sound->Disable3D();
         g_game->soundFlags.word = (g_game->soundFlags.word & 0xfff9) | 1;
         g_game->unitChat = 10;
-        SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-        g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-        g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+        SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+        g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+        g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
         CloseTopScreen(obj);
         OpenSoundOptions();
         PlaySoundByName(g_optionsSoundName, 0);
@@ -1917,15 +1917,15 @@ void __stdcall HandleVisualOptionsClick(Gui* gui)
         g_game->flags_37f06.bits.b3 = 1;
         g_game->flags_37f06.bits.b4 = 1;
         g_game->flags_37f06.bits.b5 = 1;
-        g_game->brightness = 12;
+        g_game->gamma = 12;
         if (!g_game->bits_2a44.flag.flag) {
-            g_game->width = 640;
-            g_game->height = 480;
+            g_game->displayWidth = 640;
+            g_game->displayHeight = 480;
             g_game->flags_37f06.bits.b6 = 0;
         }
-        SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-        g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-        g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+        SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+        g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+        g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
         CloseTopScreen(gui);
         OpenVisualOptions(0);
         return;
@@ -2016,9 +2016,9 @@ void __stdcall OpenVisualOptions(int param_1)
                 menu = (Menu_0045e5e0*)&g_game->gui;
                 for (int j = 0; j < list->count; j++) {
                     // Computed inside the loop body: hoisted after the count guard.
-                    int w = g_game->width;
+                    int w = g_game->displayWidth;
                     Mode_0045e4c0* mode = &list->modes[j];
-                    if (w == mode->width && g_game->height == mode->height) {
+                    if (w == mode->width && g_game->displayHeight == mode->height) {
                         int max = e->max;
                         int value = j;
                         if (value > max)
@@ -2072,7 +2072,7 @@ void __stdcall OpenVisualOptions(int param_1)
             Gadget* e = FindGadgetChecked_D(layer->entries, "GAMMA");
             e->max = 0x14;
             e->sliderCallback = HandleGammaSlider;
-            int value = g_game->brightness;
+            int value = g_game->gamma;
             if (value > 0x14)
                 value = 0x14;
             float f = (float)value * (float)(e->range - 1) * 0.05f;
@@ -2110,7 +2110,7 @@ void __stdcall HandleSpeedOptionsClick(Gui* gui)
     if (IsCurrentGadgetNamed(gui, "UNDO")) {
         PlaySoundByName("Options", 0);
         g_game->textScroll = g_optionsBackupTextScroll;
-        g_game->gameSpeed = g_optionsBackupGameSpeed.s;
+        g_game->speedCtrl = g_optionsBackupGameSpeed.s;
         g_game->effectiveGameSpeed = g_optionsBackupGameSpeed.s;
         g_game->scrollSpeed = g_optionsBackupEdgeScroll.b;
         g_game->interfaceType = g_optionsBackupInterfaceType;
@@ -2125,7 +2125,7 @@ void __stdcall HandleSpeedOptionsClick(Gui* gui)
         PlaySoundByName("Options", 0);
         g_game->textScroll = 10;
         g_game->textLines = 10;
-        g_game->gameSpeed = 10;
+        g_game->speedCtrl = 10;
         g_game->effectiveGameSpeed = 10;
         g_game->scrollSpeed = 0x20;
         g_game->interfaceType = 0;
@@ -2170,7 +2170,7 @@ void OpenSpeedOptions()
         Gadget* e = FindGadgetChecked_D(obj->entries, "GAME");
         e->max = 0x15;
         e->sliderCallback = HandleGameSpeedSlider;
-        int value = g_game->gameSpeed;
+        int value = g_game->speedCtrl;
         if (value > 0x15) {
             value = 0x15;
         }
@@ -2273,10 +2273,10 @@ void ShowGameSettingsDialog()
     char* watchStrs[2] = { "Disallowed", "Allowed" };
     char* diffStrs[3] = { "Easy", "Medium", "Hard" };
     AddTextGadget(layer, "TEXT", Translate("Commander Death:"), 0x12, 0x5a, 0x6e, 2);
-    AddTextGadget(layer, "TEXT", Translate(deathStrs[g_game->commanderDeath]), 0x8c,
+    AddTextGadget(layer, "TEXT", Translate(deathStrs[g_game->battleCommanderDeath]), 0x8c,
                  0x5a, 0x78, 2);
     AddTextGadget(layer, "TEXT", Translate("Starting Locations:"), 0x12, 0x6c, 0x6e, 2);
-    if (g_game->mode->GetGameType() == 2) {
+    if (g_game->mapInfo->GetGameType() == 2) {
         AddTextGadget(layer, "TEXT", Translate(locStrs[g_game->options->startType]), 0x8c,
                      0x6c, 0x78, 2);
     } else {
@@ -2290,7 +2290,7 @@ void ShowGameSettingsDialog()
     int losIdx = !(losFlags & 2) ? 2 : (int)(((unsigned char)~losFlags >> 2) & 1);
     AddTextGadget(layer, "TEXT", Translate(losStrs[losIdx]), 0x8c, 0x90, 0x78, 2);
     int y;
-    if (g_game->mode->GetGameType() == 3) {
+    if (g_game->mapInfo->GetGameType() == 3) {
         AddTextGadget(layer, "TEXT", Translate("Cheat Codes:"), 0x12, 0xa2, 0x6e, 2);
         AddTextGadget(layer, "TEXT", Translate(cheatStrs[opts->u.b.b13]), 0x8c,
                      0xa2, 0x78, 2);
@@ -2306,11 +2306,11 @@ void ShowGameSettingsDialog()
     }
     AddTextGadget(layer, "TEXT", Translate("Map:"), 0x12, y, 0x6e, 2);
     AddTextGadget(layer, "TEXT",
-                 Translate(g_game->mode->GetMissionName()), 0x8c, y,
+                 Translate(g_game->mapInfo->GetMissionName()), 0x8c, y,
                  0x78, 2);
     y += 0x12;
     AddTextGadget(layer, "TEXT", Translate("Starting Metal:"), 0x12, y, 0x6e, 2);
-    if (g_game->mode->GetGameType() == 3) {
+    if (g_game->mapInfo->GetGameType() == 3) {
         AddTextGadget(layer, "TEXT", _itoa(opts->startMetal * 100, num, 10), 0x8c, y, 0x78,
                      2);
     } else {
@@ -2318,7 +2318,7 @@ void ShowGameSettingsDialog()
     }
     y += 0x12;
     AddTextGadget(layer, "TEXT", Translate("Starting Energy:"), 0x12, y, 0x6e, 2);
-    if (g_game->mode->GetGameType() == 3) {
+    if (g_game->mapInfo->GetGameType() == 3) {
         AddTextGadget(layer, "TEXT", _itoa(opts->startEnergy * 100, num, 10), 0x8c, y,
                      0x78, 2);
     } else {
@@ -2517,7 +2517,7 @@ void __stdcall HandleOptionsPanelClick(Gui* gui)
         } else if (IsCurrentGadgetNamed(gui, "CANCEL")) {
             PlaySoundByName("Previous", 0);
             RestoreSoundOptions();
-            g_game->volume2 = g_optionsBackupMusicVolume;
+            g_game->musicVolume = g_optionsBackupMusicVolume;
             g_game->sound->CopyTrackTypeTable(&g_optionsBackupTrackTypes);
             g_game->cdMode = g_optionsBackupCdMode;
             g_game->sound->SetPlaybackOrder(g_game->cdMode);
@@ -2527,11 +2527,11 @@ void __stdcall HandleOptionsPanelClick(Gui* gui)
             unsigned short f = g_game->flags_37f14.word;
             g_game->flags_37f14.word = f ^ ((f ^ g_optionsBackupMusicMode.s) & 1);
             g_game->sound->SetLockedTrack(g_optionsBackupLockedTrack);
-            SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-            g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-            g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+            SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+            g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+            g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
             g_game->textScroll = g_optionsBackupTextScroll;
-            g_game->gameSpeed = g_optionsBackupGameSpeed.i;
+            g_game->speedCtrl = g_optionsBackupGameSpeed.i;
             g_game->effectiveGameSpeed = g_optionsBackupGameSpeed.i;
             g_game->scrollSpeed = g_optionsBackupEdgeScroll.b;
             g_game->interfaceType = g_optionsBackupInterfaceType;
@@ -2654,7 +2654,7 @@ void OpenOptionsPanel()
     memcpy(g_optionsPrefsSnapshot.block, (char*)&g_game->block[0], 0x53);
     g_optionsPrefsSnapshot.bit0 = g_game->mapFlags.bits.bit1;
     g_optionsPrefsSnapshot.bit1 = g_game->mapFlags.bits.bit2;
-    g_optionsBackupGameSpeed.i = g_game->gameSpeed;
+    g_optionsBackupGameSpeed.i = g_game->speedCtrl;
     g_optionsBackupEdgeScroll.i = g_game->scrollSpeed;
     g_optionsBackupLockedTrack = g_game->sound->GetLockedTrack();
     for (int i = 0; i < 100; i++) {
@@ -2675,7 +2675,7 @@ void __stdcall HandleRestartDialogClick(Gui* gui)
     PlaySoundByName("Options", 0);
     if (IsCurrentGadgetNamed(gui, "RESTART")) {
         int ok = 0;
-        int mode = g_game->mode->GetGameType();
+        int mode = g_game->mapInfo->GetGameType();
         switch (mode) {
         case 1:
             if (!FindGameCdDrive(0)) {
@@ -2722,7 +2722,7 @@ void OpenRestartDialog()
     int index = FindGadgetIndex(gadgets, "MISSIONNAME", 5);
     menu->field_14 = menu->field_c;
     char* text = WordWrapText((Menu_004604a0*)&g_game->gui,
-                              g_game->mode->GetMissionName(),
+                              g_game->mapInfo->GetMissionName(),
                               gadgets[index].width, -1);
     menu->field_14 = menu->field_8;
     char* first = strtok(text, "\n");
@@ -2830,14 +2830,14 @@ void OpenExitMenu()
     Layer* dialog = LoadGuiLayer((Sub_004608b0*)&g_game->gui, "EXITMENU.GUI", 0x1800);
     dialog->handler = HandleExitMenuClick;
     FindGadgetIndex(dialog->entries, "RESTART", 1);
-    if (g_game->mode->GetGameType() == 1) {
+    if (g_game->mapInfo->GetGameType() == 1) {
         SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "RESTART", 1);
         SetTranslatedTextByName((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
     }
     // Restart body written twice on purpose: the compiler merges them and lays
     // restart out before main-menu.
-    if (g_game->mode->GetGameType() == 2) {
+    if (g_game->mapInfo->GetGameType() == 2) {
         SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "RESTART", 1);
         SetTranslatedTextByName((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
         goto tail;
@@ -2872,7 +2872,7 @@ void __stdcall HandleInGameOptionsClick(Gui* gui)
             g_optionsBackupSurface = 0;
         }
         if (g_game->bits_2a44.byte & 4) {
-            if (g_game->mode->GetGameType() != 3)
+            if (g_game->mapInfo->GetGameType() != 3)
                 g_game->orders &= 0xfffe;
         }
         g_game->flags_37ebe.word &= 0xfffe;
@@ -2907,7 +2907,7 @@ void __stdcall HandleInGameOptionsClick(Gui* gui)
     }
     if (IsCurrentGadgetNamed(gui, "MISSION")) {
         PlaySoundByName("Options", 0);
-        if (g_game->mode->GetGameType() == 1) {
+        if (g_game->mapInfo->GetGameType() == 1) {
             Layer* g = LoadGuiLayer((Sub_004609b0*)&g_game->gui, "BRIEFING.GUI", 0);
             Gadget* gadgets = g->entries;
             g->handler = HandleBriefingClick;
@@ -2943,16 +2943,16 @@ void OpenInGameOptions()
     Layer* layer = LoadGuiLayer((Gui*)&g_game->gui, "ARMOPT.GUI", 0x800);
     layer->handler = HandleInGameOptionsClick;
     SetGrayedOut((Gui*)&g_game->gui, FindGadgetIndex(layer->entries, "SAVEGAME", 1),
-                 g_game->mode->GetGameType() == 3);
+                 g_game->mapInfo->GetGameType() == 3);
     SetGrayedOut((Gui*)&g_game->gui, FindGadgetIndex(layer->entries, "LOADGAME", 1),
-                 g_game->mode->GetGameType() == 3);
-    if (g_game->mode->GetGameType() == 3 || g_game->mode->GetGameType() == 2) {
+                 g_game->mapInfo->GetGameType() == 3);
+    if (g_game->mapInfo->GetGameType() == 3 || g_game->mapInfo->GetGameType() == 2) {
         SetTranslatedTextByName((Gui*)&g_game->gui, "MISSION", Translate("Settings"), 0x80);
     }
     EnableKeyCommands((Gui*)&g_game->gui);
     SetKeyboardInput((Gui*)&g_game->gui, 1);
     RenderLayer((Gui*)&g_game->gui, 0x40);
-    if (g_game->mode->GetGameType() != 3) {
+    if (g_game->mapInfo->GetGameType() != 3) {
         g_game->flags_38a51 |= 1;
     }
     g_game->sound->PauseCdAudio(1);

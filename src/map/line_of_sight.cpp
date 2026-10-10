@@ -297,22 +297,22 @@ struct Game {
     Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x1485b - 0x1435f];
     FrameTable* losTable;              // +0x1485b
-    void* black[4];                    // +0x1485f
-    void* gray[4];                     // +0x1486f
+    void* black1Seq[4];                // +0x1485f
+    void* gray1Seq[4];                 // +0x1486f
     char unknown_1487f[0x37e27 - 0x1487f];
     Rect rect;                         // +0x37e27
-    int viewW;                         // +0x37e37
-    int viewH;                         // +0x37e3b
+    int viewPixelWidth;                // +0x37e37
+    int viewPixelHeight;               // +0x37e3b
     char unknown_37e3f[0x37f06 - 0x37e3f];
     Flags_004848e0 flags_37f06;        // +0x37f06
     char unknown_37f08[0x38a47 - 0x37f08];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x38d6b - 0x38a4b];
     int pendingSaveStore;              // +0x38d6b
     char unknown_38d6f;
     unsigned char loadProgress;        // +0x38d70
     char unknown_38d71[0x391e9 - 0x38d71];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 
 #pragma pack(pop)
@@ -391,7 +391,7 @@ void __cdecl operator delete(void* p);
 
 // Returns int, not bool: a bool return breaks the fused compare.
 struct Expired {
-    int operator()(const Eye& e) const { return e.expires < g_game->ticks; }
+    int operator()(const Eye& e) const { return e.expires < g_game->gameTick; }
 };
 
 static inline int SumX(Point a, Point b) { return a.x + b.x; }
@@ -520,7 +520,7 @@ void __stdcall RemoveUnitLineOfSight(Unit* unit)
 int __stdcall IsEyeballExpired(Eye* obj)
 {
     unsigned int field_val = obj->expires;
-    unsigned int cmp_val = g_game->ticks;
+    unsigned int cmp_val = g_game->gameTick;
     return field_val < cmp_val ? 1 : 0;
 }
 
@@ -531,7 +531,7 @@ void ExpireEyeballs()
     int changed;
     Eye* p = g_game->eyes;
     for (int i = 0; i < g_game->count; i++, p++) {
-        if (p->expires < g_game->ticks) {
+        if (p->expires < g_game->gameTick) {
             RemoveLineOfSight((SightQuery*)p);
             changed = 1;
         }
@@ -933,7 +933,7 @@ void ClearBorderFeatures()
         }
     }
 
-    if (g_game->net->lavaWorld != 0) {
+    if (g_game->mapInfo->lavaWorld != 0) {
         Cell* c = g_game->heightMap;
         Cell* end = c + g_game->mapWidthTiles * g_game->mapHeightTiles;
         while (c < end) {
@@ -989,7 +989,7 @@ void LoadTntMap()
     int* tnt;
 
     // REGION r1 begin
-    tnt = (int*)(g_game->net)->GetNameSlot(1);
+    tnt = (int*)(g_game->mapInfo)->GetNameSlot(1);
     tnt = LoadFileWithProgress(tnt);
     info.version = *tnt;
     switch (info.version) {
@@ -1037,17 +1037,17 @@ void LoadTntMap()
     // REGION r1 end
 
     // REGION r2 begin
-    a.n = g_game->net->minWindSpeed;
+    a.n = g_game->mapInfo->minWindSpeed;
     if (a.n >= 0 && info.version >= 0x2000)
         mapSettings->windSpeedMin = a.n;
     else
         mapSettings->windSpeedMin = info.sea_a;
-    a.n = g_game->net->maxWindSpeed;
+    a.n = g_game->mapInfo->maxWindSpeed;
     if (a.n >= 0 && info.version >= 0x2000)
         mapSettings->windSpeedMax = a.n;
     else
         mapSettings->windSpeedMax = info.sea_b;
-    a.n = g_game->net->gravity;
+    a.n = g_game->mapInfo->gravity;
     // Parenthesised so the two constant multiplies are not folded into one.
     if (a.n >= 0 && info.version >= 0x2000)
         mapSettings->rise = (int)((a.n * 65536.0) * 0.0011111111111111111);
@@ -1055,8 +1055,8 @@ void LoadTntMap()
         mapSettings->rise = (int)((info.sea_d * 65536.0) * 0.0011111111111111111);
     else
         mapSettings->rise = 0x1fdb;
-    if (g_game->net->tidalStrength >= 0.0f)
-        mapSettings->tidal = *(int*)&g_game->net->tidalStrength;
+    if (g_game->mapInfo->tidalStrength >= 0.0f)
+        mapSettings->tidal = *(int*)&g_game->mapInfo->tidalStrength;
     else
         mapSettings->tidal = 0x3f000000;
     mapSettings->seaLevel = (unsigned char)info.flag;
@@ -1092,7 +1092,7 @@ void LoadTntMap()
     a.n = mapSettings->width * mapSettings->height;
     unsigned char* plot = (unsigned char*)GameAllocIgnoreTag("PLOT MEMORY", a.n * 0xd);
     mapSettings->cells = (Cell*)plot;
-    int fill = g_game->net->surfaceMetal;
+    int fill = g_game->mapInfo->surfaceMetal;
     if (fill < 0 || info.version < 0x2000)
         fill = 0;
     for (int i = a.n; i > 0; i--) {
@@ -1172,8 +1172,8 @@ void LoadTntMap()
     memcpy(mapSettings->iconSet->data, info.tile_set_src, info.tile_set_count * 0x400);
     GameFreeThunk(tnt);
     g_losTables.LoadLosTables();
-    int mw = g_game->viewW;
-    int mh = g_game->viewH;
+    int mw = g_game->viewPixelWidth;
+    int mh = g_game->viewPixelHeight;
     mapSettings->screenTilesX = mw / 16;
     mapSettings->screenTilesY = mh / 16;
     mapSettings->blocksX = mw / 32;
@@ -1305,8 +1305,8 @@ void __stdcall DrawMapTiles(void* surface)
     scrollX = g_game->scrollX;
     scrollY = g_game->scrollY;
     // View size is loaded before the divisions.
-    viewW = g_game->viewW;
-    viewH = g_game->viewH;
+    viewW = g_game->viewPixelWidth;
+    viewH = g_game->viewPixelHeight;
     tileX = scrollX / 32;
     tileY = scrollY / 32;
     offX = scrollX - tileX * 32;
@@ -1425,7 +1425,7 @@ void __stdcall DrawFogOfWar(void* surface)
             } else {
                 if (cell->level1 != 0) {
                     if (cell->level1 != 0xf) {
-                        void* bmp = GetGafFrame(g_game->gray[(i + j + q) & 3], cell->level1 - 1);
+                        void* bmp = GetGafFrame(g_game->gray1Seq[(i + j + q) & 3], cell->level1 - 1);
                         if (g_game->flags_37f06.ditheredFog) {
                             EraseFrameDithered(surface, bmp, r.left, r.top, parity);
                         } else {
@@ -1440,7 +1440,7 @@ void __stdcall DrawFogOfWar(void* surface)
                     }
                 }
                 if (cell->level0 > 0) {
-                    void* bmp = GetGafFrame(g_game->black[(i + j + q) & 3], cell->level0 - 1);
+                    void* bmp = GetGafFrame(g_game->black1Seq[(i + j + q) & 3], cell->level0 - 1);
                     DrawFrame(surface, bmp, r.left, r.top);
                 }
             }

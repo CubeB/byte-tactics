@@ -789,7 +789,7 @@ struct Game {
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14263 - 0x2a44];
-    int rise;                          // +0x14263
+    int gravity;                       // +0x14263
     char unknown_14267[0x14273 - 0x14267];
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
@@ -808,12 +808,12 @@ struct Game {
         unsigned short* bits_147f3;
     };
     char unknown_147f7[0x37ecc - 0x147f7];
-    int windX;                         // +0x37ecc
+    int windVelX;                      // +0x37ecc
     char unknown_37ed0[4];
     int windZ;                         // +0x37ed4
     char unknown_37ed8[0x38a47 - 0x37ed8];
     union {
-        int ticks;                     // +0x38a47, the tick
+        int gameTick;                  // +0x38a47, the tick
         int time;
         unsigned int now;
     };
@@ -1573,7 +1573,7 @@ void TeleportParticles::Update()
 
     while (it != items.end()) {
         it->Step();
-        if (it->IsExpired(g_game->ticks)) {
+        if (it->IsExpired(g_game->gameTick)) {
             items.erase(it);
         } else {
             ++it;
@@ -1589,7 +1589,7 @@ void TeleportParticles::Update()
 int TeleportParticles::IsEmitDue()
 {
     if (time <= deadline) {
-        unsigned int game_val = g_game->ticks;
+        unsigned int game_val = g_game->gameTick;
         if ((unsigned int)time <= game_val) {
             return 1;
         }
@@ -1624,7 +1624,7 @@ void NanoParticles::Update()
     std::vector<NanoParticle>::iterator it = items.begin();
     while (it != items.end()) {
         it->Step();
-        if (it->IsExpired(g_game->ticks))
+        if (it->IsExpired(g_game->gameTick))
             it = items.erase(it);
         else
             ++it;
@@ -1638,7 +1638,7 @@ void NanoParticles::Update()
 int NanoParticles::IsEmitDue()
 {
     if (time <= deadline) {
-        unsigned int game_val = g_game->ticks;
+        unsigned int game_val = g_game->gameTick;
         if ((unsigned int)time <= game_val) {
             return 1;
         }
@@ -1671,7 +1671,7 @@ void ThrustParticles::Update()
 {
     for (std::vector<ThrustParticle>::iterator it = items.begin(); it != items.end(); ) {
         it->Step();
-        if (it->IsExpired(g_game->ticks))
+        if (it->IsExpired(g_game->gameTick))
             items.erase(it);
         else
             ++it;
@@ -1685,7 +1685,7 @@ void ThrustParticles::Update()
 int ThrustParticles::IsEmitDue()
 {
     if (time <= deadline) {
-        unsigned int val = g_game->ticks;
+        unsigned int val = g_game->gameTick;
         if ((unsigned int)time <= val) {
             return 1;
         }
@@ -1720,7 +1720,7 @@ void WakeParticles::Update()
 
     while (it != items.end()) {
         it->Step();
-        if (it->IsExpired(g_game->ticks)) {
+        if (it->IsExpired(g_game->gameTick)) {
             items.erase(it);
         } else {
             ++it;
@@ -1857,7 +1857,7 @@ void TeleportParticles::Init(Vec3_004736e0* a, Vec3_004736e0* b, int c)
 // FUNCTION: 0x4737c0
 void TeleportParticles::Emit()
 {
-    int grow = (deadline - g_game->ticks + 10) / 10;
+    int grow = (deadline - g_game->gameTick + 10) / 10;
 
     // The inlined vector::reserve itself is needed, not a hand-written block.
     if (grow > 0)
@@ -1869,7 +1869,7 @@ void TeleportParticles::Emit()
         e.pos1 = pos1;
         e.pos2 = pos2;
         e.dir = dir;
-        e.endTime = g_game->ticks + sparkLifetime;
+        e.endTime = g_game->gameTick + sparkLifetime;
         e.data = g_game->flameStreamSeq;
         e.frameCount = GetGafFrameCount(g_game->flameStreamSeq) - 1;
         e.frame = (int)(((__int64)rand() * e.frameCount) / 0x8000);
@@ -1878,7 +1878,7 @@ void TeleportParticles::Emit()
         v->insert(v->last, 1, e);
     }
 
-    time = g_game->ticks + 10;
+    time = g_game->gameTick + 10;
 }
 
 // Advances the position by its velocity and steps a 1..7 animation counter
@@ -1996,7 +1996,7 @@ void ThrustParticles::Init(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b)
 // FUNCTION: 0x4743a0
 void ThrustParticles::Emit()
 {
-    int extra = deadline - g_game->ticks + 1;
+    int extra = deadline - g_game->gameTick + 1;
     if (extra > 0) {
         items.reserve(extra + items.size());
     }
@@ -2015,7 +2015,7 @@ void ThrustParticles::Emit()
         rec.frame = 0;
         ((Class_00475bd0*)v)->insert(v->end(), 1, rec);
     }
-    time = g_game->ticks + 1;
+    time = g_game->gameTick + 1;
 }
 
 // Moves by the velocity, then every `period` ticks steps a value that wraps
@@ -2101,7 +2101,7 @@ void WakeParticles::Init(Vec3_00474760* a, Vec3_00474760* b, int param_3,
 // FUNCTION: 0x474880
 void WakeParticles::Emit()
 {
-    int grow = deadline - g_game->ticks + 1;
+    int grow = deadline - g_game->gameTick + 1;
 
     if (grow > 0)
         items.reserve(grow + items.size());
@@ -2113,7 +2113,7 @@ void WakeParticles::Emit()
 
         e.tick = 0;
         e.period = period;
-        e.endTime = g_game->ticks + period * 6;
+        e.endTime = g_game->gameTick + period * 6;
         e.pos = pos_a;
         e.pos.xp.hi += (int)((__int64)rand() * 7 / 0x8000) - 3;
         e.pos.yp.hi += (int)((__int64)rand() * 7 / 0x8000) - 3;
@@ -2134,7 +2134,7 @@ void WakeParticles::Emit()
         v->insert(v->last, 1, e);
     } while (--i);
 
-    time = g_game->ticks + 1;
+    time = g_game->gameTick + 1;
 }
 
 // Drifts the puff by the game's per-tick counts (x, z by the wind times 8, y
@@ -2144,8 +2144,8 @@ void WakeParticles::Emit()
 // FUNCTION: 0x474b00
 void SmokeParticle::Step()
 {
-    pos.x += g_game->windX * 8;
-    pos.y += g_game->rise * 4;
+    pos.x += g_game->windVelX * 8;
+    pos.y += g_game->gravity * 4;
     pos.z += g_game->windZ * 8;
     if (--timer == 0) {
         count++;
@@ -2196,7 +2196,7 @@ void SmokeParticles::Init(Vec3_00474d50* p, int limit, int a, int b, int c,
 // FUNCTION: 0x474df0
 void SmokeParticles::Emit()
 {
-    int periods = (deadline - g_game->ticks + emitPeriod) / emitPeriod;
+    int periods = (deadline - g_game->gameTick + emitPeriod) / emitPeriod;
     if (periods > 0) {
         records.reserve(periods + records.size());
     }
@@ -2212,7 +2212,7 @@ void SmokeParticles::Emit()
         rec.count = 0;
         ((Class_00476210*)v)->insert(v->end(), 1, rec);
     }
-    time = g_game->ticks + emitPeriod;
+    time = g_game->gameTick + emitPeriod;
 }
 
 // Slot 3: true once there are no particles and the game time has passed the
@@ -2226,7 +2226,7 @@ int SmokeParticles::IsFinished()
 
     bool isZero = (count == 0);
     if (isZero) {
-        if ((unsigned int)deadline < (unsigned int)g_game->ticks) {
+        if ((unsigned int)deadline < (unsigned int)g_game->gameTick) {
             return 1;
         }
     }
@@ -2242,8 +2242,8 @@ int SmokeParticles::IsFinished()
 // FUNCTION: 0x474fc0
 void TimedSubParticle::Step()
 {
-    pos.x += g_game->windX * 8;
-    pos.y += g_game->rise * 16;
+    pos.x += g_game->windVelX * 8;
+    pos.y += g_game->gravity * 16;
     pos.z += g_game->windZ * 8;
     if (--timer == 0) {
         count++;
@@ -2294,7 +2294,7 @@ void TimedSubParticles::Init(Vec3_00475150* p, int a, int b, int c)
 // FUNCTION: 0x4751c0
 void TimedSubParticles::Emit()
 {
-    int missed = (deadline - g_game->ticks + emitPeriod) / emitPeriod;
+    int missed = (deadline - g_game->gameTick + emitPeriod) / emitPeriod;
     if (missed > 0)
         records.reserve(records.size() + missed);
     // The two pointers have to be locals: the original hoists both addresses
@@ -2314,7 +2314,7 @@ void TimedSubParticles::Emit()
         rec.count = 0;
         ((Vec_00476490*)v)->insert(v->end(), 1, &rec);
     } while (--i);
-    time = g_game->ticks + emitPeriod;
+    time = g_game->gameTick + emitPeriod;
 }
 
 // Slot 3: this class always answers 0.
@@ -2336,8 +2336,8 @@ void SmokeParticles::Update()
 {
     std::vector<SmokeParticle>::iterator it = records.begin();
     while (it != records.end()) {
-        it->pos.x += g_game->windX * 8;
-        it->pos.y += g_game->rise * 4;
+        it->pos.x += g_game->windVelX * 8;
+        it->pos.y += g_game->gravity * 4;
         it->pos.z += g_game->windZ * 8;
         if (--it->timer == 0) {
             it->count++;
@@ -2358,7 +2358,7 @@ void SmokeParticles::Update()
 // FUNCTION: 0x475440
 int SmokeParticles::IsEmitDue()
 {
-    if (time <= deadline && (unsigned int)time <= (unsigned int)g_game->ticks) {
+    if (time <= deadline && (unsigned int)time <= (unsigned int)g_game->gameTick) {
         return 1;
     }
     return 0;
@@ -2374,8 +2374,8 @@ void TimedSubParticles::Update()
 {
     std::vector<TimedSubParticle>::iterator it = records.begin();
     while (it != records.end()) {
-        it->pos.x += g_game->windX * 8;
-        it->pos.y += g_game->rise * 16;
+        it->pos.x += g_game->windVelX * 8;
+        it->pos.y += g_game->gravity * 16;
         it->pos.z += g_game->windZ * 8;
         if (--it->timer == 0) {
             it->count++;

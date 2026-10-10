@@ -595,7 +595,7 @@ struct Game {
     char unknown_142bb[0x14357 - 0x142bb];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
 };
 #pragma pack(pop)
 
@@ -2457,7 +2457,7 @@ void AiSearchGoal::TickTowardGoal()
 AiSearchGoal* AiSearchGoal::TryClaimRepath()
 {
     if (field_64 & 2) {
-        unsigned int limit = g_game->ticks;
+        unsigned int limit = g_game->gameTick;
         if (limit >= field_60 + 0x3c) {
             field_60 = limit;
             return this;
@@ -2524,7 +2524,7 @@ void AiSearchGoal::SetPathOrder(void* param)
             }
         }
     }
-    if (field_60 <= g_game->ticks - 10)
+    if (field_60 <= g_game->gameTick - 10)
         field_60 = 0;
     flag_3 = 1;
 }

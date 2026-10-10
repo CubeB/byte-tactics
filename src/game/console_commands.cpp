@@ -201,19 +201,19 @@ struct Game {
     char unknown_14377[0x1437b - 0x14377];
     CMemoryCache* unitTable;           // +0x1437b
     char unknown_1437f[0x1438f - 0x1437f];
-    int count;                         // +0x1438f
+    int unitDefCount;                  // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    UnitDef* defs;                     // +0x1439b
+    UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x148db - 0x1439f];
     void* logos32;                     // +0x148db
     char unknown_148df[0x37e23 - 0x148df];
-    int bottom;                        // +0x37e23
+    int screenHeight;                  // +0x37e23
     char unknown_37e27[0x37efa - 0x37e27];
     int interfaceType;                 // +0x37efa
     char unknown_37efe[0x37f02 - 0x37efe];
     int screenChat;                    // +0x37f02
     GameFlags flags;                   // +0x37f06
-    int brightness;                    // +0x37f08
+    int gamma;                         // +0x37f08
     char unknown_37f0c[0x37f2f - 0x37f0c];
     union {
         unsigned short flags_37f2f;    // +0x37f2f
@@ -235,9 +235,9 @@ struct Game {
     char unknown_37f31[0x37f35 - 0x37f31];
     int netSendDropPct;                // +0x37f35
     char unknown_37f39[0x38a37 - 0x37f39];
-    int lastShotTime;                  // +0x38a37
+    int lastSimBudgetTick;             // +0x38a37
     char unknown_38a3b[0x38a47 - 0x38a3b];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
     char unknown_38a4b[0x38a53 - 0x38a4b];
     // The install path the Film command replaces and the film speed value
     // overlap.
@@ -255,7 +255,7 @@ struct Game {
     char unknown_38dd9[0x391ed - 0x38dd9];
     MissionConditions* victoryConditions;  // +0x391ed
     char unknown_391f1[0x391fd - 0x391f1];
-    int font;                          // +0x391fd
+    int fontSmlFont;                   // +0x391fd
     char unknown_39201[0x3923b - 0x39201];
     union {
         unsigned short flags_3923b;    // +0x3923b
@@ -1040,7 +1040,7 @@ void __stdcall CmdNoEnergy(CommandArgs* args)
 void __stdcall CmdGamma(CommandArgs* args)
 {
     SetBrightness(args->GetIntArg(1, 0) * 0.1f);
-    g_game->brightness = args->GetIntArg(1, 0);
+    g_game->gamma = args->GetIntArg(1, 0);
     SaveSettings();
 }
 
@@ -1155,7 +1155,7 @@ void __stdcall CmdNowISee(void*)
 void __stdcall CmdNetStats(int)
 {
     FUN_004161f0();
-    DAT_00511c20 = g_game->ticks;
+    DAT_00511c20 = g_game->gameTick;
     g_messageBytesReceived = 0;
     g_messageBytesSent = 0;
     Pair_00419560* p = (Pair_00419560*)&g_messageBytesByType[1];
@@ -1210,7 +1210,7 @@ void __stdcall CmdMakePoster(CommandArgs* args)
     sprintf(buf, "%s\\screenshots", g_game->path);
     MakeDirectoryPath(buf);
     WriteScreenshot(buf, "BIGSHOT", x, y, w, h);
-    g_game->lastShotTime = GetTicks();
+    g_game->lastSimBudgetTick = GetTicks();
 }
 
 // Console command: with an argument, calls EnableMeteors or DisableMeteors
@@ -1265,8 +1265,8 @@ void __stdcall DefaultCommandHandler(CommandArgs* args)
 {
     Vec3 pos=g_game->pos;
     int count=0;
-    for (unsigned short i=1;i<g_game->count;++i) {
-        UnitDef* def=&g_game->defs[i];
+    for (unsigned short i=1;i<g_game->unitDefCount;++i) {
+        UnitDef* def=&g_game->unitDefs[i];
         if (MatchWildcard(def->unitname,args->GetArg(0,DAT_005119b8))) {
             if (count) pos.x-=def->modelMinX;
             SnapWorldPosToFootprint(def,&pos);
@@ -1587,7 +1587,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
             p[3].x = (x + 8) * 16 - g_game->scrollX;
             p[3].y = (y + 2) * 16 - (heights[3] >> 1) - g_game->scrollY;
             tile -= g_game->mapWidthTiles; --y;
-            if (p[0].y < g_game->bottom) offscreen = 0;
+            if (p[0].y < g_game->screenHeight) offscreen = 0;
             if (g_game->debugMode == 1) {
                 if (movement) {
                     unsigned int state = (movement->states[movement->width * (y >> 4) + x] >> ((y & 15) * 2)) & 3;
@@ -1599,7 +1599,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
                 }
                 PathCell* cell = g_game->pathfinder->grid.At(x, y);
                 if (cell->flags & 4) {
-                    SetFont(g_game->font);
+                    SetFont(g_game->fontSmlFont);
                     SetTextColors(rand() & 255, GetTextKeyColor());
                     DrawString(surface, "G", p[0].x, p[0].y, -1);
                 }
@@ -1655,7 +1655,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
                     DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[13]);
                     DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[13]);
                 }
-                SetFont(g_game->font);
+                SetFont(g_game->fontSmlFont);
                 SetTextColors(colors[15], GetTextKeyColor());
                 char buffer[20];
                 DrawString(surface, _itoa(tile->metal, buffer, 10), p[0].x + 2, p[0].y + 2, -1);

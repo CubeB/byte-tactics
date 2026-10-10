@@ -53,8 +53,8 @@ struct Game {
     char unknown_2a42[0x14357 - 0x2a42];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x37efe - 0x1435b];
-    int mode;                          // +0x37efe
-    int unit_type_mask;                // +0x37f02
+    int chatHudFilterMode;             // +0x37efe
+    int screenChat;                    // +0x37f02
     char unknown_37f06[0x37f23 - 0x37f06];
     int textScroll;                    // +0x37f23
     union {
@@ -62,11 +62,11 @@ struct Game {
         int max_lines;                 // +0x37f27, DrawMessages' line limit
     };
     char unknown_37f2b[0x38a47 - 0x37f2b];
-    unsigned int now;                  // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
     Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x391f9 - 0x391ed];
-    int font;                          // +0x391f9
+    int fontComix;                     // +0x391f9
 };
 
 #pragma pack(pop)
@@ -116,7 +116,7 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
     }
     strncpy(g_game->chatHudRing[g_game->chatHudWriteIdx].text, text, 0x40);
     g_game->chatHudRing[g_game->chatHudWriteIdx].text[0x3f] = 0;
-    g_game->chatHudRing[g_game->chatHudWriteIdx].time = g_game->now;
+    g_game->chatHudRing[g_game->chatHudWriteIdx].time = g_game->gameTick;
     unsigned char c = g_game->chatHudRing[g_game->chatHudWriteIdx].flags;
     g_game->chatHudRing[g_game->chatHudWriteIdx].flags = (c ^ key) & 0xf ^ c;
     g_game->chatHudRing[g_game->chatHudWriteIdx].unit = value;
@@ -152,7 +152,7 @@ int ExpireOldestMessage()
     int result = 0;
     unsigned short i = g_game->chatHudReadIdx;
     if (g_game->chatHudWriteIdx != i
-        && g_game->chatHudRing[i].time + (g_game->textScroll + 1) * 30 < g_game->now) {
+        && g_game->chatHudRing[i].time + (g_game->textScroll + 1) * 30 < g_game->gameTick) {
         result = 1;
         g_game->chatHudReadIdx = i + 1;
         if (g_game->chatHudReadIdx == 30)
@@ -209,14 +209,14 @@ void __stdcall DrawMessages(void* surf)
         if (i < 0)
             i = 0x1d;
     }
-    SetFont(g_game->font);
+    SetFont(g_game->fontComix);
     int start = GetFontHeight();
     if (g_game->chatHudWriteIdx == i)
         return;
     int y = 0x34;
     while (g_game->chatHudWriteIdx != i) {
         int show;
-        switch (g_game->mode) {
+        switch (g_game->chatHudFilterMode) {
         case 1:
             // Cavedog never assigns show in this arm when the team field is 2,
             // so the test below reads the previous iteration's value. Kept.
@@ -227,7 +227,7 @@ void __stdcall DrawMessages(void* surf)
             show = (g_game->chatHudRing[i].flags & 0xf) != 8;
             break;
         case 3:
-            if (g_game->unit_type_mask == 0) {
+            if (g_game->screenChat == 0) {
                 switch (g_game->chatHudRing[i].flags & 0xf) {
                 case 1:
                 case 4:

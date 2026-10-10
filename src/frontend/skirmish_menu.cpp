@@ -99,15 +99,15 @@ struct Game {
     char unknown_2a44[0x2bc0 - 0x2a44];
     char frontendSubstateRequest;      // +0x2bc0
     char unknown_2bc1[0x148db - 0x2bc1];
-    unsigned short* colorCount;        // +0x148db
+    unsigned short* logos32;           // +0x148db
     char unknown_148df[0x37eee - 0x148df];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x37f39 - 0x37ef2];
     int sideCount;                     // +0x37f39
     char unknown_37f3d[0x38d81 - 0x37f3d];
-    int playerCount;                   // +0x38d81
+    int numSkirmishPlayers;            // +0x38d81
     char unknown_38d85[0x391e9 - 0x38d85];
-    Mission* mission;                  // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 
 #pragma pack(pop)
@@ -122,7 +122,7 @@ void RefreshAllyIcons(void)
 {
     int i = 0;
     Gadget* entries = g_game->gui.layer->entries;
-    for (; i < g_game->playerCount; i++) {
+    for (; i < g_game->numSkirmishPlayers; i++) {
         char name[64];
         wsprintfA(name, "Allies%d", i);
         int index = FindGadgetIndex(entries, name, 6);
@@ -132,7 +132,7 @@ void RefreshAllyIcons(void)
                 int team = g_game->options->players[i].team;
                 int count = 0;
                 int j;
-                for (j = 0; j < g_game->playerCount; j++) {
+                for (j = 0; j < g_game->numSkirmishPlayers; j++) {
                     if (g_game->options->players[j].team == team &&
                         g_game->options->players[j].active != 0) {
                         count++;
@@ -164,13 +164,13 @@ int AreAllPlayersInOneAllyGroup(void)
 {
     int type;
     int i;
-    for (i = 0; i < g_game->playerCount; i++) {
+    for (i = 0; i < g_game->numSkirmishPlayers; i++) {
         if (g_game->options->players[i].active != 0 && (type = g_game->options->players[i].team) != 5)
             break;
     }
-    if (i == g_game->playerCount)
+    if (i == g_game->numSkirmishPlayers)
         return 0;
-    for (i = 0; i < g_game->playerCount; i++) {
+    for (i = 0; i < g_game->numSkirmishPlayers; i++) {
         if (g_game->options->players[i].team != type && g_game->options->players[i].active != 0)
             return 0;
     }
@@ -188,7 +188,7 @@ char* __stdcall Translate(char* key);
 int __cdecl CountHumanSlots()
 {
     int n = 0;
-    for (int i = 0; i < g_game->playerCount; i++) {
+    for (int i = 0; i < g_game->numSkirmishPlayers; i++) {
         if (g_game->options->players[i].active == 1)
             n++;
     }
@@ -198,7 +198,7 @@ int __cdecl CountHumanSlots()
 // 0x479590: whether another active player uses this colour.
 int __stdcall IsColorTaken(int color, int skip)
 {
-    for (int i = 0; i < g_game->playerCount; i++) {
+    for (int i = 0; i < g_game->numSkirmishPlayers; i++) {
         if (g_game->options->players[i].color == color && g_game->options->players[i].active != 0 && i != skip) {
             return 1;
         }
@@ -213,11 +213,11 @@ int FindFreeColor()
     // do/while, not for: a for loop moves the return block to the function end.
     do {
         int i;
-        for (i = 0; i < g_game->playerCount; i++) {
+        for (i = 0; i < g_game->numSkirmishPlayers; i++) {
             if (g_game->options->players[i].color == color)
                 break;
         }
-        if (i == g_game->playerCount)
+        if (i == g_game->numSkirmishPlayers)
             return color;
         color++;
     } while (color < 10);
@@ -236,7 +236,7 @@ static void NewColour(int playerIndex)
     if (index != -1) {
         Gadget* e = &entries[index];
         if (e != 0) {
-            e->frames = g_game->colorCount;
+            e->frames = g_game->logos32;
             e->frame = (unsigned short)g_game->options->players[playerIndex].color;
         }
     }
@@ -374,15 +374,15 @@ void BuildSkirmishPlayerRows(void)
 {
     Rec1 rec1;
     Rec2 rec2;
-    int step = 200 / g_game->playerCount;
-    int y = (0xb4 - (g_game->playerCount - 1) * step) / 2 + 0x4f;
+    int step = 200 / g_game->numSkirmishPlayers;
+    int y = (0xb4 - (g_game->numSkirmishPlayers - 1) * step) / 2 + 0x4f;
     memset(&rec1, 0, sizeof(rec1));
     memset(&rec2, 0, sizeof(rec2));
     rec1.h.flag = 1;
     rec2.h.flag = 1;
     rec2.flags |= 1;
     int i = 0;
-    while (i < g_game->playerCount) {
+    while (i < g_game->numSkirmishPlayers) {
         rec1.h.y = y;
         rec2.h.y = y;
         wsprintfA(rec1.h.name, "Player%d", i);
@@ -459,9 +459,9 @@ void RefreshSkirmishSetup()
     BuildSkirmishPlayerRows();
 
     int empty = 1;
-    if (g_game->playerCount > 0) {
+    if (g_game->numSkirmishPlayers > 0) {
         SkirmishPlayerSlot* p = g_game->options->players;
-        int n = g_game->playerCount;
+        int n = g_game->numSkirmishPlayers;
         do {
             if (p->active != 0)
                 empty = 0;
@@ -490,7 +490,7 @@ void RefreshSkirmishSetup()
 
     {
         int i;
-        for (i = 0; i < g_game->playerCount; i++) {
+        for (i = 0; i < g_game->numSkirmishPlayers; i++) {
             wsprintfA(buf, "Player%d", i);
             int type = g_game->options->players[i].active;
             switch (type) {
@@ -532,7 +532,7 @@ void RefreshSkirmishSetup()
             if (index != -1) {
                 Gadget* gadget = &entries[index];
                 if (gadget != 0) {
-                    gadget->frames = g_game->colorCount;
+                    gadget->frames = g_game->logos32;
                     gadget->frame = g_game->options->players[i].color;
                 }
             }
@@ -613,7 +613,7 @@ void RefreshSkirmishSetup()
 int __stdcall FindNextAllySlot(int self, int start)
 {
     SkirmishPlayerSlot* players = g_game->options->players;
-    int n = g_game->playerCount;
+    int n = g_game->numSkirmishPlayers;
     if (start != n) {
         for (int i = start; i < n; i++) {
             if (players[i].team == players[self].team && players[i].active != 0 && players[i].team != 5)
@@ -632,7 +632,7 @@ void __stdcall SetupPlayerSlot(unsigned char player, unsigned char kind);
 // FUNCTION: 0x47a760
 void ApplySlotsToGamePlayers()
 {
-    for (int i = 0; i < g_game->playerCount; i++) {
+    for (int i = 0; i < g_game->numSkirmishPlayers; i++) {
         if (g_game->options->players[i].active == 1) {
             g_game->players[i].info->color = g_game->options->players[i].color;
             g_game->players[i].info->side = g_game->options->players[i].shade;
@@ -650,7 +650,7 @@ void ApplySlotsToGamePlayers()
             int j = 0;
             for (;;) {
                 SkirmishPlayerSlot* players = g_game->options->players;
-                int n = g_game->playerCount;
+                int n = g_game->numSkirmishPlayers;
                 int k;
                 int ii;
                 // Out-of-line found path via gotos: lays the found block after the ret.
@@ -731,7 +731,7 @@ void __stdcall HandleSkirmishMapClick(Gui* menu)
     }
     Gadget* g = FindGadgetChecked(entries, "MAPNAMES");
     strncpy(g_game->options->mapName, SkipTextLines(g->items, g->selected), 0x100);
-    g_game->mission->LoadMissionByName(g_game->options->mapName);
+    g_game->mapInfo->LoadMissionByName(g_game->options->mapName);
     strncpy(buffer, g_game->options->mapName, 0x100);
     SetControlTextByName(menu, "MapName", buffer);
 }
@@ -743,7 +743,7 @@ void ShowSelectedMapInfo();
 void __stdcall UpdateSkirmishMapSelection(Gui* menu, int unused)
 {
     Gadget* g = FindGadgetChecked(menu->layer->entries, "MAPNAMES");
-    if (g_game->mission->LoadMissionByName(SkipTextLines(g->items, g->selected)) != 0) {
+    if (g_game->mapInfo->LoadMissionByName(SkipTextLines(g->items, g->selected)) != 0) {
         ShowSelectedMapInfo();
     }
 }
@@ -791,7 +791,7 @@ void OpenSkirmishMapSelector()
     }
 
     Gadget* g = FindGadgetChecked(g_game->gui.layer->entries, "MAPNAMES");
-    if (g_game->mission->LoadMissionByName(SkipTextLines(g->items, g->selected)) != 0) {
+    if (g_game->mapInfo->LoadMissionByName(SkipTextLines(g->items, g->selected)) != 0) {
         ShowSelectedMapInfo();
     }
     SetKeyboardInput(&g_game->gui, 1);
@@ -819,7 +819,7 @@ void __stdcall SelectLogosGadget(Gui* obj, void* unused)
 static inline int color_taken(int me)
 {
     int j;
-    for (j = 0; j < g_game->playerCount; j++) {
+    for (j = 0; j < g_game->numSkirmishPlayers; j++) {
         if (g_game->options->players[j].color == g_game->options->players[me].color &&
             g_game->options->players[j].active != 0 && j != me)
             return 1;
@@ -836,9 +836,9 @@ void __stdcall CyclePlayerColor(int param_1)
 
     do {
         g_game->options->players[current].color =
-            (g_game->options->players[current].color + (param_1 ? -1 : 1)) % *g_game->colorCount;
+            (g_game->options->players[current].color + (param_1 ? -1 : 1)) % *g_game->logos32;
         if (g_game->options->players[current].color == -1)
-            g_game->options->players[current].color = *g_game->colorCount - 1;
+            g_game->options->players[current].color = *g_game->logos32 - 1;
     } while (color_taken(current));
 
     wsprintfA(buf, "Color%d", current);
@@ -846,7 +846,7 @@ void __stdcall CyclePlayerColor(int param_1)
     if (index != -1) {
         Gadget* gadget = &entries[index];
         if (gadget != 0) {
-            gadget->frames = g_game->colorCount;
+            gadget->frames = g_game->logos32;
             gadget->frame = (unsigned short)g_game->options->players[current].color;
         }
     }
@@ -910,7 +910,7 @@ void __stdcall HandleSkirmishClick(Gui* menu)
         RegisterDataArchives();
 
         int n = 0;
-        int count = g_game->playerCount;
+        int count = g_game->numSkirmishPlayers;
         if (count > 0) {
             SkirmishPlayerSlot* p = g_game->options->players;
             do {
@@ -921,7 +921,7 @@ void __stdcall HandleSkirmishClick(Gui* menu)
         }
         g_game->numPlayers = n + 1;
 
-        if (g_game->mission->LoadMissionByName(g_game->options->mapName) == 0) {
+        if (g_game->mapInfo->LoadMissionByName(g_game->options->mapName) == 0) {
             OpenMessageBox(&g_game->gui,
                          Translate("The terrain for the selected map does not exist."),
                          0x1e0, 1, 1);
@@ -929,7 +929,7 @@ void __stdcall HandleSkirmishClick(Gui* menu)
             return;
         }
 
-        int n2 = g_game->playerCount;
+        int n2 = g_game->numSkirmishPlayers;
         int c2 = 0;
         if (n2 > 0) {
             SkirmishPlayerSlot* p = g_game->options->players;
@@ -950,7 +950,7 @@ void __stdcall HandleSkirmishClick(Gui* menu)
                 }
             }
             if (c1 >= 1) {
-                int maxPlayers = g_game->mission->CountStartPositions();
+                int maxPlayers = g_game->mapInfo->CountStartPositions();
                 if ((int)g_game->numPlayers > maxPlayers) {
                     OpenMessageBox(&g_game->gui,
                                  Translate("There are too many players enabled for this map"),
@@ -967,7 +967,7 @@ void __stdcall HandleSkirmishClick(Gui* menu)
                     return;
                 }
 
-                int n3 = g_game->playerCount;
+                int n3 = g_game->numSkirmishPlayers;
                 c2 = 0;
                 if (n3 > 0) {
                     SkirmishPlayerSlot* p = g_game->options->players;
@@ -1213,7 +1213,7 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
                 ((char*)cheat->text)[i + 0x28] = (char)zero;
         }
         SaveSettings();
-        g_game->playerCount = code;
+        g_game->numSkirmishPlayers = code;
         SaveNumSkirmishPlayers();
         LoadSettings();
         cheat->text->target->count = g_game->options->baseGadgetCount;
@@ -1263,9 +1263,9 @@ void OpenSkirmishMenu(void)
     }
     MarkChanged(&g_game->gui);
 
-    if (!g_game->mission->LoadMissionByName(g_game->options->mapName)) {
-        g_game->mission->RefreshMapList(0);
-        strncpy(g_game->options->mapName, g_game->mission->GetMissionName(), 0x100);
+    if (!g_game->mapInfo->LoadMissionByName(g_game->options->mapName)) {
+        g_game->mapInfo->RefreshMapList(0);
+        strncpy(g_game->options->mapName, g_game->mapInfo->GetMissionName(), 0x100);
     }
 
     RefreshSkirmishSetup();

@@ -16,7 +16,7 @@ struct Game {
     int animplayCursorCount;           // +0x148e7
     void** animplayCursors;            // +0x148eb
     char unknown_148ef[0x38a47 - 0x148ef];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
 };
 #pragma pack(pop)
 
@@ -195,7 +195,7 @@ int BitReader::ReadSignedBits(int bits)
 // FUNCTION: 0x415e90
 void ResetNetStats()
 {
-    DAT_00511c20 = g_game->ticks;
+    DAT_00511c20 = g_game->gameTick;
     g_messageBytesReceived = 0;
     g_messageBytesSent = 0;
     Pair_00419560* p = (Pair_00419560*)&g_messageBytesByType[1];

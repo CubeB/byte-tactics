@@ -222,7 +222,7 @@ struct Game {
     unsigned short chatHudWriteIdx;    // +0x2a3e
     unsigned short chatHudReadIdx;     // +0x2a40
     char unknown_2a42[0x38a47 - 0x2a42];
-    int tick;                          // +0x38a47
+    int gameTick;                      // +0x38a47
 };
 
 class NetCondenser {
@@ -1542,7 +1542,7 @@ int PacketReceiver::ResetReceiveBuffer()
 // FUNCTION: 0x462f30
 int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
 {
-    int tick = g_game->tick;
+    int tick = g_game->gameTick;
     PlayerFrameInfo* entry;
     unsigned int i;
     void* src;

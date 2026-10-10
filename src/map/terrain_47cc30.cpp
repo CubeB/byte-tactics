@@ -85,7 +85,7 @@ struct Game {
     char unknown_142bb[0x14357 - 0x142bb];
     UnitRec_0047cc30* units;            // +0x14357
     char unknown_1435b[0x38a47 - 0x1435b];
-    int ticks;                          // +0x38a47
+    int gameTick;                       // +0x38a47
 };
 #pragma pack(pop)
 
@@ -120,7 +120,7 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
 {
     Point_0047cc30 size = obj->size;
     if (obj->field_0 != 0)
-        *(int*)(obj->field_0 + 0x26) = g_game->ticks;
+        *(int*)(obj->field_0 + 0x26) = g_game->gameTick;
     {
         // px and py are short locals, py declared after px's test; the sums
         // stay on the left of >=.

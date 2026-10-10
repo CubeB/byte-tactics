@@ -160,8 +160,8 @@ struct Game {
         Flags_00495e90_37f2f flags_37f2f;
     };
     char unknown_37f31[0x38a47 - 0x37f31];
-    int ticks;                          // +0x38a47
-    unsigned short gameSpeed;           // +0x38a4b
+    int gameTick;                       // +0x38a47
+    unsigned short speedCtrl;           // +0x38a4b
     char unknown_38a4d[0x38a51 - 0x38a4d];
     union {
         unsigned short pauseFlags;      // +0x38a51
@@ -178,7 +178,7 @@ struct Game {
     int unitBuilderHoverTrack;          // +0x391b9
     unsigned short unitBuilderHoverUnitId;  // +0x391bd
     char unknown_391bf[0x391e9 - 0x391bf];
-    Mission* net;                       // +0x391e9
+    Mission* mapInfo;                   // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     Flags_00495e90_3923b flags_3923b;   // +0x3923b
 };
@@ -583,7 +583,7 @@ void HandleGameKey(void)
         break;
 
     case 9:
-        if (g_game->net->GetGameType() == 3) {
+        if (g_game->mapInfo->GetGameType() == 3) {
             if (!g_game->flags_37ebe.b2)
                 ToggleTabMenu();
             break;
@@ -635,7 +635,7 @@ void HandleGameKey(void)
                 MakeDirectoryPath(g_game->field_38b53);
                 DrawBattleFrame(0, 1);
                 SaveScreenshot(g_game->field_38b53, "FRAM");
-                g_game->nextMovieFrameTick = g_game->ticks;
+                g_game->nextMovieFrameTick = g_game->gameTick;
             }
         }
         break;
@@ -726,7 +726,7 @@ void HandleGameKey(void)
     }
 
     case 0x68:
-        if (g_game->net->GetGameType() == 3)
+        if (g_game->mapInfo->GetGameType() == 3)
             OpenShareDialog();
         break;
 
@@ -757,9 +757,9 @@ void HandleGameKey(void)
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
             if (pl->valid != 0 && (pl->data->flags_9b & 0x40) != 0)
                 break;
-            if (g_game->gameSpeed <= 1)
+            if (g_game->speedCtrl <= 1)
                 break;
-            SetGameSpeed(g_game->gameSpeed - 1, 1);
+            SetGameSpeed(g_game->speedCtrl - 1, 1);
         }
         break;
 
@@ -769,9 +769,9 @@ void HandleGameKey(void)
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
             if (pl->valid != 0 && (pl->data->flags_9b & 0x40) != 0)
                 break;
-            if (g_game->gameSpeed >= 0x14)
+            if (g_game->speedCtrl >= 0x14)
                 break;
-            SetGameSpeed(g_game->gameSpeed + 1, 1);
+            SetGameSpeed(g_game->speedCtrl + 1, 1);
         }
         break;
 

@@ -212,11 +212,11 @@ struct Game {
     int unitDefEnumDirty;              // +0x14397
     UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x37e13 - 0x1439f];
-    char* categories;                  // +0x37e13
-    int categoryCount;                 // +0x37e17
+    char* soundCategories;             // +0x37e13
+    int soundCategoryCount;            // +0x37e17
     char unknown_37e1b[0x37e1f - 0x37e1b];
-    int width;                         // +0x37e1f
-    int height;                        // +0x37e23
+    int screenWidth;                   // +0x37e1f
+    int screenHeight;                  // +0x37e23
     char unknown_37e27[0x38d71 - 0x37e27];
     unsigned char loadPctUnits;        // +0x38d71
     char unknown_38d72[0x391c7 - 0x38d72];
@@ -794,8 +794,8 @@ void __stdcall LoadUnitFbi(char* fbi_file, UnitDef* unitdef) {
             if (found) {
                 // Own loop counter, with the store and goto on a hit.
                 int sound;
-                for (sound = 0; sound < g_game->categoryCount; sound++) {
-                    if (_strcmpi(g_game->categories + sound * 0x160, buf) == 0) {
+                for (sound = 0; sound < g_game->soundCategoryCount; sound++) {
+                    if (_strcmpi(g_game->soundCategories + sound * 0x160, buf) == 0) {
                         unitdef->soundcategory = (short)sound;
                         goto SOUND_DONE;
                     }
@@ -990,7 +990,7 @@ void LoadUnitTypes() {
     obj = obj ? obj->Construct() : 0;
     g_game->unitTable = obj;
 
-    int t = g_game->height * g_game->width * 2;
+    int t = g_game->screenHeight * g_game->screenWidth * 2;
     int v = (int)(t * 1.3);
 
     int n = *(int*)((char*)g_game->displayContext + 0x620) / 0x100000 + 1;

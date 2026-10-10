@@ -102,7 +102,7 @@ struct Game {
     char soundNames[0x100][0x20];      // +0x33e13
     char soundFiles[0x100][0x20];      // +0x35e13
     char unknown_37e13[0x37f39 - 0x37e13];
-    int count2;                        // +0x37f39
+    int sideCount;                     // +0x37f39
     char unknown_37f3d[0x38d6f - 0x37f3d];
     char progress;                     // +0x38d6f
     unsigned char loadProgress;        // +0x38d70
@@ -537,7 +537,7 @@ void FreeAnimFiles()
     GameFreeThunk(g_game->anims);
     g_game->animCount = 0;
     g_game->anims = 0;
-    for (i = 0; i < g_game->count2; i++) {
+    for (i = 0; i < g_game->sideCount; i++) {
         g_game->panelTop[i] = 0;
     }
     g_game->gafAnimClearedSlot = g_game->fxGaf = g_game->igTitles =

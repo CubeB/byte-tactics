@@ -13,7 +13,7 @@ struct Game {
     // UpdateMeteors reads this as the tick counter, StartMeteorShower as a
     // plain int.
     union {
-        unsigned int ticks;          // +0x38a47
+        unsigned int gameTick;       // +0x38a47
         int field_38a47;             // +0x38a47
     };
 };
@@ -152,9 +152,9 @@ static inline Point16 AddPoints(Point16 a, Point16 b)
 static inline void StartShower()
 {
     g_meteorActive = 1;
-    g_meteorStrikeEndTime = g_meteorShowerDuration + g_game->ticks;
+    g_meteorStrikeEndTime = g_meteorShowerDuration + g_game->gameTick;
     g_meteorNextStrikeTime = g_meteorScheduleGap + g_meteorStrikeEndTime;
-    g_meteorNextHitTime = g_game->ticks;
+    g_meteorNextHitTime = g_game->gameTick;
     g_meteorTarget = MakePoint((int)((__int64)rand() * g_game->mapWidthTiles / 0x8000),
                              (int)((__int64)rand() * g_game->mapHeightTiles / 0x8000));
     g_meteorOrigin = AddPoints(MakePoint((int)((__int64)rand() * 30 / 0x8000) - 15,
@@ -170,14 +170,14 @@ static inline void StartShower()
 // FUNCTION: 0x437de0
 void UpdateMeteors()
 {
-    if (g_meteorNextStrikeTime <= g_game->ticks) {
+    if (g_meteorNextStrikeTime <= g_game->gameTick) {
         StartShower();
         if (g_meteorsEnabled == 0)
             g_meteorActive = 0;
     }
     if (g_meteorActive != 0) {
-        if (g_meteorNextHitTime <= g_game->ticks) {
-            g_meteorNextHitTime = g_meteorSpawnInterval + g_game->ticks;
+        if (g_meteorNextHitTime <= g_game->gameTick) {
+            g_meteorNextHitTime = g_meteorSpawnInterval + g_game->gameTick;
             Vec3_00437de0 vel;
             vel.x = ((g_meteorTarget.x - g_meteorOrigin.x) << 20) / 90;
             vel.y = -15 << 16;
@@ -197,7 +197,7 @@ void UpdateMeteors()
             pos.z += g_meteorOrigin.y << 20;
             SpawnProjectile(g_meteorWeapon, &pos, &vel, 1);
         }
-        if (g_meteorStrikeEndTime <= g_game->ticks)
+        if (g_meteorStrikeEndTime <= g_game->gameTick)
             g_meteorActive = 0;
     }
 }

@@ -144,7 +144,7 @@ struct Game {
     char unknown_2a46[0x2cbe - 0x2a46];
     unsigned char cursorMode;            // +0x2cbe
     char unknown_2cbf[0x148cf - 0x2cbf];
-    void* p148cf;                        // +0x148cf
+    void* cursorHourglass;               // +0x148cf
     char unknown_148d3[0x37eee - 0x148d3];
     int difficulty;                      // +0x37eee
     int side;                            // +0x37ef2
@@ -153,12 +153,12 @@ struct Game {
     unsigned short bits_38a51 : 15;
     char unknown_38a53[0x38c6b - 0x38a53];
     char saveName[0x38d6b - 0x38c6b];    // +0x38c6b
-    HapiBank* p38d6b;                    // +0x38d6b
+    HapiBank* pendingSaveStore;          // +0x38d6b
     char unknown_38d6f[0x391cf - 0x38d6f];
     char buf391cf[0x391e9 - 0x391cf];    // +0x391cf
     Mission* mapInfo;                    // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int mode;                            // +0x391f1
+    int frontendState;                   // +0x391f1
     void (*handler)();                   // +0x391f5
     char unknown_391f9[0x3923b - 0x391f9];
     union Flags_3923b {
@@ -448,7 +448,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         BlankScreen();
         if (g_game->cursorMode != 20) {
             g_game->cursorMode = 20;
-            SetCursorAnimation(g_game->message, g_game->p148cf);
+            SetCursorAnimation(g_game->message, g_game->cursorHourglass);
         }
         if (g_game->flags_2a44.b2)
             DisableKeyCommands(g_game->message);
@@ -460,16 +460,16 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             ShutdownIngameSystems();
         g_game->flags_3923b.b3 = 1;
 
-        g_game->p38d6b = OpenHapiBank(g_game->saveName);
-        if (g_game->p38d6b == 0)
+        g_game->pendingSaveStore = OpenHapiBank(g_game->saveName);
+        if (g_game->pendingSaveStore == 0)
             goto invalid;
-        (g_game->p38d6b)->OpenAccount("summary");
-        SetMissionType((g_game->p38d6b)->GetIntegerItem("Gametype", 0));
-        char* campaign = (g_game->p38d6b)->GetStringItem("Campaign", 0);
+        (g_game->pendingSaveStore)->OpenAccount("summary");
+        SetMissionType((g_game->pendingSaveStore)->GetIntegerItem("Gametype", 0));
+        char* campaign = (g_game->pendingSaveStore)->GetStringItem("Campaign", 0);
         if (campaign != 0)
             g_game->mapInfo->LoadCampaign(campaign);
-        g_game->side = (g_game->p38d6b)->GetIntegerItem("Side", 0);
-        g_game->difficulty = (g_game->p38d6b)->GetIntegerItem("Difficulty", 0);
+        g_game->side = (g_game->pendingSaveStore)->GetIntegerItem("Side", 0);
+        g_game->difficulty = (g_game->pendingSaveStore)->GetIntegerItem("Difficulty", 0);
         if (g_game->mapInfo->GetGameType() == 1) {
             if (g_game->side == 0) {
                 g_game->p1b8a->bSideId = 0;
@@ -479,7 +479,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 g_game->p1cd5->bSideId = 0;
             }
         }
-        char* mission = (g_game->p38d6b)->GetStringItem("Mission", 0);
+        char* mission = (g_game->pendingSaveStore)->GetStringItem("Mission", 0);
         if (mission == 0)
             goto invalid;
         if (strlen(mission) == 0)
@@ -487,27 +487,27 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         if (g_game->mapInfo->LoadMissionByName(mission) == 0)
             goto invalid;
         strcpy((char*)&g_game->options->aMapName[0], mission);
-        char* thumbs = (g_game->p38d6b)->GetStringItem("Thumbs", 0);
+        char* thumbs = (g_game->pendingSaveStore)->GetStringItem("Thumbs", 0);
         strncpy(g_game->buf391cf, thumbs, 0x19);
         if (strlen(g_game->buf391cf) != 0x19)
             InitMissionStatus();
         if (g_game->mapInfo->GetGameType() == 2) {
-            (g_game->p38d6b)->OpenAccount("summary");
+            (g_game->pendingSaveStore)->OpenAccount("summary");
             g_game->numPlayers =
-                (short)(g_game->p38d6b)->GetIntegerItem("Players", 0);
+                (short)(g_game->pendingSaveStore)->GetIntegerItem("Players", 0);
             g_game->options->commanderDeath =
-                (g_game->p38d6b)->GetIntegerItem("CommanderDeath", 1);
+                (g_game->pendingSaveStore)->GetIntegerItem("CommanderDeath", 1);
             g_game->options->fixedLocations =
-                (g_game->p38d6b)->GetIntegerItem("Location", 1);
+                (g_game->pendingSaveStore)->GetIntegerItem("Location", 1);
             g_game->options->mapping =
-                (g_game->p38d6b)->GetIntegerItem("Mapping", 1);
+                (g_game->pendingSaveStore)->GetIntegerItem("Mapping", 1);
             g_game->options->lineOfSight =
-                (g_game->p38d6b)->GetIntegerItem("LineOfSight", 1);
+                (g_game->pendingSaveStore)->GetIntegerItem("LineOfSight", 1);
             g_game->options->losType =
-                (g_game->p38d6b)->GetIntegerItem("LineOfSightType", 1);
+                (g_game->pendingSaveStore)->GetIntegerItem("LineOfSightType", 1);
         }
         g_game->flags_2a44.b2 = 1;
-        g_game->mode = 2;
+        g_game->frontendState = 2;
         g_game->handler = MenuFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
         if (g_savegameFileNames)
@@ -524,14 +524,14 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         g_savegameRadarPreview = 0;
         PopUntilNamedLayout(1);
         if (g_game->mapInfo->GetGameType() == 1 &&
-            (g_game->p38d6b)->HasItem("BetweenMissions")) {
+            (g_game->pendingSaveStore)->HasItem("BetweenMissions")) {
             g_game->flags_2a44.b3 = 1;
-            if (g_game->p38d6b) {
-                DeleteSave_00492360(g_game->p38d6b);
-                g_game->p38d6b = 0;
+            if (g_game->pendingSaveStore) {
+                DeleteSave_00492360(g_game->pendingSaveStore);
+                g_game->pendingSaveStore = 0;
             }
             g_game->flags_2a44.b2 = 0;
-            g_game->mode = 2;
+            g_game->frontendState = 2;
             g_game->handler = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
             SetFrontendState(0xe, 0x48c, "c:\\cavedog\\wargame\\wargame.cpp");
@@ -540,10 +540,10 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
     }
 invalid:
-    if (g_game->p38d6b) {
-        DeleteSave_00492360(g_game->p38d6b);
+    if (g_game->pendingSaveStore) {
+        DeleteSave_00492360(g_game->pendingSaveStore);
     }
-    g_game->p38d6b = 0;
+    g_game->pendingSaveStore = 0;
     OpenMessageBox(gadget, Translate("Invalid savegame file"), 0x140, 1, 1);
     ClearSelectedGadget(gadget);
 }

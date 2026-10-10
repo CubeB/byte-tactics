@@ -209,10 +209,10 @@ struct Game {
     unsigned short bit2_14281 : 1;             // bit 2
     unsigned short rest_14281 : 13;
     char unknown_14283[0x1487f - 0x14283];
-    Src_004ab400* table[1];                    // +0x1487f
+    Src_004ab400* cursorModeSeq[1];            // +0x1487f
     char unknown_14883[0x37e37 - 0x14883];
-    int viewWidth;                             // +0x37e37
-    int viewHeight;                            // +0x37e3b
+    int viewPixelWidth;                        // +0x37e37
+    int viewPixelHeight;                       // +0x37e3b
     char unknown_37e3f[0x37e9c - 0x37e3f];
     unsigned short unitIndex;                  // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
@@ -233,16 +233,16 @@ struct Game {
         };
     };   // +0x37ebe
     char unknown_37ec0[0x37ef6 - 0x37ec0];
-    int value_37ef6;                           // +0x37ef6
+    int battleCommanderDeath;                  // +0x37ef6
     char unknown_37efa[0x37f5f - 0x37efa];
     union {
         PlayerName_00496ee0 names[8];          // +0x37f5f
         struct {
             char unknown_37f5f[0x38a37 - 0x37f5f];
-            unsigned int lastTick;             // +0x38a37
-            int frames;                        // +0x38a3b
+            unsigned int lastSimBudgetTick;    // +0x38a37
+            int simStepsPending;               // +0x38a3b
             char unknown_38a3f[0x38a47 - 0x38a3f];
-            unsigned int leadTick;             // +0x38a47
+            unsigned int gameTick;             // +0x38a47
             char unknown_38a4b[0x38a51 - 0x38a4b];
             unsigned short paused : 1;
             unsigned short rest_38a51 : 15;    // +0x38a51
@@ -254,16 +254,16 @@ struct Game {
             char unknown_38c5f[0x38d75 - 0x38c5f];
             Flags_38d75 flags_38d75;           // +0x38d75
             char unknown_38d77[0x38d85 - 0x38d77];
-            FrameTimers timers;                // +0x38d85
+            FrameTimers profileTimingBars;     // +0x38d85
         };
     };
     char unknown_390ef[0x391e9 - 0x390ef];
     union {
-        Mission* obj_391e9;                    // +0x391e9
+        Mission* mapInfo;                      // +0x391e9
         Mission* net;
     };
     char unknown_391ed[0x391f1 - 0x391ed];
-    int mode;                                  // +0x391f1
+    int frontendState;                         // +0x391f1
     void (*handler)();                         // +0x391f5
     char unknown_391f9[0x3923b - 0x391f9];
     unsigned short bits_3923b : 2;             // +0x3923b
@@ -327,7 +327,7 @@ void __stdcall CreateUnit(int team, unsigned short id, FixedPos_00496ee0 pos, in
 
 static inline void Charge(int bucket)
 {
-    FrameTimers* t = &g_game->timers;
+    FrameTimers* t = &g_game->profileTimingBars;
     int now = GetMilliseconds();
     t->acc[bucket] += now - t->last;
     t->last = now;
@@ -337,7 +337,7 @@ static inline void Charge(int bucket)
 // FUNCTION: 0x496790
 void MainLoopTick()
 {
-    FrameTimers* t = &g_game->timers;
+    FrameTimers* t = &g_game->profileTimingBars;
     t->total = 0;
     for (int i = 0; i < 9; i++) {
         t->total += t->acc[i];
@@ -350,7 +350,7 @@ void MainLoopTick()
 
     if (g_game->bit0) {
         UpdateFramePacing();
-        if (g_game->frames != 0) {
+        if (g_game->simStepsPending != 0) {
             RunGameSteps(1);
             CHARGE(8);
             MainLoopContinueStub();
@@ -377,7 +377,7 @@ void MainLoopTick()
     } else if (!g_game->bit0_37ebe) {
         if (!g_game->paused) {
             UpdateFramePacing();
-            if (g_game->frames != 0) {
+            if (g_game->simStepsPending != 0) {
                 RunGameSteps(0);
                 CHARGE(8);
             }
@@ -402,10 +402,10 @@ void MainLoopTick()
     DrawBattleFrame(1, 1);
     CHARGE(8);
     EmptyMainLoopHook_B();
-    if (g_game->movieCaptureIndex > 0 && g_game->nextMovieFrameTick <= g_game->leadTick) {
+    if (g_game->movieCaptureIndex > 0 && g_game->nextMovieFrameTick <= g_game->gameTick) {
         SaveScreenshot(g_game->text_38b53, "FRAM");
         g_game->nextMovieFrameTick += 30 / g_game->movieOutputRate;
-        g_game->lastTick = GetTicks();
+        g_game->lastSimBudgetTick = GetTicks();
     }
     EmptyMainLoopHook_C();
 }
@@ -417,7 +417,7 @@ void InitFrame()
 {
     if (g_game->cursorMode != 0x13) {
         g_game->cursorMode = 0x13;
-        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[0x13]);
+        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->cursorModeSeq[0x13]);
     }
     ShowSoftwareCursor();
     g_game->bit2 = 0;
@@ -427,7 +427,7 @@ void InitFrame()
     g_game->flag4_3923b = 0;
     g_game->flag2_3923b = 0;
     ClearKeyQueue();
-    g_game->mode = 2;
+    g_game->frontendState = 2;
     g_game->handler = MenuFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
 }
@@ -444,7 +444,7 @@ void ReturnToMainMenuFrame()
     g_game->flag2_3923b = 0;
     ClearKeyQueue();
     EnableKeyCommands(&g_game->gui);
-    g_game->mode = 2;
+    g_game->frontendState = 2;
     g_game->handler = MenuFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
 }
@@ -457,14 +457,14 @@ void MenuFrame()
 {
     RefreshUnitInfo();
     RunFrontendStateMachine();
-    if (g_game->bit2 && g_game->obj_391e9->GetGameType() == 1) {
+    if (g_game->bit2 && g_game->mapInfo->GetGameType() == 1) {
         HideSoftwareCursor();
-        g_game->mode = 4;
+        g_game->frontendState = 4;
         g_game->handler = CampaignSetupFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
-    } else if (g_game->bit2 && g_game->obj_391e9->GetGameType() == 2) {
+    } else if (g_game->bit2 && g_game->mapInfo->GetGameType() == 2) {
         HideSoftwareCursor();
-        g_game->mode = 5;
+        g_game->frontendState = 5;
         g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
     } else if (g_game->frontendMenuState == 0x11) {
@@ -472,7 +472,7 @@ void MenuFrame()
         // the state change; a && chain would fold the bitfield test.
         if (g_game->bit2) {
             HideSoftwareCursor();
-            g_game->mode = 3;
+            g_game->frontendState = 3;
             g_game->handler = PreBattleFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         }
@@ -480,7 +480,7 @@ void MenuFrame()
         if (g_game->flags_2b4c.flag) {
             if (g_game->frontendSubstate == 0x12 || g_game->frontendSubstate == 0x13) {
                 HideSoftwareCursor();
-                g_game->mode = 3;
+                g_game->frontendState = 3;
                 g_game->handler = PreBattleFrame;
                 SetCloseHandler(LeaveNetGameCallback, 0);
             }
@@ -505,7 +505,7 @@ void PreBattleFrame()
     if (p->info->flags & 1) {
         msg = 8;
         BroadcastPacket(p->id, &msg, 1);
-        g_game->mode = 5;
+        g_game->frontendState = 5;
         g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
     } else if (g_game->flags_2b4c.flag) {
@@ -513,11 +513,11 @@ void PreBattleFrame()
             g_netHeartbeatNextTick = GetTicks() + 0x3c;
             SendNetHeartbeat();
         }
-        g_game->mode = 5;
+        g_game->frontendState = 5;
         g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
     } else {
-        g_game->mode = 5;
+        g_game->frontendState = 5;
         g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
     }
@@ -530,7 +530,7 @@ void CampaignSetupFrame()
     SetupPlayerSlot(0, 1);
     SetupPlayerSlot(1, 2);
     g_game->sub_1cd5->flag_96 = 1;
-    g_game->mode = 5;
+    g_game->frontendState = 5;
     g_game->handler = LoadingScreenFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
 }
@@ -540,7 +540,7 @@ void CampaignSetupFrame()
 // FUNCTION: 0x496e10
 void __stdcall ApplyMissionOptionFlags(Settings_00496e10* s)
 {
-    g_game->value_37ef6 = s->value;
+    g_game->battleCommanderDeath = s->value;
     g_game->bit2_14281 = s->flag_c;
     g_game->bit0_14281 = s->flag_4;
     g_game->bit1_14281 = s->flag_8;
@@ -608,8 +608,8 @@ void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
     }
 
     if (team == g_game->localPlayer)
-        SetCameraPosition(pos.x.h.whole - g_game->viewWidth / 2,
-            pos.z.h.whole - g_game->viewHeight / 2, 0);
+        SetCameraPosition(pos.x.h.whole - g_game->viewPixelWidth / 2,
+            pos.z.h.whole - g_game->viewPixelHeight / 2, 0);
 }
 
 // Walks the ten player slots: for every player that is playing (the same

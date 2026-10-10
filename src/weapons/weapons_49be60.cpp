@@ -31,7 +31,7 @@
 //   +0x147bb/+0x147bf/+0x147c3/+0x147c7/+0x147cb (kind 4), +0x147f3 (kind 5),
 //   +0x1480f (the shared sprite, frame 0); ptr +0x1ab9b (kind 2);
 //   playerIndex byte +0x2a43; player array base +0x1b63 stride 0x14b;
-//   region +0x37e27 (kind 2); time int +0x38a47.
+//   region +0x37e27 (kind 2); gameTick int +0x38a47.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -127,20 +127,20 @@ struct Game {
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
     char unknown_14327[0x147bb - 0x14327];
-    void* gaf_147bb;                   // +0x147bb
-    void* gaf_147bf;                   // +0x147bf
-    void* gaf_147c3;                   // +0x147c3
-    void* gaf_147c7;                   // +0x147c7
-    void* gaf_147cb;                   // +0x147cb
+    void* cannonShellSeq;              // +0x147bb
+    void* plasmaSmSeq;                 // +0x147bf
+    void* plasmaMdSeq;                 // +0x147c3
+    void* ultraShellSeq;               // +0x147c7
+    void* plasmaSmSeq2;                // +0x147cb
     char unknown_147cf[0x147f3 - 0x147cf];
-    void* gaf_147f3;                   // +0x147f3
+    void* flameStreamSeq;              // +0x147f3
     char unknown_147f7[0x1480f - 0x147f7];
-    void* gaf_1480f;                   // +0x1480f
+    void* shadowSeq;                   // +0x1480f
     char unknown_14813[0x1ab9b - 0x14813];
     void* explosionLensFrame;          // +0x1ab9b
     char unknown_1ab9f[0x37e27 - 0x1ab9f];
     char field_37e27[0x38a47 - 0x37e27];
-    int time;                          // +0x38a47
+    int gameTick;                      // +0x38a47
 };
 #pragma pack(pop)
 
@@ -183,8 +183,8 @@ void __stdcall DrawProjectiles(void* surface)
     Vec3_0049be60 prev;
     Vec3_0049be60 d;
     __int64 n64;
-    int time = g_game->time;
-    void* frame0 = GetGafFrame(g_game->gaf_1480f, 0);
+    int time = g_game->gameTick;
+    void* frame0 = GetGafFrame(g_game->shadowSeq, 0);
     int index = 0;
     int visible;
     if (g_game->projectileCount <= 0)
@@ -295,11 +295,11 @@ void __stdcall DrawProjectiles(void* surface)
                                   - ((int)*(short*)((char*)&sp + 6) >> 1)) + 0x20;
                         int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                         switch (type->field_10d) {
-                        case 0: gaf = g_game->gaf_147bb; break;
-                        case 1: gaf = g_game->gaf_147bf; break;
-                        case 2: gaf = g_game->gaf_147c3; break;
-                        case 3: gaf = g_game->gaf_147c7; break;
-                        case 4: gaf = g_game->gaf_147cb; break;
+                        case 0: gaf = g_game->cannonShellSeq; break;
+                        case 1: gaf = g_game->plasmaSmSeq; break;
+                        case 2: gaf = g_game->plasmaMdSeq; break;
+                        case 3: gaf = g_game->ultraShellSeq; break;
+                        case 4: gaf = g_game->plasmaSmSeq2; break;
                         }
                         if (gaf) {
                             int n = *(unsigned short*)gaf;
@@ -311,7 +311,7 @@ void __stdcall DrawProjectiles(void* surface)
                     int sy = ((int)*(short*)((char*)pos + 10)
                               - ((int)*(short*)((char*)pos + 6) >> 1))
                              - (short)g_game->scrollY + 0x20;
-                    void* gaf = g_game->gaf_147f3;
+                    void* gaf = g_game->flameStreamSeq;
                     int n = GetGafFrameCount(gaf);
                     fr = n - ((p->time - time) * n) / (int)type->field_e6;
                     if (fr >= 0 && fr < n) {

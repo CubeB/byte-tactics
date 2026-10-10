@@ -271,12 +271,12 @@ struct Game {
   char unknown_14327[0x14357 - 0x14327];
   int units;                            // +0x14357
   char unknown_1435b[0x1435f - 0x1435b];
-  unsigned short* visibleUnitIds;       // +0x1435f
+  unsigned short* visibleUnitIdList;    // +0x1435f
   char unknown_14363[0x14367 - 0x14363];
   int count;                            // +0x14367
   char unknown_1436b[0x14813 - 0x1436b];
-  int igvictory;                        // +0x14813
-  int igdefeat;                         // +0x14817
+  int endgameBadgeSeqA;                 // +0x14813
+  int endgameBadgeSeqB;                 // +0x14817
   int igpaused;                         // +0x1481b
   // The side panel's GAF frames at +0x1481f: the top row's five entries
   // followed by the bottom row's (Thaldren: apSidePanelTopSeq, apSidePanelBotSeq).
@@ -284,9 +284,9 @@ struct Game {
   char unknown_14847[0x148cf - 0x14847];
   int cursorHourglass;                  // +0x148cf
   char unknown_148d3[0x37e1b - 0x148d3];
-  int screen;                           // +0x37e1b
-  int width;                            // +0x37e1f
-  int height;                           // +0x37e23
+  int offscreen;                        // +0x37e1b
+  int screenWidth;                      // +0x37e1f
+  int screenHeight;                     // +0x37e23
   union {                               // +0x37e27
     Rect lim;
     struct {
@@ -311,14 +311,14 @@ struct Game {
   char unknown_37f31[0x37f3d - 0x37f31];
   SideDef_00468cf0 sideDefs[5];         // +0x37f3d, stride 0x232
   char unknown_38a37[0x38a47 - 0x38a37];
-  unsigned int ticks;                   // +0x38a47
+  unsigned int gameTick;                // +0x38a47
   char unknown_38a4b[0x38a51 - 0x38a4b];
   union {                               // +0x38a51
     unsigned char pauseFlags;
     Bits8 pauseBits;
   };
   char unknown_38a53[0x38d85 - 0x38a53];
-  FrameTimers prof;                     // +0x38d85
+  FrameTimers profileTimingBars;        // +0x38d85
   int profileBarsEnabled;               // +0x38dd5
   char unknown_38dd9[0x391c3 - 0x38dd9];
   int showBps;                          // +0x391c3
@@ -375,7 +375,7 @@ static void DrawResourcePanel(Surface *ctx, PlayerState_00468cf0 *pl, Resources 
     ushort *gaf = (ushort *)GetGafFrame((int)g_game->sidePanelRows[side + (bx > 0x81) * 5], 0);
     BlitGafFrameAtOffset((int)ctx, (int)gaf, bx, 0);
     bx += *gaf;
-  } while (bx < g_game->width);
+  } while (bx < g_game->screenWidth);
   BlitSideLogoToRect((int)ctx, (int)pl, (int)&sideDef->rcLogo, 0);
   Rect *r = &sideDef->rcEnergyBar;
   bar = *r;
@@ -465,14 +465,14 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   PlayerState_00468cf0 *player;
   int i, k;
 
-  cx = (g_game->width + 0x80) / 2;
-  cy = g_game->height / 2;
-  SetOffscreenSurface(g_game->screen);
-  ctx = **(Surface **)&g_game->screen;
+  cx = (g_game->screenWidth + 0x80) / 2;
+  cy = g_game->screenHeight / 2;
+  SetOffscreenSurface(g_game->offscreen);
+  ctx = **(Surface **)&g_game->offscreen;
   colors = &g_game->colors[0];
   HideSoftwareCursor();
   ctx.SetClipRect(g_game->lim);
-  ProfileMark(&g_game->prof, 8);
+  ProfileMark(&g_game->profileTimingBars, 8);
   DrawMapTiles((int)&ctx);
   DrawMapDebugOverlay((int)&ctx);
   x = g_game->field_2cac - g_game->scrollX + 0x80;
@@ -501,7 +501,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
       res.metal = res.maxMetal;
     if (res.energy > res.maxEnergy)
       res.energy = res.maxEnergy;
-    if (pl->nDisplayTimer < g_game->ticks) {
+    if (pl->nDisplayTimer < g_game->gameTick) {
       pl->nDisplayTimer += 0x1e;
       res.metalIncome = GetEnergyIncome((int)pl);
       res.metalUse = GetEnergyUsage((int)pl);
@@ -516,7 +516,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   DrawUnitInfoPanel((int)&ctx);
   DrawRadar((int)&ctx);
   ctx.SetClipRect(g_game->lim);
-  ProfileMark(&g_game->prof, 3);
+  ProfileMark(&g_game->profileTimingBars, 3);
 
   // features and units on the visible part of the map
   idx = g_game->playerIndex;
@@ -552,7 +552,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     }
     if (w + x0 > mv->width - 1)
       w = mv->width - x0 - 1;
-    ushort *pIdx = g_game->visibleUnitIds;
+    ushort *pIdx = g_game->visibleUnitIdList;
     k = 0;
     while (k < g_game->count) {
       Unit_00468cf0 *unit = (Unit_00468cf0 *)(g_game->units + *pIdx * 0x118);
@@ -664,7 +664,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   // inner test requires that bit for the number as well, so the position is
   // computed and nothing is drawn (0x469c4a to 0x469c9a).
   if (param_1 != 0) {
-    ushort *pIdx = g_game->visibleUnitIds;
+    ushort *pIdx = g_game->visibleUnitIdList;
     for (k = 0; k < g_game->count; k++, pIdx++) {
       Unit_00468cf0 *unit = (Unit_00468cf0 *)(g_game->units + *pIdx * 0x118);
       if ((g_game->visualFlagsByte & 1) || unit->group != 0) {
@@ -685,12 +685,12 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     }
     DrawParticleList((int)&ctx, 9);
   }
-  ProfileMark(&g_game->prof, 4);
+  ProfileMark(&g_game->profileTimingBars, 4);
   if ((g_game->flags_3923b & 1) && (g_game->flags_3923b & 2) && param_1 != 0)
     DrawSelectedGoal((int)&ctx, FindNextSelectedUnit(0, 0));
   if (param_1 != 0)
     DrawFogOfWar((int)&ctx);
-  ProfileMark(&g_game->prof, 5);
+  ProfileMark(&g_game->profileTimingBars, 5);
 
   // selection box
   if (ShowSelectBox(param_1)) {
@@ -761,12 +761,12 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     DrawFrame((int)&ctx, GetGafFrame(g_game->igpaused, 0), cx, cy);
   if ((g_game->players[g_game->localPlayer].info->gameOptFlags & 0x40) == 0) {
     if (g_game->bits_3923b.b5)
-      DrawFrame((int)&ctx, GetGafFrame(g_game->igvictory, 0), cx, cy);
+      DrawFrame((int)&ctx, GetGafFrame(g_game->endgameBadgeSeqA, 0), cx, cy);
     if (g_game->bits_3923b.b6)
-      DrawFrame((int)&ctx, GetGafFrame(g_game->igdefeat, 0), cx, cy);
+      DrawFrame((int)&ctx, GetGafFrame(g_game->endgameBadgeSeqB, 0), cx, cy);
   }
   if (g_game->bits_37f2f.b6) {
-    uint ticks = g_game->ticks;
+    uint ticks = g_game->gameTick;
     uint hours = ticks / 108000;
     int rest = ticks - hours * 108000;
     int minutes = rest / 1800;
@@ -776,7 +776,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     DrawString((int)&ctx, (int)gameTime, 0x82, -0x22 - GetFontHeight() + GetScreenHeight(), -1);
   }
   if (g_game->pauseBits.b1)
-    DrawFrame((int)&ctx, GetGafFrame(g_game->cursorHourglass, 0), g_game->width - 0x10, g_game->height - 0x50);
+    DrawFrame((int)&ctx, GetGafFrame(g_game->cursorHourglass, 0), g_game->screenWidth - 0x10, g_game->screenHeight - 0x50);
   ResetClipRect((int)&ctx);
   BlitMenuLayers((int)&g_game->menu, (int)&ctx, (int)&g_game->lim);
   if (g_game->profileBarsEnabled != 0 && param_1 != 0) {
@@ -794,5 +794,5 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   ShowSoftwareCursor();
   if (param_1 != 0 && param_2 != 0)
     FlipScreen();
-  g_game->prof.AccumulateProfileTime(3);
+  g_game->profileTimingBars.AccumulateProfileTime(3);
 }

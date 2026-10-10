@@ -447,7 +447,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 5;
         return 0xe;
     case 1:
-        if (g_game->multiplayer == 1) {
+        if (g_game->interfaceType == 1) {
             if (Selectable(target))
                 return 0xf;
             if (enemy)

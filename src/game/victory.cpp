@@ -150,15 +150,15 @@ struct Game {
     char unknown_2a43[0x1427f - 0x2a43];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x37ef6 - 0x14280];
-    int value_37ef6;                   // +0x37ef6
+    int battleCommanderDeath;          // +0x37ef6
     char unknown_37efa[0x37f3d - 0x37efa];
     union {
         PlayerName names[5];           // +0x37f3d, one SideDef per side
         struct {
             char unknown_37f3d[0x38a47 - 0x37f3d];
-            unsigned int ticks;        // +0x38a47
+            unsigned int gameTick;     // +0x38a47
             char unknown_38a4b[0x391e9 - 0x38a4b];
-            Mission* mode;             // +0x391e9
+            Mission* mapInfo;          // +0x391e9
         };
     };
 };
@@ -1055,7 +1055,7 @@ void VictoryUnitTypePassesZ::LoadState(HapiBank* obj)
 // FUNCTION: 0x48f610
 int VictoryTimerRunsOut::IsSatisfied()
 {
-    unsigned int game_val = g_game->ticks;
+    unsigned int game_val = g_game->gameTick;
     return game_val >= endTick;
 }
 
@@ -1338,7 +1338,7 @@ void DefeatAnyUnitPassesZ::LoadState(HapiBank* obj)
 // FUNCTION: 0x48fd50
 int DefeatDeathTimerRunsOut::IsSatisfied()
 {
-    unsigned int game_val = g_game->ticks;
+    unsigned int game_val = g_game->gameTick;
     return game_val >= (unsigned int)endTick;
 }
 
@@ -1363,7 +1363,7 @@ void DefeatDeathTimerRunsOut::LoadState(HapiBank* obj)
 // FUNCTION: 0x48fdf0
 void MissionConditions::SaveConditions(HapiBank* file)
 {
-    if (g_game->mode->GetGameType() == 1) {
+    if (g_game->mapInfo->GetGameType() == 1) {
         int i;
         for (i = 0; i < victoryCount; i++) {
             victory[i]->SaveState(file);
@@ -1377,7 +1377,7 @@ void MissionConditions::SaveConditions(HapiBank* file)
 // FUNCTION: 0x48fe60
 void MissionConditions::LoadConditions(HapiBank* file)
 {
-    if (g_game->mode->GetGameType() == 1) {
+    if (g_game->mapInfo->GetGameType() == 1) {
         int i;
         for (i = 0; i < victoryCount; i++) {
             victory[i]->LoadState(file);
@@ -1451,7 +1451,7 @@ int CheckAlliedVictory()
     int j;
     unsigned char state;
 
-    if (g_game->value_37ef6 == 2) {
+    if (g_game->battleCommanderDeath == 2) {
         return 0;
     }
     mine = &g_game->players[g_game->localPlayer];
@@ -1524,14 +1524,14 @@ int MissionConditions::CheckDefeat()
             if (g_cdMismatchDefeatTick == 0) {
                 g_cdMismatchDefeatTick = (int)((__int64)rand() * 0x2328 / 0x8000) + 0x2328;
             }
-            if (g_cdMismatchDefeatTick <= g_game->ticks) {
+            if (g_cdMismatchDefeatTick <= g_game->gameTick) {
                 g_cdMismatchDefeatTick = 0;
                 return 1;
             }
         }
         // The two mode cases share one body, but writing them out separately
         // is what makes MSVC lower the switch to the dec/je chain.
-        switch (g_game->mode->GetGameType()) {
+        switch (g_game->mapInfo->GetGameType()) {
         case 1:
             return AnyDefeatConditionMet();
         case 2:

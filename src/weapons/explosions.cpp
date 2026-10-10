@@ -274,7 +274,7 @@ struct Game {
     char unknown_37e37[0x38d74 - 0x37e37];
     unsigned char shade;               // +0x38d74
     char unknown_38d75[0x391e9 - 0x38d75];
-    Net* net;                          // +0x391e9
+    Net* mapInfo;                      // +0x391e9
 };
 #pragma pack(pop)
 
@@ -536,7 +536,7 @@ void UpdateExplosions()
                 }
             } else {
                 if (d->flag) {
-                    Net* net = g_game->net;
+                    Net* net = g_game->mapInfo;
                     if (net->f_d48 == 0) {
                         GafSequence* src = net->f_d44 != 0 ? g_game->lavaSplashSeq : g_game->waterSplashSeq;
                         AddExplosionEffect(&d->pos, src, -1, 1);
@@ -698,9 +698,9 @@ int __stdcall UpdateExplodedPiece(ExplodedPiece* obj)
 
     Vec3 pos;
     if (inner->pos.y <= (int)((unsigned)g_game->seaLevel << 16)) {
-        if (obj->b4 && g_game->net->f_d48 == 0) {
+        if (obj->b4 && g_game->mapInfo->f_d48 == 0) {
             GafSequence* src;
-            if (g_game->net->f_d44 != 0)
+            if (g_game->mapInfo->f_d44 != 0)
                 src = g_game->lavaSplashSeq;
             else
                 src = g_game->waterSplashSeq;

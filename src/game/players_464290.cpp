@@ -195,15 +195,15 @@ struct Game {
     char unknown_1439f[0x37eee - 0x1439f];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x37ef6 - 0x37ef2];
-    int commanderDeath;                // +0x37ef6
+    int battleCommanderDeath;          // +0x37ef6
     char unknown_37efa[0x37f5f - 0x37efa];
     char startPos[0x38a47 - 0x37f5f];  // +0x37f5f, 0x232-byte records
-    unsigned int tick;                 // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x38d6b - 0x38a4b];
     int pendingSaveStore;              // +0x38d6b
     char unknown_38d6f[0x391e9 - 0x38d6f];
-    Mission* mission;                  // +0x391e9
-    MissionConditions* list;           // +0x391ed
+    Mission* mapInfo;                  // +0x391e9
+    MissionConditions* victoryConditions;           // +0x391ed
     char unknown_391f1[0x39239 - 0x391f1];
     short endGameCountdown;            // +0x39239
     // unsigned short bitfields: the only spelling that gives a direct
@@ -261,7 +261,7 @@ void __stdcall SetupPlayerSlot(int player, char type)
         p->info->memory = g_game->map->field_620 / 0x100000 + 1;
     }
 
-    if (g_game->mission->GetGameType() == 1) {
+    if (g_game->mapInfo->GetGameType() == 1) {
         if (type == 1) {
             sprintf(p->name, Translate("Player"));
         } else if (type == 2) {
@@ -275,7 +275,7 @@ void __stdcall SetupPlayerSlot(int player, char type)
         strcpy(p->fullName, p->name);
     }
 
-    if (g_game->mission->GetGameType() == 2) {
+    if (g_game->mapInfo->GetGameType() == 2) {
         if (type == 1) {
             sprintf(p->name, Translate("Player"));
         } else if (type == 2) {
@@ -354,8 +354,8 @@ void __stdcall CreatePlayerAI(int player);
 // FUNCTION: 0x464700
 void __stdcall InitPlayerSlot(Player* p)
 {
-    p->updateTime = g_game->tick;
-    p->winLoseTime = g_game->tick;
+    p->updateTime = g_game->gameTick;
+    p->winLoseTime = g_game->gameTick;
     // The third stamp runs here but is written after the clears: C2 has to number its location after theirs.
     goto stamp;
 back:
@@ -383,7 +383,7 @@ back:
     p->metalWastedHi = 0;
     goto guard;
 stamp:
-    p->displayTimer = g_game->tick;
+    p->displayTimer = g_game->gameTick;
     goto back;
 guard:
     if (!p->econ) {
@@ -440,7 +440,7 @@ void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player);
 void LoadDefaultAIScript()
 {
     int size;
-    char* name = g_game->mission->GetNameSlot(7);
+    char* name = g_game->mapInfo->GetNameSlot(7);
     char* text = HAPI_LoadFile(name, &size);
     if (text == 0) {
         text = HAPI_LoadFile("ai\\default.txt", &size);
@@ -847,14 +847,14 @@ void __stdcall UpdatePlayers()
         if (bl == g_game->playerIndex)
             DrawRadarUnits();
 
-        if ((unsigned int)pi->updateTime > g_game->tick)
+        if ((unsigned int)pi->updateTime > g_game->gameTick)
             goto next_bl;
         pi->updateTime += 0x1e;
 
         if (bl == g_game->localPlayer) {
-            if (g_game->mission->GetGameType() == 1) {
-                if (g_game->list->CheckVictory() == 0) {
-                    if (g_game->list->CheckDefeat() != 0) {
+            if (g_game->mapInfo->GetGameType() == 1) {
+                if (g_game->victoryConditions->CheckVictory() == 0) {
+                    if (g_game->victoryConditions->CheckDefeat() != 0) {
                         if (g_game->endGameCountdown < 0) {
                             g_game->endGameCountdown = 4;
                         } else {
@@ -887,13 +887,13 @@ void __stdcall UpdatePlayers()
                 }
             } else if ((pi->active == 0 ||
                         (pi->info->flags_9b & 0x40) == 0) &&
-                       g_game->list->CheckDefeat() != 0) {
+                       g_game->victoryConditions->CheckDefeat() != 0) {
                 if (g_game->endGameCountdown < 0) {
                     g_game->endGameCountdown = 4;
                 } else {
                     g_game->endGameCountdown--;
                     if (g_game->endGameCountdown < 0) {
-                        if (g_game->commanderDeath == 2) {
+                        if (g_game->battleCommanderDeath == 2) {
                             PlayerInfo* self =
                                 g_game->players[FindHostSlot()].info;
                             // `unsigned int` with the 0xffff mask: avoids a spilled raw result.
@@ -935,7 +935,7 @@ void __stdcall UpdatePlayers()
                                     zacc += hh;
                                 } while (--outer != 0);
                                 if (hits >= 9 && FindFeatureAtPos(&pos, 0, 0) == -1) {
-                                    if (g_game->mission->lavaWorld == 0)
+                                    if (g_game->mapInfo->lavaWorld == 0)
                                         break;
                                     if (GetCellMeanHeight(&pos) >
                                         (int)g_game->seaLevel)
@@ -1017,7 +1017,7 @@ void __stdcall UpdatePlayers()
         if (bl == g_game->playerIndex) {
             UpdateSensorRadarAndCloak();
             UpdateRadarMapped();
-            if (g_game->mission->GetGameType() == 3) {
+            if (g_game->mapInfo->GetGameType() == 3) {
                 g_economyPacketTick++;
                 if ((g_economyPacketTick & 3) == 0)
                     SendPlayerEconomy(pi, 0, 0);
@@ -1026,7 +1026,7 @@ void __stdcall UpdatePlayers()
         goto next_bl;
 
     watch_check:
-        if (g_game->mission->GetGameType() == 3 &&
+        if (g_game->mapInfo->GetGameType() == 3 &&
             pi->rejectReason == 0) {
             if ((g_game->players[FindHostSlot()].info->flags_9b & 0x80) != 0 ||
                 CountActiveAIPlayers() > 0) {
@@ -1072,7 +1072,7 @@ void __stdcall UpdatePlayers()
         goto skip508;
 
     check230:
-        if (g_game->list->CheckVictory() != 0)
+        if (g_game->victoryConditions->CheckVictory() != 0)
             goto countdown_extra;
         goto skip508;
 
@@ -1094,8 +1094,8 @@ void __stdcall UpdatePlayers()
             break;
     }
 
-    if (g_game->mission->GetGameType() == 3 &&
-        g_game->commanderDeath != 2 &&
+    if (g_game->mapInfo->GetGameType() == 3 &&
+        g_game->battleCommanderDeath != 2 &&
         CountCombatPlayers() == 0) {
         if (g_game->endGameCountdown < 0) {
             g_game->endGameCountdown = 4;
@@ -1126,12 +1126,12 @@ void InitPlayerResources()
     for (int i = 0; i < 10; i++) {
         Player* player = &g_game->players[i];
         if (g_game->pendingSaveStore == 0) {
-            switch (g_game->mission->GetGameType()) {
+            switch (g_game->mapInfo->GetGameType()) {
             case 1:
-                SetStartingStorageBonus(player, (int)g_game->mission->startMetal[i],
-                             (int)g_game->mission->startEnergy[i]);
-                player->energy = g_game->mission->startEnergy[i];
-                player->metal = g_game->mission->startMetal[i];
+                SetStartingStorageBonus(player, (int)g_game->mapInfo->startMetal[i],
+                             (int)g_game->mapInfo->startEnergy[i]);
+                player->energy = g_game->mapInfo->startEnergy[i];
+                player->metal = g_game->mapInfo->startMetal[i];
                 break;
             case 2:
                 player->energy = (float)g_game->options[i].field_10;

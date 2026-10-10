@@ -32,7 +32,7 @@ struct Game {
     char unknown_2851[0x2a38 - 0x2851];
     unsigned char* recvPacketPtr;      // +0x2a38
     char unknown_2a3c[0x391e9 - 0x2a3c];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 
 #pragma pack(pop)
@@ -158,7 +158,7 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
             g_packetManager.SendAllQueued(1);
         result = r;
     }
-    if (g_game->net->GetGameType() == 3)
+    if (g_game->mapInfo->GetGameType() == 3)
         ReportGameEvent(4);
     return result;
 }

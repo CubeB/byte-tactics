@@ -52,12 +52,12 @@ struct Item_00408100 {                 // 0x249 bytes
 
 struct Game_00408100 {
     char unknown_0[0x1422b];
-    int mapWidth;                      // +0x1422b
-    int mapHeight;                     // +0x1422f
+    int mapPixelWidth;                 // +0x1422b
+    int mapPixelHeight;                // +0x1422f
     char unknown_14233[0x1439b - 0x14233];
-    Item_00408100* items;              // +0x1439b
+    Item_00408100* unitDefs;           // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
 };
 #pragma pack(pop)
 
@@ -118,13 +118,13 @@ static inline int FixDiv(int a, int b)
 
 static inline int MapRange()
 {
-    return (g_game->mapWidth + g_game->mapHeight) / 3 << 16;
+    return (g_game->mapPixelWidth + g_game->mapPixelHeight) / 3 << 16;
 }
 
 // FUNCTION: 0x408100
 void ScoutTimer::OnTimer()
 {
-    field_c = g_game->ticks + 90;
+    field_c = g_game->gameTick + 90;
     Vec3 origin;
     GetBasePosition(field_10, &origin);
     std::vector<Unit_00408100*>::iterator it;
@@ -132,12 +132,12 @@ void ScoutTimer::OnTimer()
         Unit_00408100* u = *it;
         if (u->def->count
             && (!(unsigned char)u->def->flag12
-                || (GetBuilderCount(field_10) < 5 && g_game->ticks >= (unsigned int)owner->field_d))
+                || (GetBuilderCount(field_10) < 5 && g_game->gameTick >= (unsigned int)owner->field_d))
             && (!u->order || !(u->order->flags & 8))) {
             unsigned short idx = ChooseBuildOption(field_10, u);
             if (idx) {
                 Vec3 pos;
-                int ok = FindBuildPosition(field_10, &u->pos, &g_game->items[idx], &pos);
+                int ok = FindBuildPosition(field_10, &u->pos, &g_game->unitDefs[idx], &pos);
                 if (u->def->flag12) {
                     // Assigned to a local first: in the comparison it follows _ftol.
                     int range = MapRange();

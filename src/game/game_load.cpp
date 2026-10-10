@@ -301,13 +301,13 @@ struct Game {
     int scrollX;                        // +0x1431f
     int scrollY;                        // +0x14323
     char unknown_14327[0x143a7 - 0x14327];
-    char palette_143a7[0x400];          // +0x143a7
+    char paletteRgba[0x400];            // +0x143a7
     char unknown_147a7[0x148cf - 0x147a7];
     int cursorHourglass;                // +0x148cf
     char unknown_148d3[0x37e1b - 0x148d3];
-    int screen;                         // +0x37e1b
-    int width;                          // +0x37e1f
-    int height;                         // +0x37e23
+    int offscreen;                      // +0x37e1b
+    int screenWidth;                    // +0x37e1f
+    int screenHeight;                   // +0x37e23
     union {                             // +0x37e27
         Rect_00498da0 lim;
         struct {
@@ -317,31 +317,31 @@ struct Game {
             int viewCullMaxY;
         };
     };
-    int viewWidth;                      // +0x37e37
-    int viewHeight;                     // +0x37e3b
+    int viewPixelWidth;                 // +0x37e37
+    int viewPixelHeight;                // +0x37e3b
     char unknown_37e3f[0x37ea0 - 0x37e3f];
-    char guiName[0x1e];                 // +0x37ea0
+    char mainHudLayoutName[0x1e];       // +0x37ea0
     char unknown_37ebe[0x37ee6 - 0x37ebe];
     unsigned short maxUnits;            // +0x37ee6
     char unknown_37ee8[0x37eec - 0x37ee8];
-    unsigned short unitLimit;           // +0x37eec
+    unsigned short unitLimitIni;        // +0x37eec
     char unknown_37eee[0x37ef6 - 0x37eee];
-    int commanderDeath;                 // +0x37ef6
+    int battleCommanderDeath;           // +0x37ef6
     char unknown_37efa[0x37f1b - 0x37efa];
     int displayWidth;                   // +0x37f1b
     int displayHeight;                  // +0x37f1f
     char unknown_37f23[0x37f5b - 0x37f23];
     SideName_00497180 sideNames[2];     // +0x37f5b, only the two sides are named here
     char unknown_383bf[0x38a37 - 0x383bf];
-    unsigned int lastTick;              // +0x38a37
+    unsigned int lastSimBudgetTick;     // +0x38a37
     int simStepsPending;                // +0x38a3b
     char pad_38a3f[0x38a47 - 0x38a3f];
-    int ticks;                          // +0x38a47
+    int gameTick;                       // +0x38a47
     char pad_38a4b[0x38a4f - 0x38a4b];
     short speedHysteresis;              // +0x38a4f
     unsigned short flags_38a51;         // +0x38a51
     char unknown_38a53[0x38d6b - 0x38a53];
-    HapiBank* p38d6b;                   // +0x38d6b
+    HapiBank* pendingSaveStore;         // +0x38d6b
     // volatile: the loader thread writes these; gives the bars' byte loads.
     volatile unsigned char progress[6]; // +0x38d6f
     union {                             // +0x38d75
@@ -357,7 +357,7 @@ struct Game {
     char unknown_38d85[0x391e9 - 0x38d85];
     class Mission* mapInfo;             // +0x391e9
     char pad_391ed[0x391f1 - 0x391ed];
-    int mode;                           // +0x391f1
+    int frontendState;                  // +0x391f1
     void (*handler)();                  // +0x391f5
     int fontComix;                      // +0x391f9
     char unknown_391fd[0x39219 - 0x391fd];
@@ -568,7 +568,7 @@ unsigned short __stdcall GetCellFeature(Cell* cell);
 // Inlined into cases 1 and 2 below (matched on its own in 0x496e10.cpp).
 inline void __stdcall ApplyMissionOptionFlags(Settings_00496e10* s)
 {
-    g_game->commanderDeath = s->value;
+    g_game->battleCommanderDeath = s->value;
     g_game->mapFlags.bit2 = s->flag_c;
     g_game->mapFlags.bit0 = s->flag_4;
     g_game->mapFlags.bit1 = s->flag_8;
@@ -585,7 +585,7 @@ void __cdecl LoadMatch(void*)
     QueryPerformanceCounter(&perfCount);
     SeedRandom(perfCount.LowPart + perfCount.HighPart);
     srand((unsigned)time(NULL));
-    g_game->ticks = 0;
+    g_game->gameTick = 0;
 
     // Six of these casts stay: taking more than two out in this function moves
     // the symbol state that LoadingScreenFrame's allocation depends on
@@ -597,12 +597,12 @@ void __cdecl LoadMatch(void*)
         ApplyUseOnlyUnits();
         break;
     case 2:
-        g_game->maxUnits = g_game->unitLimit;
+        g_game->maxUnits = g_game->unitLimitIni;
         g_nonCampaignGame = 1;
         ApplyMissionOptionFlags(&g_game->options->settings);
         break;
     case 3: {
-        g_game->maxUnits = g_game->unitLimit;
+        g_game->maxUnits = g_game->unitLimitIni;
         g_nonCampaignGame = 1;
         g_game->flags_38a51 &= 0xfffe;
 
@@ -634,7 +634,7 @@ void __cdecl LoadMatch(void*)
         int sel2 = FindHostSlot();
         PlayerInfo* p2 = g_game->players[sel2].data;
         g_nonCampaignGame = p2->cheating;
-        g_game->commanderDeath = p2->commander;
+        g_game->battleCommanderDeath = p2->commander;
         g_game->mapFlags.bit1 = p2->los;
         g_game->mapFlags.bit2 = p2->losType;
         g_game->mapFlags.bit0 = p2->mapping;
@@ -645,10 +645,10 @@ void __cdecl LoadMatch(void*)
         break;
     }
 
-    if (g_game->p38d6b != 0) {
-        g_game->p38d6b->OpenAccount("summary");
-        if (g_game->p38d6b->HasItem("BetweenMissions") == 0) {
-            LoadPlayerControllers(g_game->p38d6b);
+    if (g_game->pendingSaveStore != 0) {
+        g_game->pendingSaveStore->OpenAccount("summary");
+        if (g_game->pendingSaveStore->HasItem("BetweenMissions") == 0) {
+            LoadPlayerControllers(g_game->pendingSaveStore);
             if (((Mission*)g_game->mapInfo)->GetGameType() == 2) {
                 int count = 0;
                 Slot_00497180* def = g_game->options->slots;
@@ -681,7 +681,7 @@ void __cdecl LoadMatch(void*)
             g_game->mapFlags.bit0 = pl->mapping;
             g_game->mapFlags.bit1 = pl->los;
             g_game->mapFlags.bit2 = pl->losType;
-            g_game->commanderDeath = pl->commander;
+            g_game->battleCommanderDeath = pl->commander;
 
             for (int i = 0; i < 10; i++) {
                 PlayerRec_00497f40* rec = &g_game->players[i];
@@ -717,16 +717,16 @@ void __cdecl LoadMatch(void*)
             if (lp->bit6) {
                 g_game->mapFlagsWord &= 0xfffe;
                 g_game->mapFlagsWord &= 0xfffd;
-                cx = g_game->viewWidth / 2;
-                cz = g_game->viewHeight / 2;
+                cx = g_game->viewPixelWidth / 2;
+                cz = g_game->viewPixelHeight / 2;
             } else {
-                cx = start.x.h.whole - g_game->viewWidth / 2;
-                cz = start.z.h.whole - g_game->viewHeight / 2;
+                cx = start.x.h.whole - g_game->viewPixelWidth / 2;
+                cz = start.z.h.whole - g_game->viewPixelHeight / 2;
             }
             SetCameraPosition(cx, cz, 0);
             ReportGameEvent(6);
         } else if (((Mission*)g_game->mapInfo)->GetGameType() == 2 &&
-            g_game->p38d6b == 0) {
+            g_game->pendingSaveStore == 0) {
             if (g_game->options->fixedloc != 0) {
                 for (int i1 = 0; i1 < 10; i1++) {
                     if ((unsigned char)i1 < 10) {
@@ -776,10 +776,10 @@ void __cdecl LoadMatch(void*)
 
     RecalculateLineOfSight(1);
 
-    if (g_game->p38d6b != 0) {
-        g_game->p38d6b->OpenAccount("summary");
-        if (g_game->p38d6b->HasItem("BetweenMissions") == 0) {
-            LoadSavedGameState(g_game->p38d6b);
+    if (g_game->pendingSaveStore != 0) {
+        g_game->pendingSaveStore->OpenAccount("summary");
+        if (g_game->pendingSaveStore->HasItem("BetweenMissions") == 0) {
+            LoadSavedGameState(g_game->pendingSaveStore);
             goto tail;
         }
     } else if (((Mission*)g_game->mapInfo)->GetGameType() != 1) {
@@ -795,10 +795,10 @@ tail:
         LoadPictureCached(0, 0, 0, 0);
         PlayerInfo* pl = rec->data;
         int side = pl->side;
-        sprintf(g_game->guiName, "%sMAIN2.GUI", g_game->sideNames[side].name);
+        sprintf(g_game->mainHudLayoutName, "%sMAIN2.GUI", g_game->sideNames[side].name);
     }
     Gadget_497180* gadget =
-        LoadGuiLayer((Sub_497180*)&g_game->menu, g_game->guiName, 0x20);
+        LoadGuiLayer((Sub_497180*)&g_game->menu, g_game->mainHudLayoutName, 0x20);
     gadget->handler = HandleMain2LayoutEvent;
     gadget->owner = (char*)g_game;
 
@@ -809,11 +809,11 @@ tail:
     UpdatePlayers();
     InitPlayerResources();
 
-    HapiBank* mission = g_game->p38d6b;
+    HapiBank* mission = g_game->pendingSaveStore;
     if (mission != 0) {
         mission->CloseBank();
         operator delete(mission);
-        g_game->p38d6b = 0;
+        g_game->pendingSaveStore = 0;
     }
     RebuildAIFeatureCells();
 
@@ -958,7 +958,7 @@ void LoadingScreenFrame(void)
             SetCursorAnimation(&g_game->field_519, (void*)g_game->cursorHourglass);
         }
         SetFont(g_game->fontComix);
-        SetPaletteColors(g_game->palette_143a7, 0, 0x100);
+        SetPaletteColors(g_game->paletteRgba, 0, 0x100);
         if (g_game->mapInfo->GetGameType() != 2) {
             SaveSettings();
         }
@@ -966,36 +966,36 @@ void LoadingScreenFrame(void)
             CloseTopScreen(&g_game->field_519);
         }
         BlankScreen();
-        g_game->width = 0x280;
-        g_game->height = 0x1e0;
+        g_game->screenWidth = 0x280;
+        g_game->screenHeight = 0x1e0;
         if (GetScreenWidth() != 0x280 || GetScreenHeight() != 0x1e0) {
-            GameFreeThunk((void*)g_game->screen);
-            g_game->screen = 0;
+            GameFreeThunk((void*)g_game->offscreen);
+            g_game->offscreen = 0;
             SetRestoreSurface(0);
             RestoreScreen();
             SetWindowPos(g_game->displayContext->hwnd, 0, 0, 0, 0x280, 0x1e0, 4);
             SetResolution(0x280, 0x1e0);
-            g_game->screen = (int)AllocSurface("OFFSCREEN", g_game->width, g_game->height);
-            SetRestoreSurface(g_game->screen);
-            SetOffscreenSurface((void*)g_game->screen);
+            g_game->offscreen = (int)AllocSurface("OFFSCREEN", g_game->screenWidth, g_game->screenHeight);
+            SetRestoreSurface(g_game->offscreen);
+            SetOffscreenSurface((void*)g_game->offscreen);
         }
         BuildDataPath(aux, "palettes", "guipal", "PAL");
         surfaceHandle = HAPI_LoadFile((unsigned int*)aux, 0);
-        RemapPaletteToClosestIndices(&g_game->field_519, g_game->palette_143a7, surfaceHandle);
+        RemapPaletteToClosestIndices(&g_game->field_519, g_game->paletteRgba, surfaceHandle);
         GameFreeThunk(surfaceHandle);
-        g_game->lastTick = GetTicks();
+        g_game->lastSimBudgetTick = GetTicks();
         g_game->simStepsPending = 0;
-        g_game->ticks = 0;
+        g_game->gameTick = 0;
         g_game->speedHysteresis = 0;
         g_game->endGameCountdown = (short)0xffff;
-        g_game->width = g_game->displayWidth;
-        g_game->height = g_game->displayHeight;
+        g_game->screenWidth = g_game->displayWidth;
+        g_game->screenHeight = g_game->displayHeight;
         g_game->viewCullMinX = 0x80;
         g_game->viewCullMinY = 0x20;
-        g_game->viewCullMaxX = g_game->width - 1;
-        g_game->viewCullMaxY = g_game->height - 0x21;
-        g_game->viewWidth = g_game->viewCullMaxX - g_game->viewCullMinX + 1;
-        g_game->viewHeight = g_game->viewCullMaxY - g_game->viewCullMinY + 1;
+        g_game->viewCullMaxX = g_game->screenWidth - 1;
+        g_game->viewCullMaxY = g_game->screenHeight - 0x21;
+        g_game->viewPixelWidth = g_game->viewCullMaxX - g_game->viewCullMinX + 1;
+        g_game->viewPixelHeight = g_game->viewCullMaxY - g_game->viewCullMinY + 1;
         LoadPictureCached("loadgame2bg", 0, 0, 0);
         memset(&g_game->slots, 0, sizeof(g_game->slots));
         for (i = 0; i < 10; i++) {
@@ -1023,20 +1023,20 @@ void LoadingScreenFrame(void)
         BlankScreen();
         FreePictureCache();
         if (GetScreenWidth() != g_game->displayWidth || GetScreenHeight() != g_game->displayHeight) {
-            GameFreeThunk((void*)g_game->screen);
-            g_game->screen = 0;
+            GameFreeThunk((void*)g_game->offscreen);
+            g_game->offscreen = 0;
             SetRestoreSurface(0);
             RestoreScreen();
             SetWindowPos(g_game->displayContext->hwnd, 0, 0, 0, g_game->displayWidth,
                          g_game->displayHeight, 4);
             SetResolution(g_game->displayWidth, g_game->displayHeight);
-            g_game->screen = (int)AllocSurface("OFFSCREEN", g_game->width, g_game->height);
-            SetRestoreSurface(g_game->screen);
+            g_game->offscreen = (int)AllocSurface("OFFSCREEN", g_game->screenWidth, g_game->screenHeight);
+            SetRestoreSurface(g_game->offscreen);
         }
         DrawLightBars();
         MainLoopTick();
         ShowSoftwareCursor();
-        g_game->mode = 6;
+        g_game->frontendState = 6;
         g_game->handler = BattleFrame;
         SetCloseHandler(HandleBattleQuitPrompt, 0);
         g_game->field_589 = 0;
@@ -1073,7 +1073,7 @@ void LoadingScreenFrame(void)
     if (g_usePacketManager != 0) {
         (&g_packetManager)->SendAllQueued(1);
     }
-    SetOffscreenSurface((void*)g_game->screen);
+    SetOffscreenSurface((void*)g_game->offscreen);
     // The result stays in a local: it gives the compare against a register.
     int ok = LockScreen(&gadget);
     if (ok != 0) {

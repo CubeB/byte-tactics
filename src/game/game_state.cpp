@@ -98,23 +98,23 @@ struct Game {
     char unknown_14263[0x14280 - 0x14263];
     unsigned char debugMode;  // +0x14280
     char unknown_14281[0x14383 - 0x14281];
-    void* xform;   // +0x14383
-    void* projected;   // +0x14387
-    void* assem;   // +0x1438b
+    void* tempXformPts;   // +0x14383
+    void* tempProjectedPts;   // +0x14387
+    void* assemPts;   // +0x1438b
     char unknown_1438f[0x143a7 - 0x1438f];
-    char palette[4];   // +0x143a7
+    char paletteRgba[4];   // +0x143a7
     char unknown_143ab[0x1487f - 0x143ab];
-    Src_004ab400* table[1];   // +0x1487f
+    Src_004ab400* cursorModeSeq[1];   // +0x1487f
     char unknown_14883[0x148cb - 0x14883];
     unsigned short* cursorNormal;  // +0x148cb
     char unknown_148cf[0x37e1b - 0x148cf];
-    int screen;        // +0x37e1b
-    int width;         // +0x37e1f
-    int height;        // +0x37e23
+    int offscreen;             // +0x37e1b
+    int screenWidth;             // +0x37e1f
+    int screenHeight;  // +0x37e23
     char unknown_37e27[0x37e9c - 0x37e27];
     short unitIndex;     // +0x37e9c
     char unknown_37e9e[0x37ea0 - 0x37e9e];
-    char name[0x1e];   // +0x37ea0
+    char mainHudLayoutName[0x1e];   // +0x37ea0
     union {
         unsigned short flags_37ebe;
         struct {
@@ -127,21 +127,21 @@ struct Game {
     char unknown_37ec0[0x37ec4 - 0x37ec0];
     unsigned int windCounter;   // +0x37ec4
     int windSpeedDenominator;  // +0x37ec8
-    int windX;   // +0x37ecc
+    int windVelX;   // +0x37ecc
     char unknown_37ed0[0x37ed4 - 0x37ed0];
     int windZ;   // +0x37ed4
     unsigned short windDirection;   // +0x37ed8
     int windSpeed;   // +0x37eda
-    float windStrength;   // +0x37ede
+    float windFraction;   // +0x37ede
     int windEnabled;   // +0x37ee2
     short maxUnits;      // +0x37ee6
     char unknown_37ee8[0x37eea - 0x37ee8];
     short maxUnitsLobby;  // +0x37eea
-    short unitLimit;     // +0x37eec
+    short unitLimitIni;  // +0x37eec
     char unknown_37eee[0x37efe - 0x37eee];
     int chatHudFilterMode;  // +0x37efe
     char unknown_37f02[0x37f08 - 0x37f02];
-    int brightness;    // +0x37f08
+    int gamma;         // +0x37f08
     char unknown_37f0c[0x37f14 - 0x37f0c];
     unsigned char musicMode;     // +0x37f14
     char unknown_37f15[0x37f16 - 0x37f15];
@@ -158,10 +158,10 @@ struct Game {
         };
     };
     char unknown_37f31[0x38a37 - 0x37f31];
-    unsigned int lastTick;      // +0x38a37
+    unsigned int lastSimBudgetTick;      // +0x38a37
     char unknown_38a3b[0x38a43 - 0x38a3b];
     int carry;         // +0x38a43
-    unsigned int ticks;         // +0x38a47
+    unsigned int gameTick;      // +0x38a47
     union {
         short gameSpeed;
         unsigned short speed_38a4b;
@@ -180,7 +180,7 @@ struct Game {
     char unknown_38d7f[0x391e9 - 0x38d7f];
     Mission* mapInfo;       // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int mode;   // +0x391f1
+    int frontendState;   // +0x391f1
     void (*handler)();   // +0x391f5
     int fontComix;     // +0x391f9
     char unknown_391fd[0x3923b - 0x391fd];
@@ -212,8 +212,8 @@ void __stdcall SetRestoreSurface(int param_1);
 // FUNCTION: 0x490ac0
 void CreateOffscreenSurface()
 {
-    g_game->screen = AllocSurface(g_offscreenSurfaceName, g_game->width, g_game->height);
-    SetRestoreSurface(g_game->screen);
+    g_game->offscreen = AllocSurface(g_offscreenSurfaceName, g_game->screenWidth, g_game->screenHeight);
+    SetRestoreSurface(g_game->offscreen);
 }
 
 // Releases the offscreen object created by 0x490ac0.
@@ -223,13 +223,13 @@ void RestoreScreen();
 // FUNCTION: 0x490b00
 void FreeOffscreenSurface()
 {
-    GameFreeThunk((int*)g_game->screen);
-    g_game->screen = 0;
+    GameFreeThunk((int*)g_game->offscreen);
+    g_game->offscreen = 0;
     SetRestoreSurface(0);
     RestoreScreen();
 }
 
-// Stores the new game mode in g_game->mode (+0x391f1) and installs the state
+// Stores the new game mode in g_game->frontendState (+0x391f1) and installs the state
 // handler for it in g_game->handler (+0x391f5), through the 0x490c14 jump
 // table. Mode 6 also gets a different quit callback from SetCloseHandler.
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
@@ -247,7 +247,7 @@ void EndGameFrame();
 // FUNCTION: 0x490b30
 void __stdcall SetGameMode(int param)
 {
-    g_game->mode = param;
+    g_game->frontendState = param;
     switch (param) {
     case 0:
         g_game->handler = InitFrame;
@@ -299,7 +299,7 @@ int __stdcall RandomInt(int range);
 // FUNCTION: 0x490c40
 void __cdecl UpdateWind()
 {
-    if (g_game->windCounter < g_game->ticks) {
+    if (g_game->windCounter < g_game->gameTick) {
         // The __int64 cast keeps the _allmul/_alldiv calls; keep this one
         // expression with no temporary.
         g_game->windCounter += ((int)((__int64)rand() * 10 / 0x8000) + 5) * 30;
@@ -311,12 +311,12 @@ void __cdecl UpdateWind()
         if (g_game->windSpeed != 0)
             g_game->windDirection = RandomInt(0x10000);
 
-        g_game->windX = -FUN_004b70ef(g_game->windDirection, g_game->windSpeed) * 2;
+        g_game->windVelX = -FUN_004b70ef(g_game->windDirection, g_game->windSpeed) * 2;
         g_game->windZ = -FUN_004b7123(g_game->windDirection, g_game->windSpeed) * 2;
 
-        g_game->windStrength = (float)g_game->windSpeed / (float)g_game->windSpeedDenominator;
-        if (1.0 < g_game->windStrength)
-            g_game->windStrength = 1.0f;
+        g_game->windFraction = (float)g_game->windSpeed / (float)g_game->windSpeedDenominator;
+        if (1.0 < g_game->windFraction)
+            g_game->windFraction = 1.0f;
 
         g_game->windEnabled = 1;
     } else {
@@ -503,7 +503,7 @@ newdisc:
         DAT_0051e858 = *(int*)&tracks[12];
         DAT_0051e848 = id;
     }
-    if ((g_game->flags_2a44 & 4) != 0 && g_game->mode == 6)
+    if ((g_game->flags_2a44 & 4) != 0 && g_game->frontendState == 6)
         g_game->cd->PlayNextTrack();
     else
         g_game->cd->StopCdAudio();
@@ -568,11 +568,11 @@ void InitGame()
         mem.dwLength = 0x20;
         GlobalMemoryStatus(&mem);
     }
-    g_game->width = GetScreenWidth();
-    g_game->height = GetScreenHeight();
-    g_game->screen = AllocSurface(g_offscreenSurfaceName, g_game->width,
-                                      g_game->height);
-    SetRestoreSurface(g_game->screen);
+    g_game->screenWidth = GetScreenWidth();
+    g_game->screenHeight = GetScreenHeight();
+    g_game->offscreen = AllocSurface(g_offscreenSurfaceName, g_game->screenWidth,
+                                      g_game->screenHeight);
+    SetRestoreSurface(g_game->offscreen);
     g_game->endGameFlags &= 0xfffe;
     g_game->endGameFlags &= 0xfffd;
     g_game->restartMissionRequest = 0;
@@ -582,7 +582,7 @@ void InitGame()
         g_game->effectiveGameSpeed = 10;
     }
     g_game->carry = 0;
-    g_game->maxUnits = g_game->unitLimit;
+    g_game->maxUnits = g_game->unitLimitIni;
     g_game->maxUnitsLobby = g_game->maxUnits;
     g_game->chatHudFilterMode = 3;
     g_game->uiOptionFlags &= 0xfdff;
@@ -597,11 +597,11 @@ void InitGame()
     LoadGameFonts();
     LoadDefaultPalette();
     LoadAllSound();
-    LoadAlphaTable(g_game->palette);
-    LoadShadeTable(g_game->palette);
-    LoadLightTable(g_game->palette);
-    MakeGrayTable(g_game->palette);
-    MakeBlueTable(g_game->palette);
+    LoadAlphaTable(g_game->paletteRgba);
+    LoadShadeTable(g_game->paletteRgba);
+    LoadLightTable(g_game->paletteRgba);
+    MakeGrayTable(g_game->paletteRgba);
+    MakeBlueTable(g_game->paletteRgba);
     g_game->options = GameAllocIgnoreTag(g_skirmishInfoTag, 0x22c);
     LoadSettings();
     size = 0xaa0;
@@ -616,7 +616,7 @@ void InitGame()
     ApplyBrightnessAndVolume();
     LoadSideData();
     LoadLogos();
-    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
+    SetBrightness(0.5 - g_game->gamma * -0.041666668f);
     SetCurrentGuiContext(&g_game->gui);
     SetGuiPath(&g_game->gui, g_guisDirName);
     SetAnimsPath(&g_game->gui, g_animsDirName);
@@ -636,7 +636,7 @@ void InitGame()
     g_game->unusedAfterMovieOutputRateDirty = 0;
     g_game->pendingSaveStore = 0;
     g_game->moviePlayer = 0;
-    g_game->mode = 0;
+    g_game->frontendState = 0;
     g_game->handler = InitFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
     {
@@ -651,7 +651,7 @@ void InitGame()
         limit = 500;
     else if (limit < 20)
         limit = 20;
-    g_game->unitLimit = limit;
+    g_game->unitLimitIni = limit;
 }
 
 // Saves the per-track bytes from the CD object into the CD-list settings
@@ -692,8 +692,8 @@ void ShutdownGame(void)
     FreeGameFonts();
     ShutdownSound();
     FreeAnimFiles();
-    GameFreeThunk((int*)g_game->screen);
-    g_game->screen = 0;
+    GameFreeThunk((int*)g_game->offscreen);
+    g_game->offscreen = 0;
     SetRestoreSurface(0);
     RestoreScreen();
     ClearOrderTypeTable();
@@ -774,11 +774,11 @@ void LoadBattleAssets()
     g_game->windSpeedDenominator = 5000;
     g_game->windCounter = 0;
     UpdateWind();
-    g_game->xform = GameAllocIgnoreTag("TEMP XFORM PTS", 0x960);
-    g_game->projected = GameAllocIgnoreTag("TEMP PROJECTED PTS", 0x640);
-    g_game->assem = GameAllocIgnoreTag("ASSEM PTS", 0xa0);
-    g_game->lastTick = GetTicks();
-    g_game->ticks = 0;
+    g_game->tempXformPts = GameAllocIgnoreTag("TEMP XFORM PTS", 0x960);
+    g_game->tempProjectedPts = GameAllocIgnoreTag("TEMP PROJECTED PTS", 0x640);
+    g_game->assemPts = GameAllocIgnoreTag("ASSEM PTS", 0xa0);
+    g_game->lastSimBudgetTick = GetTicks();
+    g_game->gameTick = 0;
     if (g_game->mapInfo->GetGameType() == 3) {
         g_game->gameSpeed = 10;
         g_game->effectiveGameSpeed = 10;
@@ -814,18 +814,18 @@ void __stdcall SetOffscreenSurface(int param_1);
 // FUNCTION: 0x491a70
 void Force640x480Surfaces()
 {
-    g_game->width = 0x280;
-    g_game->height = 0x1e0;
+    g_game->screenWidth = 0x280;
+    g_game->screenHeight = 0x1e0;
     if (GetScreenWidth() != 0x280 || GetScreenHeight() != 0x1e0) {
-        GameFreeThunk((int*)g_game->screen);
-        g_game->screen = 0;
+        GameFreeThunk((int*)g_game->offscreen);
+        g_game->offscreen = 0;
         SetRestoreSurface(0);
         RestoreScreen();
         SetWindowPos(g_game->displayContext->hwnd, 0, 0, 0, 0x280, 0x1e0, 4);
         SetResolution(0x280, 0x1e0);
-        g_game->screen = AllocSurface(g_offscreenSurfaceName, g_game->width, g_game->height);
-        SetRestoreSurface(g_game->screen);
-        SetOffscreenSurface(g_game->screen);
+        g_game->offscreen = AllocSurface(g_offscreenSurfaceName, g_game->screenWidth, g_game->screenHeight);
+        SetRestoreSurface(g_game->offscreen);
+        SetOffscreenSurface(g_game->offscreen);
     }
 }
 
@@ -862,12 +862,12 @@ void ShutdownIngameSystems()
     FreePlayers();
     FreeRadar();
     FreeMapResources();
-    GameFreeThunk((int*)g_game->assem);
-    GameFreeThunk((int*)g_game->projected);
-    GameFreeThunk((int*)g_game->xform);
-    g_game->assem = 0;
-    g_game->projected = 0;
-    g_game->xform = 0;
+    GameFreeThunk((int*)g_game->assemPts);
+    GameFreeThunk((int*)g_game->tempProjectedPts);
+    GameFreeThunk((int*)g_game->tempXformPts);
+    g_game->assemPts = 0;
+    g_game->tempProjectedPts = 0;
+    g_game->tempXformPts = 0;
     FreeDownloadMenus();
     FreeUnitTypes();
     FreeWeaponTypes();
@@ -904,7 +904,7 @@ void __stdcall SetCursorMode(int n)
 {
     if (g_game->cursorMode != n) {
         g_game->cursorMode = n;
-        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[n]);
+        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->cursorModeSeq[n]);
     }
 }
 
@@ -926,7 +926,7 @@ void __stdcall UpdateBattleHoverMode(int unused)
     if ((flags & 2) == 0 && (flags & 1) == 0) {
         if (g_game->cursorMode != 0x13) {
             g_game->cursorMode = 0x13;
-            SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[0x13]);
+            SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->cursorModeSeq[0x13]);
         }
         return;
     }
@@ -934,7 +934,7 @@ void __stdcall UpdateBattleHoverMode(int unused)
     int n = ResolveCursorModeForSelection(g_game->orderMode);
     if (g_game->cursorMode != n) {
         g_game->cursorMode = n;
-        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[n]);
+        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->cursorModeSeq[n]);
     }
 }
 
@@ -951,7 +951,7 @@ int __stdcall PopUntilNamedLayout(int force)
     }
     g_game->unitIndex = 0;
     while (g_game->gui.current) {
-        if (IsScreenNamed(&g_game->gui, g_game->name))
+        if (IsScreenNamed(&g_game->gui, g_game->mainHudLayoutName))
             return 1;
         CloseTopScreen(&g_game->gui);
     }
@@ -962,7 +962,7 @@ int __stdcall PopUntilNamedLayout(int force)
 // FUNCTION: 0x491e10
 void CloseTopScreenIfNotNamed()
 {
-    if (!IsScreenNamed(&g_game->gui, g_game->name)) {
+    if (!IsScreenNamed(&g_game->gui, g_game->mainHudLayoutName)) {
         g_game->unitIndex = 0;
         CloseTopScreen(&g_game->gui);
     }

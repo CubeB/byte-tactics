@@ -152,7 +152,7 @@ struct Game {
     char unknown_2a43[0x2bc0 - 0x2a43];
     unsigned char frontendSubstateRequest;  // +0x2bc0
     char unknown_2bc1[0x37e1b - 0x2bc1];
-    int screen;                        // +0x37e1b
+    int offscreen;                     // +0x37e1b
     char unknown_37e1f[0x37eee - 0x37e1f];
     int difficulty;                    // +0x37eee
     union {                            // +0x37ef2
@@ -160,15 +160,15 @@ struct Game {
         unsigned char side;
     };
     char unknown_37ef6[0x37f39 - 0x37ef6];
-    int count;                         // +0x37f39, the sides
+    int sideCount;                     // +0x37f39, the sides
     char names[1][0x232];              // +0x37f3d
     char unknown_3816f[0x38d7f - 0x3816f];
     unsigned short flags_38d7f;        // +0x38d7f
-    int itemCount;                     // +0x38d81
+    int numSkirmishPlayers;            // +0x38d81
     char unknown_38d85[0x391e9 - 0x38d85];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int mode;                          // +0x391f1
+    int frontendState;                 // +0x391f1
 };
 #pragma pack(pop)
 
@@ -297,7 +297,7 @@ void __stdcall DrawBitmapBackground(char* name, int lock)
     BuildDataPath(path, "bitmaps", name, "PCX");
     image = LoadBitmapByName(name, palette);
     SetPaletteColors(palette, 0, 0x100);
-    SetOffscreenSurface(g_game->screen);
+    SetOffscreenSurface(g_game->offscreen);
     DrawSurface(0, image, 0, 0);
     FreeSurface(image);
     if (lock) {
@@ -308,7 +308,7 @@ void __stdcall DrawBitmapBackground(char* name, int lock)
 // FUNCTION: 0x4767e0
 int GetSideCount(void)
 {
-    return g_game->count;
+    return g_game->sideCount;
 }
 
 // Counts the campaign files (camps\*.TDF); compare 0x4769f0.
@@ -323,19 +323,19 @@ void CountCampaignFiles()
 // FUNCTION: 0x476830
 char* BuildSideList()
 {
-    char* buf = (char*)GameAllocIgnoreTag("SideList", g_game->count * 30);
+    char* buf = (char*)GameAllocIgnoreTag("SideList", g_game->sideCount * 30);
     char* p = buf;
     int i;
     int j;
 
     buf[0] = 0;
-    for (i = 0; i < g_game->count; i++) {
+    for (i = 0; i < g_game->sideCount; i++) {
         p = strcat(p, g_game->names[i]);
         p = p + strlen(p) + 1;
         p[0] = 0;
     }
     p = buf;
-    for (j = 0; j < g_game->count; j++) {
+    for (j = 0; j < g_game->sideCount; j++) {
         for (;;) {
             char c = *++p;
             if (c == 0) {
@@ -424,8 +424,8 @@ int __stdcall BuildCampaignNameList(char** out, int side)
 // FUNCTION: 0x476c70
 void StartBriefingNarration()
 {
-    if (g_game->mode != 6) {
-        char* name = (char*)g_game->net->GetNameSlot(3);
+    if (g_game->frontendState != 6) {
+        char* name = (char*)g_game->mapInfo->GetNameSlot(3);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
         }
@@ -435,8 +435,8 @@ void StartBriefingNarration()
 // FUNCTION: 0x476ca0
 void StartGlamourSound()
 {
-    if (g_game->mode != 6) {
-        char* name = (char*)g_game->net->GetNameSlot(8);
+    if (g_game->frontendState != 6) {
+        char* name = (char*)g_game->mapInfo->GetNameSlot(8);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
         }
@@ -481,7 +481,7 @@ char* __stdcall AllocColorMarkupText(char* s)
 // FUNCTION: 0x476d80
 void InitBriefingText()
 {
-    char* text = g_game->net->GetBriefing();
+    char* text = g_game->mapInfo->GetBriefing();
     if (text) {
         Gadget* gadgets = g_game->gui.layer->entries;
         int i = FindGadgetIndex(gadgets, "SOLARSYSTEM", 0xe);
@@ -496,8 +496,8 @@ void InitBriefingText()
         g_briefingWrappedText = AllocColorMarkupText(g_briefingWrappedText);
         DrawHelpPage();
     }
-    if (g_game->mode != 6) {
-        char* name = (char*)g_game->net->GetNameSlot(3);
+    if (g_game->frontendState != 6) {
+        char* name = (char*)g_game->mapInfo->GetNameSlot(3);
         if (name) {
             StreamSoundDelayed(name, 0, 0x3c);
         }
@@ -855,8 +855,8 @@ void __stdcall FillMissionList(Gui* menu, int unused)
     }
     Gadget* layout =
         FindGadgetChecked(g_game->gui.layer->entries, "Campaign");
-    g_game->net->LoadCampaign(SkipTextLines(layout->text, layout->selected));
-    int count = g_game->net->BuildMissionList(&g_missionNameList);
+    g_game->mapInfo->LoadCampaign(SkipTextLines(layout->text, layout->selected));
+    int count = g_game->mapInfo->BuildMissionList(&g_missionNameList);
     ConfigureListBoxByName(menu, "Missions", g_missionNameList, count, 0);
     SyncAssocGadgets(&g_game->gui,
                  FindGadgetIndex(layer->entries, "Missions", 2));
@@ -890,9 +890,9 @@ static inline void FillMissionListInline(Gui* menu, Gadget* unused)
     }
     Gadget* layout =
         FindGadgetChecked(g_game->gui.layer->entries, "Campaign");
-    g_game->net->LoadCampaign(
+    g_game->mapInfo->LoadCampaign(
         SkipTextLines(layout->text, layout->selected));
-    int count = g_game->net->BuildMissionList(&g_missionNameList);
+    int count = g_game->mapInfo->BuildMissionList(&g_missionNameList);
     ConfigureListBoxByName(menu, "Missions", g_missionNameList, count, 0);
     SyncAssocGadgets(&g_game->gui,
                  FindGadgetIndex(layer->entries, "Missions", 2));
@@ -932,18 +932,18 @@ void __stdcall HandleNewGameClick(Gui* menu)
             if (g_campaignSimplifiedLayout == 0) {
                 Gadget* e = FindGadgetChecked(entries, "Campaign");
                 name = SkipTextLines(e->text, e->selected);
-                g_game->net->LoadCampaign(name);
+                g_game->mapInfo->LoadCampaign(name);
             } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
-                g_game->net->LoadCampaign("Arm Campaign");
+                g_game->mapInfo->LoadCampaign("Arm Campaign");
             } else {
-                g_game->net->LoadCampaign("Core Campaign");
+                g_game->mapInfo->LoadCampaign("Core Campaign");
             }
         }
         if (g_anyMissionMode != 0) {
             Gadget* e = FindGadgetChecked(entries, "Missions");
             index = e->selected;
         }
-        if (g_game->net->SelectMission(index) != 0) {
+        if (g_game->mapInfo->SelectMission(index) != 0) {
             SetCursorMode(0x14);
             *(unsigned char*)(*(int*)((char*)g_game + 0x1b8a) + 0x96) = 0;
             *(unsigned char*)(*(int*)((char*)g_game + 0x1cd5) + 0x96) = 1;
@@ -1143,8 +1143,8 @@ void __stdcall OpenNewGameMenu(int param_1)
             Gadget* m = FindGadgetChecked(g_game->gui.layer->entries,
                                              "Campaign");
             char* text = SkipTextLines(m->text, m->selected);
-            g_game->net->LoadCampaign(text);
-            int mc = g_game->net->BuildMissionList(
+            g_game->mapInfo->LoadCampaign(text);
+            int mc = g_game->mapInfo->BuildMissionList(
                 &g_missionNameList);
             ConfigureListBoxByName(menu, "Missions", g_missionNameList, mc, 0);
             int mi = FindGadgetIndex(mlayer->entries, "Missions", 2);
@@ -1168,8 +1168,8 @@ void __stdcall OpenNewGameMenu(int param_1)
 // FUNCTION: 0x478790
 void __stdcall UpdateSolarSystem(Gui* arg1, Gadget* arg2)
 {
-    int windMin = g_game->net->minWindSpeed;
-    int windMax = g_game->net->maxWindSpeed;
+    int windMin = g_game->mapInfo->minWindSpeed;
+    int windMax = g_game->mapInfo->maxWindSpeed;
     void* surface = arg1->layer->entries->surface;
 
     if (--g_briefingWindTickCountdown <= 0) {
@@ -1200,7 +1200,7 @@ void __stdcall UpdateSolarSystem(Gui* arg1, Gadget* arg2)
                  rect.right - rect.left - 0x50);
 
     sprintf(text, "%s : %.1f", Translate("Gravity"),
-            (double)g_game->net->gravity * 0.008928571428571428);
+            (double)g_game->mapInfo->gravity * 0.008928571428571428);
     DrawString(surface, text, rect.left + 0x50, rect.top + 0x28,
                  rect.right - rect.left - 0x50);
 
@@ -1343,8 +1343,8 @@ void __stdcall HandleMissionBriefingClick(Gui* menu)
         PlaySoundByName("Options", 0);
         if (!GetButtonStageByName(menu, "SHUTUP")) {
             g_game->input->StopStream();
-        } else if (g_game->mode != 6) {
-            char* text = (char*)g_game->net->GetNameSlot(3);
+        } else if (g_game->frontendState != 6) {
+            char* text = (char*)g_game->mapInfo->GetNameSlot(3);
             if (text) {
                 StreamSoundDelayed(text, 0, 0x3c);
             }
@@ -1407,11 +1407,11 @@ void OpenMissionBriefing(void)
     SetGadgetActiveByName(&g_game->gui, "SOLARSYSTEM", 0);
     SetButtonStageByName(&g_game->gui, "SHUTUP", 1);
 
-    g_briefingWindSpeed = g_game->net->minWindSpeed +
-                   rand() % (g_game->net->maxWindSpeed - g_game->net->minWindSpeed + 1);
+    g_briefingWindSpeed = g_game->mapInfo->minWindSpeed +
+                   rand() % (g_game->mapInfo->maxWindSpeed - g_game->mapInfo->minWindSpeed + 1);
     g_briefingWindTickCountdown = rand() % 64;
 
-    name = g_game->net->GetPlanet();
+    name = g_game->mapInfo->GetPlanet();
     if (strcmp(name, "Lunar") == 0 && g_game->flag_37ef2 != 0)
         strcat(name, "2");
 
@@ -1562,7 +1562,7 @@ int __cdecl CountHumanSlots()
 // FUNCTION: 0x479530
 int FindOpenSlot()
 {
-    for (int i = 0; i < g_game->itemCount; i++) {
+    for (int i = 0; i < g_game->numSkirmishPlayers; i++) {
         if (g_game->options[i].id == 0) {
             return i;
         }
@@ -1575,7 +1575,7 @@ int AreAllSlotsEmpty()
 {
     int result = 1;
     Game* g = g_game;
-    int n = g->itemCount;
+    int n = g->numSkirmishPlayers;
     if (n > 0) {
         Item* p = g->options;
         do {
@@ -1592,7 +1592,7 @@ int AreAllSlotsEmpty()
 // FUNCTION: 0x479590
 int __stdcall IsColorTaken(int owner, int skip)
 {
-    for (int i = 0; i < g_game->itemCount; i++) {
+    for (int i = 0; i < g_game->numSkirmishPlayers; i++) {
         if (g_game->options[i].owner == owner && g_game->options[i].id != 0 && i != skip) {
             return 1;
         }
@@ -1605,11 +1605,11 @@ int FindFreeColor()
 {
     for (int owner = 0; owner < 10; owner++) {
         int i;
-        for (i = 0; i < g_game->itemCount; i++) {
+        for (i = 0; i < g_game->numSkirmishPlayers; i++) {
             if (g_game->options[i].owner == owner)
                 break;
         }
-        if (i == g_game->itemCount)
+        if (i == g_game->numSkirmishPlayers)
             return owner;
     }
     return -1;
@@ -1619,7 +1619,7 @@ int FindFreeColor()
 int __stdcall CountPlayersInAllyGroup(int owner)
 {
     int n = 0;
-    for (int i = 0; i < g_game->itemCount; i++) {
+    for (int i = 0; i < g_game->numSkirmishPlayers; i++) {
         if (g_game->options[i].allyGroup == owner && g_game->options[i].active != 0) {
             n++;
         }

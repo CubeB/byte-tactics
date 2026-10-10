@@ -130,14 +130,14 @@ struct Game {
     char unknown_14280[0x142f7 - 0x14280];
     Proj_0049b720* cameraFollowTrackObj;  // +0x142f7
     char unknown_142fb[0x1433f - 0x142fb];
-    Vec3_0049b720 lastPos;             // +0x1433f
-    unsigned short lastSound;          // +0x1434b
+    Vec3_0049b720 cameraSnapPos;       // +0x1433f
+    unsigned short cameraSnapTicks;    // +0x1434b
     char unknown_1434d[0x37ecc - 0x1434d];
     Vec3_0049b720 wind;                // +0x37ecc
     char unknown_37ed8[0x38a47 - 0x37ed8];
-    unsigned int time;                 // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Net_0049b720* net;                 // +0x391e9
+    Net_0049b720* mapInfo;             // +0x391e9
 };
 
 #include "../map/cell.h"
@@ -183,8 +183,8 @@ static inline void Fall(Vec3_0049b720* v)
 static inline void Remove(Proj_0049b720* p)
 {
     if (p == g_game->cameraFollowTrackObj) {
-        g_game->lastPos = g_game->cameraFollowTrackObj->pos;
-        g_game->lastSound = p->type->deathSound;
+        g_game->cameraSnapPos = g_game->cameraFollowTrackObj->pos;
+        g_game->cameraSnapTicks = p->type->deathSound;
         g_game->cameraFollowTrackObj = 0;
     }
     p->flags.dead = 1;
@@ -203,7 +203,7 @@ void UpdateProjectiles()
         int oldY = p->pos.yw.hi;
 
         if (p->counter != 0) {
-            if (g_game->time >= p->f42 + type->burstRate) {
+            if (g_game->gameTick >= p->f42 + type->burstRate) {
                 if (type->burstRate >= 5 || (p->counter & 1)) {
                     unsigned char w;
                     for (w = 0; w < 3; w++) {
@@ -217,13 +217,13 @@ void UpdateProjectiles()
                 Proj_0049b720* q = AllocProjectile();
                 if (q) {
                     *q = *p;
-                    q->f42 = g_game->time;
+                    q->f42 = g_game->gameTick;
                     if (type->flags.b.b11)
                         PlaySoundAt(type->sound, &p->pos, 0);
                     if (type->lifetime != 0)
-                        q->f46 = g_game->time + type->lifetime;
+                        q->f46 = g_game->gameTick + type->lifetime;
                     else
-                        q->f46 = (p->range + 0x100000) / p->speed + g_game->time;
+                        q->f46 = (p->range + 0x100000) / p->speed + g_game->gameTick;
                     if (type->lifeRand != 0)
                         q->f46 += RandomInt(type->lifeRand) - (type->lifeRand >> 1);
                     q->counter = 0;
@@ -244,7 +244,7 @@ void UpdateProjectiles()
             p->f64 += 0x400;
 
         if (type->flags.b.b20) {
-            if (p->f46 > g_game->time) {
+            if (p->f46 > g_game->gameTick) {
                 if ((type->flags.raw & 0x10000) && p->pos.yw.hi >= g_game->seaLevel) {
                     Fall(&p->vel);
                     p->pitch = 0;
@@ -277,7 +277,7 @@ void UpdateProjectiles()
                 Fall(&p->vel);
                 if (type->flags.b.b24) {
                     if (p->flags.state == 0) {
-                        p->f46 = g_game->time + p->type->fc;
+                        p->f46 = g_game->gameTick + p->type->fc;
                         p->flags.state++;
                         if (!(p->type->flags.raw & 0x2000)) {
                             p->f56 = 0;
@@ -289,12 +289,12 @@ void UpdateProjectiles()
             p->pos += p->vel;
             CheckProjectileCollision(type, p);
         } else if (type->flags.b.b0) {
-            if (p->f46 > g_game->time) {
+            if (p->f46 > g_game->gameTick) {
                 p->pos += p->vel;
                 if (type->flags.b.b3) {
                     if (p->flags.b0)
                         p->start += p->vel;
-                    else if (g_game->time > p->f42 + type->f0)
+                    else if (g_game->gameTick > p->f42 + type->f0)
                         p->flags.b0 = 1;
                 }
                 CheckProjectileCollision(type, p);
@@ -303,7 +303,7 @@ void UpdateProjectiles()
             }
         } else if (type->flags.b.b1) {
             if (type->lifetime != 0) {
-                if (p->f46 > g_game->time) {
+                if (p->f46 > g_game->gameTick) {
                     p->pos += p->vel;
                     p->pos += g_game->wind;
                     p->vel.y -= g_game->gravity;
@@ -333,13 +333,13 @@ void UpdateProjectiles()
         }
 
         if (!p->flags.dead) {
-            if ((type->flags.raw & 0x40000) && p->f46 > g_game->time && p->f4a < g_game->time) {
+            if ((type->flags.raw & 0x40000) && p->f46 > g_game->gameTick && p->f4a < g_game->gameTick) {
                 EmitWhiteSmoke(&p->pos, 9);
                 p->f4a += type->smokeRate;
             }
             if (oldY > g_game->seaLevel && p->pos.yw.hi <= g_game->seaLevel) {
                 Cell* cell = GetMapCellAtPosition(&p->pos);
-                if (cell && cell->high < g_game->seaLevel && g_game->net->noSeaLevelTrigger == 0)
+                if (cell && cell->high < g_game->seaLevel && g_game->mapInfo->noSeaLevelTrigger == 0)
                     AddExplosionEffect(&p->pos, type->splash, 0, 1);
             }
         }

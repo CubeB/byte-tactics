@@ -175,15 +175,15 @@ struct Game {
     char unknown_2bf1[0x2c7e - 0x2bf1];
     int cursorKeyFlags;                // +0x2c7e
     char unknown_2c82[0x37e1b - 0x2c82];
-    int screen;                        // +0x37e1b
+    int offscreen;                     // +0x37e1b
     char unknown_37e1f[0x37eee - 0x37e1f];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38d7b - 0x37ef2];
     void* moviePlayer;                 // +0x38d7b
     char unknown_38d7f[0x391e9 - 0x38d7f];
-    Mission* level;                    // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
-    int mode;                          // +0x391f1
+    int frontendState;                 // +0x391f1
     char unknown_391f5[0x391f9 - 0x391f5];
     void* fontComix;                   // +0x391f9
     char unknown_391fd[0x39201 - 0x391fd];
@@ -388,7 +388,7 @@ void ShowFrontendErrorText()
 // FUNCTION: 0x4257a0
 void BlankScreen()
 {
-    SetOffscreenSurface(g_game->screen);
+    SetOffscreenSurface(g_game->offscreen);
     FillSurface(0, 0);
     FlipScreen();
 }
@@ -502,7 +502,7 @@ void EnterMainMenuState()
 // FUNCTION: 0x425b60
 void PresentFrontendFrame()
 {
-    SetOffscreenSurface(g_game->screen);
+    SetOffscreenSurface(g_game->offscreen);
     HideSoftwareCursor();
     ShowSoftwareCursor();
     FlipScreen();
@@ -628,7 +628,7 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
         TdfFile obj;
         if ((&obj)->LoadFile(buf) != 0) {
             g_game->frontendSubstateRequest = 6;
-            SetOffscreenSurface(g_game->screen);
+            SetOffscreenSurface(g_game->offscreen);
             FillSurface(0, 0);
             FlipScreen();
             return;
@@ -770,7 +770,7 @@ void __stdcall OpenMainMenu()
     }
 
     HideSoftwareCursor();
-    SetOffscreenSurface(g_game->screen);
+    SetOffscreenSurface(g_game->offscreen);
     FillSurface(0, 0);
     FlipScreen();
     Force640x480Surfaces();
@@ -855,7 +855,7 @@ void __stdcall PlayMovie(char* param_1)
     StopAllSounds();
     BuildCdFilePath(path, "Data", param_1, "zrb");
     if (HAPI_FileLengthByName(path) != 0) {
-        SetOffscreenSurface(g_game->screen);
+        SetOffscreenSurface(g_game->offscreen);
         FillSurface(0, 0);
         FlipScreen();
         SetCursorOverlayEnabled(0);
@@ -871,7 +871,7 @@ void __stdcall PlayMovie(char* param_1)
         g_game->moviePlayer = 0;
         while (PopKey() != 0) {
         }
-        SetOffscreenSurface(g_game->screen);
+        SetOffscreenSurface(g_game->offscreen);
         FillSurface(0, 0);
         FlipScreen();
     }
@@ -891,8 +891,8 @@ void __stdcall LoadWarpLevel(int param_1)
     wsprintfA(key, "warp%dmission", param_1);
     int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
     SetMissionType(1);
-    g_game->level->LoadCampaign(value);
-    if (g_game->level->SelectMission(n)) {
+    g_game->mapInfo->LoadCampaign(value);
+    if (g_game->mapInfo->SelectMission(n)) {
         g_game->flags.b3 = 1;
         g_game->flags.b2 = 1;
     }
@@ -937,8 +937,8 @@ void HandleFrontendDebugKey(void)
         {
             int n = GetPrivateProfileIntA("WARPLEVELS", key, 0, path);
             SetMissionType(1);
-            g_game->level->LoadCampaign(buf);
-            if (g_game->level->SelectMission(n)) {
+            g_game->mapInfo->LoadCampaign(buf);
+            if (g_game->mapInfo->SelectMission(n)) {
                 g_game->flags.b3 = 1;
                 g_game->flags.b2 = 1;
             }
@@ -1466,7 +1466,7 @@ void RunFrontendStateMachine(void)
             unsigned char* q = (unsigned char*)g_game + 0x14b * (unsigned char)g_game->localPlayer + 0x1b84;
             *q = (g_game->flags_2b4c.b4 << 1) | (*q & 0xfd);
             if (g_game->flags_2b4c.b4) {
-                g_game->level->LoadMissionByName((char*)g_game + 0x2ab1);
+                g_game->mapInfo->LoadMissionByName((char*)g_game + 0x2ab1);
                 for (int i = 0; i < 10; i++) {
                     if (g_game->players[i].active) {
                         char t = g_game->players[i].type;
@@ -1611,7 +1611,7 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
     Entry_00428730 saved;
 
     if (param_2 != 0) {
-        SetOffscreenSurface(g_game->screen);
+        SetOffscreenSurface(g_game->offscreen);
         FillSurface(0, 0);
         FlipScreen();
     }
@@ -1632,7 +1632,7 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
             void* buf = GameAllocIgnoreTag("Palette", 0x400);
             surface = LoadBitmapByName(name, (int)buf);
             data = (int*)buf;
-            if (g_game->mode != 6) {
+            if (g_game->frontendState != 6) {
                 if (g_pictureCache[9].surface != 0) {
                     FreeSurface(g_pictureCache[9].surface);
                     GameFreeThunk(g_pictureCache[9].data);

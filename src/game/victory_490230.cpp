@@ -45,7 +45,7 @@ struct Game {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;            // +0x2a42
     char unknown_2a43[0x391e9 - 0x2a43];
-    Mission* mode;                        // +0x391e9
+    Mission* mapInfo;                     // +0x391e9
 };
 #pragma pack(pop)
 
@@ -87,7 +87,7 @@ int MissionConditions::CheckVictory()
 {
     if (active == 0)
         return 0;
-    switch (g_game->mode->GetGameType()) {
+    switch (g_game->mapInfo->GetGameType()) {
     case 1:
         return AllVictoryConditionsMet();
     case 2: {

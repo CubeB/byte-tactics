@@ -562,9 +562,9 @@ struct Game {
     char unknown_13[0x37f30 - 0x37ef2];
     unsigned char matchFlags;          // +0x37f30, tested with 0x4 in 0x40b7b0
     char unknown_14[0x38a47 - 0x37f31];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_15[0x391e9 - 0x38a4b];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 
 #include "player_ai.h"
@@ -853,7 +853,7 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
     NotifyUnitRefs(unit,16);
     if (attacker && !attacker->category) attacker=0;
     if ((unit->def->flags2&0x1000) && unit->owner->active && unit->owner->type==2) {
-        unit->owner->ai->nextAction=RandomInt(300)+g_game->ticks+30;
+        unit->owner->ai->nextAction=RandomInt(300)+g_game->gameTick+30;
         DeleteOrders(unit,0);
     }
     if (attacker && unit->owner->active && (unit->owner->type==1 || unit->owner->type==2) &&
@@ -1067,7 +1067,7 @@ void AssaultTimer::OnTimer()
 {
     Vec3 pos;
     Vec3 retreat;
-    next = g_game->ticks + 300;
+    next = g_game->gameTick + 300;
     RebalanceAssaultGroupByCentroid(kind, limit);
     if (!group->units.empty()) {
         if ((int)group->units.size() <= minimum || (!attacking && (int)group->units.size() < maximum)) {
@@ -1114,7 +1114,7 @@ EscortTimer::EscortTimer(SquadManager* p, Group* q, int a)
 // FUNCTION: 0x4079f0
 void EscortTimer::OnTimer()
 {
-    next = g_game->ticks + 150;
+    next = g_game->gameTick + 150;
     SquadTimer* o = owner->timers[other];
     if (!group->units.empty()
         && !o->group->units.empty()) {
@@ -1177,7 +1177,7 @@ void SquadScoutTimer::OnTimer()
     Vec3 dest;
     // Computed first: in one expression with next it folds into a lea.
     int delay = RandomInt(900) + 30;
-    next = g_game->ticks + delay;
+    next = g_game->gameTick + delay;
     if ((int)group->units.size() < 5) {
         // Read through an inline returning by value: pos must not be the local
         // whose address goes to GetBasePosition.
@@ -1245,7 +1245,7 @@ void __stdcall UpdateConverter(Unit* unit)
 // FUNCTION: 0x4086d0
 void BuildTimer::OnTimer()
 {
-    next = g_game->ticks + 30;
+    next = g_game->gameTick + 30;
     for (std::vector<Unit*>::iterator it = group->units.begin(); it != group->units.end(); ++it) {
         Unit* u = *it;
         if ((u->flags & 0x20000000) && (u->flags & 0x10000000) && !(u->flags & 0x4000)) {
@@ -1351,7 +1351,7 @@ void SquadManager::TickTimers()
         AssignSquads();
     }
     for (int i = 0; i < 10; i++) {
-        if (timers[i] != 0 && timers[i]->next <= g_game->ticks) {
+        if (timers[i] != 0 && timers[i]->next <= g_game->gameTick) {
             timers[i]->OnTimer();
         }
     }
@@ -1366,7 +1366,7 @@ void SquadManager::TickIfActive()
             AssignSquads();
         }
         for (int i = 0; i < 10; i++) {
-            if (timers[i] != 0 && timers[i]->next <= g_game->ticks) {
+            if (timers[i] != 0 && timers[i]->next <= g_game->gameTick) {
                 timers[i]->OnTimer();
             }
         }
@@ -1704,7 +1704,7 @@ bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, std::vector<Elem_0
 // by a margin; the second grid is used for types whose field_1c0 is
 // non-negative). A cell is accepted when CanPlaceUnitFootprint allows the type there
 // and the score GetBuildSiteMetal is at most the type's footprint area times
-// twice net->surfaceMetal.
+// twice mapInfo->surfaceMetal.
 // FUNCTION: 0x40a5b0
 Elem_0040cc40::Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key)
 {
@@ -1715,7 +1715,7 @@ bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Poin
 {
     int areaY = type->origin.y;
     int areaX = type->origin.x;
-    int threshold = g_game->net->surfaceMetal * areaY * areaX * 2;
+    int threshold = g_game->mapInfo->surfaceMetal * areaY * areaX * 2;
     Point16 spacing = type->field_1c0 < 0 ? spacing0 : spacing1;
     Point16 offset = type->field_1c0 < 0 ? offset0 : offset1;
     int margin = type->field_1c0 < 0 ? margin0 : margin1;
@@ -1763,9 +1763,9 @@ void PlayerAI::BuildFeatureCells()
 // FUNCTION: 0x40ad20
 void PlayerAI::UpdateEveryThirtyTicks()
 {
-    if (g_game->ticks >= lastTick + 0x1e) {
+    if (g_game->gameTick >= lastTick + 0x1e) {
         this->RefreshUnitLists();
-        lastTick = g_game->ticks;
+        lastTick = g_game->gameTick;
         if (RandomInt(0x1e) == 0) {
             this->ComputeBaseWeights();
         }
@@ -1838,9 +1838,9 @@ bool __stdcall HasReadyUnitInRange(int player, Vec3_40b0d0* p, int range)
 void __stdcall UpdatePlayerAI(int player)
 {
     PlayerAI* p = g_playerAI[player];
-    if (p && g_game->ticks >= p->lastTick + 0x1e) {
+    if (p && g_game->gameTick >= p->lastTick + 0x1e) {
         p->RefreshUnitLists();
-        p->lastTick = g_game->ticks;
+        p->lastTick = g_game->gameTick;
         if (RandomInt(0x1e) == 0) {
             p->ComputeBaseWeights();
         }
@@ -1941,7 +1941,7 @@ int __stdcall GetBuildRating(int player,unsigned short type)
     Player* p=&g_game->players[player];
     if(p->energy<50.0f) return 0;
     if(p->metal<25.0f) return 0;
-    if(g_game->net->GetGameType()==1 && (g_game->unitDefs[type].flags&0x20)) return 0;
+    if(g_game->mapInfo->GetGameType()==1 && (g_game->unitDefs[type].flags&0x20)) return 0;
     int energyCap=min(1000,(int)p->energyCapacity);
     int metalCap=min(500,(int)p->metalCapacity);
     int energy=(int)Max(0.0f,(energyCap-p->energy)*0.125f);
@@ -2010,7 +2010,7 @@ int __stdcall FindBuildPosition(int player, const Vec3* from, UnitDef* type, Vec
     Vec3 pos=MoveTowards(from,(const Vec3*)&ai->centre,ai->searchRadius<<16);
     Point16 cell;
     int result;
-    if (type->value!=0.0f && g_game->net->threshold<RandomInt(255))
+    if (type->value!=0.0f && g_game->mapInfo->threshold<RandomInt(255))
         result=ai->FindCellNearFeatures(type,&pos,&ai->cells,ai->searchRadius*4,&cell);
     else result=ai->FindRandomPlacementCell(type,&pos,ai->searchRadius,&cell);
     if (result) {
@@ -2043,8 +2043,8 @@ void __stdcall DumpPlayerAI(int player, FILE* file)
 {
     PlayerAI* ai=g_playerAI[player];
     char buffer[256];
-    unsigned int hours=g_game->ticks/108000;
-    int remaining=g_game->ticks-hours*108000;
+    unsigned int hours=g_game->gameTick/108000;
+    int remaining=g_game->gameTick-hours*108000;
     int minutes=remaining/1800;
     int seconds=(remaining-minutes*1800)/30;
     sprintf(buffer,"%02d:%02d:%02d",hours,minutes,seconds);
@@ -2056,8 +2056,8 @@ void __stdcall DumpPlayerAI(int player, FILE* file)
     default: strcpy(buffer,"INVALID"); break;
     }
     fprintf(file,"controller: %s\r\n",buffer);
-    fprintf(file,"terrain:    '%s'\r\n",g_game->net->GetNameSlot(1));
-    fprintf(file,"profile:    '%s'\r\n",g_game->net->GetNameSlot(7));
+    fprintf(file,"terrain:    '%s'\r\n",g_game->mapInfo->GetNameSlot(1));
+    fprintf(file,"profile:    '%s'\r\n",g_game->mapInfo->GetNameSlot(7));
     const char* difficulties[]={"EASY","MEDIUM","HARD"};
     fprintf(file,"difficulty: '%s'\r\n",difficulties[g_game->difficulty]);
     fprintf(file,"================================================\r\n");

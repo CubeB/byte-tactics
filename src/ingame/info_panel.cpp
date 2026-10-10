@@ -289,13 +289,13 @@ struct Game {
     Unit* units;                       // +0x14357
     Unit* unitsEnd;                    // +0x1435b
     char unknown_1435f[0x14377 - 0x1435f];
-    Object_004cb650** types;           // +0x14377
+    Object_004cb650** unitModels;      // +0x14377
     char unknown_1437b[0x14383 - 0x1437b];
-    Vec3* scratch;                     // +0x14383
-    Point* points;                     // +0x14387
-    Point* vertices;                   // +0x1438b
+    Vec3* tempXformPts;               // +0x14383
+    Point* tempProjectedPts;           // +0x14387
+    Point* assemPts;                   // +0x1438b
     char unknown_1438f[0x1439b - 0x1438f];
-    Def_004685a0* defs;                // +0x1439b
+    Def_004685a0* unitDefs;            // +0x1439b
     char unknown_1439f[0x1481f - 0x1439f];
     unsigned short* sidePanelTopSeq[5];  // +0x1481f
     unsigned short* sidePanelBotSeq[5];  // +0x14833
@@ -304,8 +304,8 @@ struct Game {
     void* logos32;                     // +0x148db
     char unknown_148df[0x37e1b - 0x148df];
     void* surface;                     // +0x37e1b
-    int width_0046b900;                // +0x37e1f
-    int f_37e23;                       // +0x37e23
+    int screenWidth;                   // +0x37e1f
+    int screenHeight;                  // +0x37e23
     char unknown_37e27[0x37e3f - 0x37e27];
     union {
         struct {
@@ -319,18 +319,18 @@ struct Game {
         };
     };
     char unknown_37e98[0x37ee6 - 0x37e98];
-    unsigned short max_units;          // +0x37ee6
+    unsigned short maxUnits;           // +0x37ee6
     char unknown_37ee8[0x37f06 - 0x37ee8];
-    unsigned short drawFlags;          // +0x37f06
+    unsigned short visualFlags;        // +0x37f06
     char unknown_37f08[0x37f2f - 0x37f08];
     unsigned short flags;              // +0x37f2f
     char unknown_37f31[0x38a47 - 0x37f31];
     union {
-        int ticks;                     // +0x38a47
+        int gameTick;                  // +0x38a47
         unsigned int tick;
     };
-    unsigned short speed;              // +0x38a4b
-    unsigned short speed2;             // +0x38a4d
+    unsigned short speedCtrl;          // +0x38a4b
+    unsigned short effectiveGameSpeed; // +0x38a4d
     char unknown_38a4f[0x38d89 - 0x38a4f];
     int total;                         // +0x38d89
     int values[8];                     // +0x38d8d
@@ -340,7 +340,7 @@ struct Game {
     int f_391b9;                       // +0x391b9
     unsigned short f_391bd;            // +0x391bd
     char unknown_391bf[0x391f9 - 0x391bf];
-    int f_391f9;                       // +0x391f9
+    int fontComix;                     // +0x391f9
 
     PlayerInfo_00467440* Current() { return &players[playerIndex]; }
 };
@@ -623,8 +623,8 @@ void __stdcall BlitGafFrameAtOffset(void* param_1, short* param_2, int param_3, 
 void __stdcall DrawRotatedQuadOutline(void* surface, Vec3* offset,
                             Vec3* corners, short* angles)
 {
-    Vec3* scratch = g_game->scratch;
-    Point* points = g_game->points;
+    Vec3* scratch = g_game->tempXformPts;
+    Point* points = g_game->tempProjectedPts;
     unsigned char color = g_game->color2;
     // corners is copied to c, which is the loop's induction variable: this
     // fixes the stack slot of the loop counter.
@@ -643,7 +643,7 @@ void __stdcall DrawRotatedQuadOutline(void* surface, Vec3* offset,
         points++;
     }
 
-    Point* quad = g_game->points;
+    Point* quad = g_game->tempProjectedPts;
     DrawLine(surface, quad[0].x, quad[0].y, quad[1].x, quad[1].y, color);
     DrawLine(surface, quad[1].x, quad[1].y, quad[2].x, quad[2].y, color);
     DrawLine(surface, quad[2].x, quad[2].y, quad[3].x, quad[3].y, color);
@@ -781,7 +781,7 @@ int __stdcall DrawUnitStateProbe(void* surface)
     }
     colors = &g_game->colors[0];
     SetTextColors(colors[15], GetTextKeyColor());
-    SetFont(g_game->f_391f9);
+    SetFont(g_game->fontComix);
     lineH = GetFontHeight() + 3;
     y = lineH * 7;
     GetDisplayFieldE4();
@@ -920,7 +920,7 @@ void __stdcall DrawNetworkStats(void* surface)
     Rect_004b0510 r;
     r.x1 = 0x81;
     r.x2 = 0xc1;
-    r.y1 = g_game->f_37e23 - 0x5f;
+    r.y1 = g_game->screenHeight - 0x5f;
     r.y2 = r.y1 + 8;
     int h = GetFontHeight();
     GetByteRates(&sent, &received);
@@ -963,7 +963,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
     }
     unsigned char* colors = g_game->colors;
     SetTextColors(colors[15], GetTextKeyColor());
-    SetFont(g_game->f_391f9);
+    SetFont(g_game->fontComix);
     int lineHeight = GetFontHeight() + 3;
     int y = lineHeight * 3;
     GetDisplayFieldE4();
@@ -1012,7 +1012,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
             do {
                 unsigned short id = unit->type->types[i];
                 int prob = GetBuildRating(unit->playerIndex, id);
-                Def_004685a0* def = &g_game->defs[id];
+                Def_004685a0* def = &g_game->unitDefs[id];
                 Rect_004685a0 bar;
                 bar.left = 0x88;
                 bar.top = y + 1;
@@ -1093,15 +1093,15 @@ void __stdcall DrawStatusPanel(Surface* win)
     DrawTextClipped(win, buf, left + 0x19, bottom + 0xa, -1, 0);
     int team = g_game->localPlayer;
     sprintf(buf, "%s : %d  (Max %d)", Translate("Total Units"),
-            g_game->players_004689c0[team].unitCount, g_game->max_units);
+            g_game->players_004689c0[team].unitCount, g_game->maxUnits);
     DrawTextClipped(win, buf, left + 0xbe, bottom + 0xa, -1, 0);
-    if (g_game->speed2 == 10)
+    if (g_game->effectiveGameSpeed == 10)
         sprintf(num, Translate("Normal"));
     else
-        sprintf(num, "%+d", (int)g_game->speed2 - 10);
+        sprintf(num, "%+d", (int)g_game->effectiveGameSpeed - 10);
     sprintf(buf, "%s %s", Translate("Game Speed"), num);
-    if (g_game->speed2 != g_game->speed)
-        sprintf(buf + strlen(buf), " (%+d)", (int)g_game->speed - 10);
+    if (g_game->effectiveGameSpeed != g_game->speedCtrl)
+        sprintf(buf + strlen(buf), " (%+d)", (int)g_game->speedCtrl - 10);
     DrawTextClipped(win, buf, left + 0x17c, bottom + 0xa, -1, 0);
     g_game->field_52d = g_game->field_521;
 }
@@ -1161,7 +1161,7 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
     if (f->flag) {
         Vec3 lo;
         Vec3 hi;
-        GetObjectBounds(g_game->types[unit->unitDefIndex], &lo, &hi, 0);
+        GetObjectBounds(g_game->unitModels[unit->unitDefIndex], &lo, &hi, 0);
         Vec3 corners[4];
         corners[0].x = lo.x;
         corners[0].y = lo.y;
@@ -1191,7 +1191,7 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
 void __stdcall DrawProfileBarLine(int surface, const char* text, int index)
 {
     Rect_0046b900 rect;
-    int x = g_game->width_0046b900 - 0x5a;
+    int x = g_game->screenWidth - 0x5a;
     int c = GetFontHeight();
 
     rect.a = x - 0xc8;
@@ -1272,8 +1272,8 @@ void __stdcall DrawModel3doProjected(void* surface, Vec3* offset,
                             Object_0046bae0* obj, short* angles)
 {
     Vec3* v = obj->verts;
-    Vec3* scratch = g_game->scratch;
-    Point* points = g_game->points;
+    Vec3* scratch = g_game->tempXformPts;
+    Point* points = g_game->tempProjectedPts;
     int i = 0;
     // Every increment of both loops stays in the for header.
     for (; i < obj->count; i++, v++, scratch++, points++) {
@@ -1295,9 +1295,9 @@ void __stdcall DrawModel3doProjected(void* surface, Vec3* offset,
     }
     for (; j < obj->field_8; j++, e++) {
         unsigned short* idx = e->indices;
-        Point* dst = g_game->vertices;
+        Point* dst = g_game->assemPts;
         for (int k = 0; k < e->count; k++, idx++, dst++) {
-            *dst = g_game->points[*idx];
+            *dst = g_game->tempProjectedPts[*idx];
         }
         if (!e->flag0) {
             if (e->count == 4) {
@@ -1306,10 +1306,10 @@ void __stdcall DrawModel3doProjected(void* surface, Vec3* offset,
                     tex = (void*)GetGafSequenceFrame((short*)((char*)e + 0x10));
                 else
                     tex = (void*)e->field_10;
-                DrawFrameQuad(surface, tex, g_game->vertices, 0);
+                DrawFrameQuad(surface, tex, g_game->assemPts, 0);
             }
         } else {
-            FillPolygon(surface, g_game->vertices, e->count, e->field_0);
+            FillPolygon(surface, g_game->assemPts, e->count, e->field_0);
         }
     }
 }

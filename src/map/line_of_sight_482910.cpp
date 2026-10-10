@@ -51,7 +51,7 @@ struct Game {
     char unknown_14283[0x1485b - 0x14283];
     Table_482910* losTable;            // +0x1485b
     char unknown_1485f[0x38a47 - 0x1485f];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
 };
 #pragma pack(pop)
 
@@ -79,7 +79,7 @@ void __stdcall AddEyeball(Vec3_482910* src, int a, int b, int c)
         if (e->pos.y < minY) {
             e->pos.y = minY;
         }
-        e->expires = g_game->ticks + c;
+        e->expires = g_game->gameTick + c;
         if ((g_game->mapFlags & 2) == 2) {
             *e->flagPtr = 0;
             if ((g_game->mapFlags & 4) == 4) {

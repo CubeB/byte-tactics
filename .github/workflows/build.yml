@@ -8,6 +8,12 @@ name: Build from source
 # the BT_ART_TGZ secret holds them as a base64 tar.gz of TotalA.ico and
 # TotalA.cur (tools/resources.py extracts both from a TotalA.exe into
 # build/res/art/).
+#
+# A fork's pull_request run gets no secrets, so fork pull requests are built by
+# pull_request_target instead, in the fork-ci environment: each run waits for
+# a maintainer to approve it, and reads the art from BT_ART_TGZ_FORK, a secret
+# of that environment only. Approve only after reading the diff, since the
+# run executes the fork's code with that secret.
 
 on:
   push:
@@ -31,10 +37,22 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/build.yml"
+  pull_request_target:
+    paths:
+      - "src/**"
+      - "include/**"
+      - "data/**"
+      - "link/**"
+      - "tools/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/build.yml"
   workflow_dispatch:
 
+# Keyed on the event too: a same-repo pull request fires both pull_request
+# events, and the skipped one must not cancel the real one.
 concurrency:
-  group: build-${{ github.ref }}
+  group: build-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -42,6 +60,11 @@ permissions:
 
 jobs:
   build:
+    if: >-
+      github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'pull_request_target' && github.event.pull_request.head.repo.full_name != github.repository)
+    environment: ${{ github.event_name == 'pull_request_target' && 'fork-ci' || '' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     env:
@@ -50,7 +73,12 @@ jobs:
       # needs neither.
       WINEDLLOVERRIDES: "mscoree,mshtml="
     steps:
+      # pull_request_target would check out main. The head sha is pinned when
+      # the event fires, so a push after approval does not change what runs.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || '' }}
+          persist-credentials: false
 
       - name: Install Wine, 7-Zip and cabextract
         run: |
@@ -59,10 +87,15 @@ jobs:
           sudo apt-get install -y -q --no-install-recommends wine wine32:i386 wine64 p7zip-full cabextract
           wine --version
 
+      # A pull_request_target run would save uv's cache into main's, as with the
+      # toolchain below, so a fork's run only restores it.
       - uses: astral-sh/setup-uv@v6
+        with:
+          save-cache: ${{ github.event_name != 'pull_request_target' }}
 
-      - name: Cache the toolchain
-        uses: actions/cache@v4
+      - name: Restore the toolchain
+        id: toolchain
+        uses: actions/cache/restore@v4
         with:
           path: |
             toolchain/msvc5-rtm
@@ -73,12 +106,26 @@ jobs:
       - name: Set up Visual C++ 5.0 SP3
         run: BT_NO_ORIG=1 BT_NO_GHIDRA=1 tools/setup_toolchain.sh
 
+      # A pull_request_target run saves into main's cache, so a fork could
+      # plant a toolchain that later main builds would use.
+      - name: Save the toolchain
+        if: steps.toolchain.outputs.cache-hit != 'true' && github.event_name != 'pull_request_target'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            toolchain/msvc5-rtm
+            toolchain/msvc5-sp3
+            toolchain/thirdparty
+          key: ${{ steps.toolchain.outputs.cache-primary-key }}
+
       - name: Unpack the icon and cursor
         env:
-          BT_ART_TGZ: ${{ secrets.BT_ART_TGZ }}
+          # Indexed rather than `a && x || y`, which would fall back to the
+          # repository secret when the environment one is unset.
+          BT_ART_TGZ: ${{ secrets[github.event_name == 'pull_request_target' && 'BT_ART_TGZ_FORK' || 'BT_ART_TGZ'] }}
         run: |
           if [ -z "$BT_ART_TGZ" ]; then
-            echo "::error::The BT_ART_TGZ secret is missing (a base64 tar.gz of TotalA.ico and TotalA.cur)"
+            echo "::error::The art secret is missing (BT_ART_TGZ, or BT_ART_TGZ_FORK in the fork-ci environment: a base64 tar.gz of TotalA.ico and TotalA.cur)"
             exit 1
           fi
           mkdir -p "$RUNNER_TEMP/art"

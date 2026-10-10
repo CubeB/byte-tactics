@@ -10,7 +10,7 @@
 // [type->low + pos.y, type->high + pos.y]; (4) the map-feature id is resolved,
 // including the 0xfffe "read the neighbour cell" case, and if the feature is new
 // for this cell the cell coordinates are stored; (5) the 0x8000 and 0x10000 flag
-// rules, the g_game->limit ceiling and the netgame check are applied before the
+// rules, the g_game->seaLevel ceiling and the netgame check are applied before the
 // final kill.
 //
 // Original bug: 0x49b2c8 to 0x49b2d6 range-checks the map-feature id against
@@ -117,15 +117,15 @@ struct Net {
 
 struct Game {
     char unknown_0[0x14233];
-    int width;                         // +0x14233
+    int mapWidthTiles;                 // +0x14233
     char unknown_14237[0x14253 - 0x14237];
     int featureCount;                  // +0x14253
     char unknown_14257[0x1426f - 0x14257];
     MapFeature_0049b090* features;     // +0x1426f
     char unknown_14273[0x1427f - 0x14273];
-    unsigned char limit;               // +0x1427f
+    unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x142f7 - 0x14280];
-    Proj_0049b090* selected;           // +0x142f7
+    Proj_0049b090* cameraFollowTrackObj;  // +0x142f7
     char unknown_142fb[0x1433f - 0x142fb];
     Vec3 lastPos;                      // +0x1433f
     unsigned short lastSound;          // +0x1434b
@@ -152,10 +152,10 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
     Cell* cell = GetMapCellAtPosition(pos);
 
     if (!cell) {
-        if (proj == g_game->selected) {
-            g_game->lastPos = *(Vec3*)&g_game->selected->px;
+        if (proj == g_game->cameraFollowTrackObj) {
+            g_game->lastPos = *(Vec3*)&g_game->cameraFollowTrackObj->px;
             g_game->lastSound = proj->type->sound;
-            g_game->selected = 0;
+            g_game->cameraFollowTrackObj = 0;
         }
         proj->flags.bits.dead = 1;
         return;
@@ -205,7 +205,7 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
             mf = 0;
         } else {
             // This index spelling and `unsigned short f2` merge the feature tails.
-            int n = cell->offsetX + g_game->width * cell->offsetY;
+            int n = cell->offsetX + g_game->mapWidthTiles * cell->offsetY;
             unsigned short f2 = (cell - n)->feature;
             if (f2 >= 0xfffb) {
                 mf = 0;
@@ -238,7 +238,7 @@ void __stdcall CheckProjectileCollision(WeaponDef* type, Proj_0049b090* proj)
         }
     } else if (type->flags.raw & 0x10000) {
         return;
-    } else if (proj->py.s.hi >= g_game->limit) {
+    } else if (proj->py.s.hi >= g_game->seaLevel) {
         return;
     } else if (g_game->net->noSeaLevelTrigger) {
         return;

@@ -35,12 +35,12 @@ struct Unit {
 
 struct Game {
     char unknown_0[0x14233];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x1426f - 0x1423b];
     unsigned char* features;           // +0x1426f
     char unknown_14273[0x14287 - 0x14273];
-    Cell* cells;                       // +0x14287
+    Cell* heightMap;                   // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
     Unit* units;                       // +0x14357
 };
@@ -50,8 +50,8 @@ extern Game* g_game;
 
 static inline Cell* GetCell(int x, int y)
 {
-    if (x >= 0 && x < g_game->width && y >= 0 && y < g_game->height)
-        return &g_game->cells[y * g_game->width + x];
+    if (x >= 0 && x < g_game->mapWidthTiles && y >= 0 && y < g_game->mapHeightTiles)
+        return &g_game->heightMap[y * g_game->mapWidthTiles + x];
     return 0;
 }
 

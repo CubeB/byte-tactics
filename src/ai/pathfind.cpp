@@ -254,8 +254,8 @@ struct Game {
     char unknown_2851[0x2a3c - 0x2851];
     unsigned short numPlayers;         // +0x2a3c, the number of players
     char unknown_2a3e[0x14233 - 0x2a3e];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x14273 - 0x1423b];
     unsigned short* visibilityMask;    // +0x14273, one bit per player
     char unknown_14277[0x1434f - 0x14277];
@@ -651,10 +651,10 @@ int Pathfinder::GetCellState(int x, int y)
         return 0;
     int cx = (x >> 1) + (owner->footprintX >> 2);
     int cy = (y >> 1) + (owner->footprintZ >> 2);
-    // `g_game->width >> 1` stays written twice, not held in a local.
-    if (cx >= (g_game->width >> 1) || cy >= (g_game->height >> 1))
+    // `g_game->mapWidthTiles >> 1` stays written twice, not held in a local.
+    if (cx >= (g_game->mapWidthTiles >> 1) || cy >= (g_game->mapHeightTiles >> 1))
         return 0;
-    if (!((1 << player) & g_game->visibilityMask[cy * (g_game->width >> 1) + cx]))
+    if (!((1 << player) & g_game->visibilityMask[cy * (g_game->mapWidthTiles >> 1) + cx]))
         return 2;
     return owner->Get(x, y);
 }
@@ -1049,8 +1049,8 @@ Pathfinder::Pathfinder()
     memset(&grid.cells, 0, sizeof(grid.cells));
 
     int w, h;
-    h = g_game->height;
-    w = g_game->width;
+    h = g_game->mapHeightTiles;
+    w = g_game->mapWidthTiles;
     grid.width = w;
     grid.height = h;
     operator delete(grid.cells);

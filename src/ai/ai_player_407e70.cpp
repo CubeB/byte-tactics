@@ -17,8 +17,8 @@
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14223];
-    int baseX;                          // +0x14223
-    int baseY;                          // +0x14227
+    int mapWidthWorld;                  // +0x14223
+    int mapHeightWorld;                 // +0x14227
     char unknown_1422b[0x14281 - 0x1422b];
     unsigned short mapFlags;            // +0x14281
     char unknown_14283[0x38a47 - 0x14283];
@@ -166,13 +166,13 @@ void __stdcall AddOrder(MissionType kind, int remove, Unit* unit,
 SpatialTimer::SpatialTimer(SquadManager* p, void* q)
     : SquadTimer(p, q)
 {
-    // Half of g_game's baseX and baseY, in 16.16 fixed point.
-    int x = (int)(g_game->baseX / 2 * 65536.0);
-    best = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
-    x = (int)(g_game->baseX / 2 * 65536.0);
-    probe = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
-    x = (int)(g_game->baseX / 2 * 65536.0);
-    step = Vec3_00407d40(x, 0, (int)(g_game->baseY / 2 * 65536.0));
+    // Half of g_game's mapWidthWorld and mapHeightWorld, in 16.16 fixed point.
+    int x = (int)(g_game->mapWidthWorld / 2 * 65536.0);
+    best = Vec3_00407d40(x, 0, (int)(g_game->mapHeightWorld / 2 * 65536.0));
+    x = (int)(g_game->mapWidthWorld / 2 * 65536.0);
+    probe = Vec3_00407d40(x, 0, (int)(g_game->mapHeightWorld / 2 * 65536.0));
+    x = (int)(g_game->mapWidthWorld / 2 * 65536.0);
+    step = Vec3_00407d40(x, 0, (int)(g_game->mapHeightWorld / 2 * 65536.0));
     bestRating = 0;
 }
 

@@ -29,12 +29,12 @@ struct Cell {
 
 struct Game {
     char unknown_0[0x14233];
-    int width;                          // +0x14233
-    int height;                         // +0x14237
+    int mapWidthTiles;                  // +0x14233
+    int mapHeightTiles;                 // +0x14237
     char unknown_1423b[0x14273 - 0x1423b];
     void* visibilityMask;               // +0x14273
     char unknown_14277[0x14287 - 0x14277];
-    Cell* cells;                        // +0x14287
+    Cell* heightMap;                    // +0x14287
 };
 #pragma pack(pop)
 
@@ -49,9 +49,9 @@ extern Game* g_game;
 void __stdcall SaveMetalPlotmap(HapiBank* file)
 {
     file->OpenAccount("Metal");
-    int size = g_game->width * g_game->height;
+    int size = g_game->mapWidthTiles * g_game->mapHeightTiles;
     unsigned char* buf = new unsigned char[size];
-    Cell* cells = g_game->cells;
+    Cell* cells = g_game->heightMap;
     for (int i = 0; i < size; i++) {
         buf[i] = cells[i].metal;
     }
@@ -67,8 +67,8 @@ void __stdcall SaveMetalPlotmap(HapiBank* file)
 void __stdcall SavePlayerFeaturesPlotmap(HapiBank* file)
 {
     file->OpenAccount("PlayerFeatures");
-    Cell* cells = g_game->cells;
-    int size = g_game->width * g_game->height / 2;
+    Cell* cells = g_game->heightMap;
+    int size = g_game->mapWidthTiles * g_game->mapHeightTiles / 2;
     unsigned char* buf = new unsigned char[size];
     if (buf) {
         for (int i = 0; i < size; i++) {
@@ -87,10 +87,10 @@ void __stdcall SavePlayerFeaturesPlotmap(HapiBank* file)
 void __stdcall LoadMetalPlotmap(HapiBank* file)
 {
     if (file->OpenAccount("Metal") && file->OpenNamedBox("Plotmap")) {
-        int size = g_game->width * g_game->height;
+        int size = g_game->mapWidthTiles * g_game->mapHeightTiles;
         if (file->GetBoxSize() == size) {
             unsigned char* buf = new unsigned char[size];
-            Cell* cells = g_game->cells;
+            Cell* cells = g_game->heightMap;
             // The (unsigned int) cast keeps the count comparison unsigned, as
             // in the original.
             if ((unsigned int)file->ReadBox(buf, size) >= size) {
@@ -109,11 +109,11 @@ void __stdcall LoadMetalPlotmap(HapiBank* file)
 void __stdcall LoadPlayerFeaturesPlotmap(HapiBank* file)
 {
     if (file->OpenAccount("PlayerFeatures") && file->OpenNamedBox("Plotmap")) {
-        int size = g_game->width * g_game->height / 2;
+        int size = g_game->mapWidthTiles * g_game->mapHeightTiles / 2;
         if (file->GetBoxSize() == size) {
             unsigned char* buf = new unsigned char[size];
             if (buf) {
-                Cell* cells = g_game->cells;
+                Cell* cells = g_game->heightMap;
                 // The (unsigned int) cast keeps the count comparison unsigned,
                 // as in the original.
                 if ((unsigned int)file->ReadBox(buf, size) >= size) {
@@ -135,7 +135,7 @@ void __stdcall LoadPlayerFeaturesPlotmap(HapiBank* file)
 void __stdcall SaveMappingData(HapiBank* file)
 {
     file->OpenAccount("Mapping");
-    unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
+    unsigned int size = g_game->mapWidthTiles * g_game->mapHeightTiles * sizeof(short) / 4;
     file->OpenNamedBox("Data");
     file->WriteBox(g_game->visibilityMask, size);
 }
@@ -145,7 +145,7 @@ void __stdcall SaveMappingData(HapiBank* file)
 void __stdcall LoadMappingData(HapiBank* file)
 {
     if (file->OpenAccount("Mapping") && file->OpenNamedBox("Data")) {
-        unsigned int size = g_game->width * g_game->height * sizeof(short) / 4;
+        unsigned int size = g_game->mapWidthTiles * g_game->mapHeightTiles * sizeof(short) / 4;
         if (file->GetBoxSize() == size)
             file->ReadBox(g_game->visibilityMask, size);
     }

@@ -139,10 +139,10 @@ struct Grid {
 
 struct Game {
     char unknown_0[0x2a43];
-    unsigned char player;               // +0x2a43
+    unsigned char playerIndex;          // +0x2a43
     char unknown_2a44[0x14233 - 0x2a44];
-    int width;                          // +0x14233
-    int height;                         // +0x14237
+    int mapWidthTiles;                  // +0x14233
+    int mapHeightTiles;                 // +0x14237
     char unknown_1423b[0x14253 - 0x1423b];
     int featureCount;                   // +0x14253
     char unknown_14257[0x1426f - 0x14257];
@@ -159,10 +159,10 @@ struct Game {
     char unknown_14280[0x14281 - 0x14280];
     unsigned short mapFlags;            // +0x14281
     char unknown_14283[0x14287 - 0x14283];
-    Cell* cells;                        // +0x14287
+    Cell* heightMap;                    // +0x14287
     char unknown_1428b[0x1429f - 0x1428b];
     union {
-        Grid grid;                      // +0x1429f
+        Grid spatialGrid;               // +0x1429f
         struct {
             UnitBucket* buckets;            // +0x1429f
             unsigned int bucketCols;        // +0x142a3
@@ -291,7 +291,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
                 index++;
                 cell++;
             }
-            cell += g_game->width - size.x;
+            cell += g_game->mapWidthTiles - size.x;
         }
     } else if ((obj->flags & 3) == 1) {
         Cell* cell = GetMapCell(obj->pos.x, obj->pos.y);
@@ -317,7 +317,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
             b_next: ;
                 cell++;
             }
-            cell += g_game->width - size.x;
+            cell += g_game->mapWidthTiles - size.x;
         }
     } else {
         Cell* cell = GetMapCell(obj->pos.x, obj->pos.y);
@@ -343,7 +343,7 @@ void __stdcall ClaimFootprintCells(Unit* obj)
             c_next: ;
                 cell++;
             }
-            cell += g_game->width - size.x;
+            cell += g_game->mapWidthTiles - size.x;
         }
     }
 }
@@ -500,7 +500,7 @@ static int Blocked_0047d2e0(Cell* c)
     }
     if (v != 0xfffe)
         return 1;
-    Cell* ref = c - (c->offsetY * g_game->width + c->offsetX);
+    Cell* ref = c - (c->offsetY * g_game->mapWidthTiles + c->offsetX);
     unsigned short v2 = ref->feature;
     if (v2 >= 0xfffb)
         return 0;
@@ -520,7 +520,7 @@ Cell* c)
     }
     if (v != 0xfffe)
         return 0;
-    Cell* ref = c - (c->offsetY * g_game->width + c->offsetX);
+    Cell* ref = c - (c->offsetY * g_game->mapWidthTiles + c->offsetX);
     unsigned short v2 = ref->feature;
     if (v2 >= 0xfffb)
         return 0;
@@ -535,8 +535,8 @@ int __stdcall CanBuildAt(UnitDef* unit, Point16 cell, short type, Los_0047d2e0* 
     g_lastPlaceMetalSum = 0;
     Point16 origin = unit->origin;
     // The guard reads cell.x and cell.y directly.
-    if (cell.x < 1 || cell.y < 1 || cell.x + origin.x >= g_game->width ||
-        cell.y + origin.y >= g_game->height)
+    if (cell.x < 1 || cell.y < 1 || cell.x + origin.x >= g_game->mapWidthTiles ||
+        cell.y + origin.y >= g_game->mapHeightTiles)
         return 0;
     int cols = origin.x;
     int x;
@@ -554,7 +554,7 @@ int __stdcall CanBuildAt(UnitDef* unit, Point16 cell, short type, Los_0047d2e0* 
         if (!los->explored.size.Contains(x, y))
             return 0;
         // Computed after the first Contains test.
-        unsigned int bit = 1 << g_game->player;
+        unsigned int bit = 1 << g_game->playerIndex;
         if ((VisWord_0047d2e0(los, x, (Position_0047d2e0*)&pos, &hgt) & bit) == 0)
             return 0;
         if ((g_game->mapFlags & 2) == 2)
@@ -563,7 +563,7 @@ int __stdcall CanBuildAt(UnitDef* unit, Point16 cell, short type, Los_0047d2e0* 
             ok = IsSeen_0047d2e0(los, (Position_0047d2e0*)&pos, &hgt, bit);
     }
     // The cell pointer is computed before the min6/max5 initialisers.
-    Cell* c = &g_game->cells[cell.y * g_game->width + cell.x];
+    Cell* c = &g_game->heightMap[cell.y * g_game->mapWidthTiles + cell.x];
     unsigned char min6 = 0xff;
     unsigned char max5 = 0;
     unsigned char max5b = 0;
@@ -609,7 +609,7 @@ int __stdcall CanBuildAt(UnitDef* unit, Point16 cell, short type, Los_0047d2e0* 
                 ++c;
             }
             row++;
-            c = (g_game->width - ((int)cols)) + c;
+            c = (g_game->mapWidthTiles - ((int)cols)) + c;
         } while (row < origin.y);
     }
     if (found80 && !foundFE20)
@@ -651,13 +651,13 @@ int __stdcall IsFootprintClear(Unit* obj, int flag)
     short yend = q->y + r->y;
     // Stays a 4-byte Point16 copy, not two short locals.
     Point16 p = obj->pos;
-    if (p.x < 1 || p.y < 1 || xend >= g_game->width || yend >= g_game->height)
+    if (p.x < 1 || p.y < 1 || xend >= g_game->mapWidthTiles || yend >= g_game->mapHeightTiles)
         return 0;
-    int width = g_game->width;
+    int width = g_game->mapWidthTiles;
     unsigned char bit = flag ? 2 : 4;
     int n = 0;
     for (int y = p.y; y < yend; y++) {
-        Cell* c = g_game->cells + y * width;
+        Cell* c = g_game->heightMap + y * width;
         for (int x = p.x; x < xend; x++) {
             // The post-increment stays inside the mask read, not at the loop bottom.
             if ((obj->def->mask[n++] & bit) && c[x].unit != 0 && c[x].unit != obj->id)
@@ -719,7 +719,7 @@ static inline int SteepCell(Cell* c)
     }
     if (f != 0xfffe)
         return 1;
-    c = c - (c->offsetY * g_game->width + c->offsetX);
+    c = c - (c->offsetY * g_game->mapWidthTiles + c->offsetX);
     f = c->feature;
     if (f >= 0xfffb)
         return 0;
@@ -733,16 +733,16 @@ int __stdcall CanPlaceUnitFootprint(UnitDef* unit, UnitDef* other, Point16 cell,
     if (cell.x < 0 || cell.y < 0)
         return flags == 2;
     int fx = fp.x;
-    if (fx + cell.x >= g_game->width)
+    if (fx + cell.x >= g_game->mapWidthTiles)
         return flags == 2;
-    if (fp.y + cell.y >= g_game->height)
+    if (fp.y + cell.y >= g_game->mapHeightTiles)
         return flags == 2;
     if (!unit->mobile)
         return CanBuildAt(unit, cell, 0, 0);
-    Cell* c = &g_game->cells[cell.y * g_game->width + cell.x];
+    Cell* c = &g_game->heightMap[cell.y * g_game->mapWidthTiles + cell.x];
     // Declared ahead of the assignments: places the tolerance load.
     int minHeight, maxHeight, stride;
-    stride = g_game->width - fx;
+    stride = g_game->mapWidthTiles - fx;
     unsigned char tolerance = unit->maxslope;
     minHeight = g_game->seaLevel - unit->maxwaterdepth;
     maxHeight = g_game->seaLevel - unit->minwaterdepth;
@@ -830,7 +830,7 @@ int __stdcall GetPassMapCellValue(MovementClass* obj, Cell* cell)
         // pointer the width folds into `imul eax,[edx+0x14233]` exactly as the
         // original has it, and the two spelled index uses still share one
         // block, which is the other half the original wants.
-        int* width = &g_game->width;
+        int* width = &g_game->mapWidthTiles;
         unsigned short f2 =
             (cell - (cell->offsetY * *width + cell->offsetX))->feature;
         if (0xfffb <= (cell - (cell->offsetY * *width + cell->offsetX))->feature) {
@@ -871,15 +871,15 @@ int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, 
 {
     if (x < 0 || y < 0)
         return 0;
-    if (x + w >= g_game->width)
+    if (x + w >= g_game->mapWidthTiles)
         return 0;
-    if (y + h >= g_game->height)
+    if (y + h >= g_game->mapHeightTiles)
         return 0;
-    int index = y * g_game->width + x;
+    int index = y * g_game->mapWidthTiles + x;
     unsigned int result = 3;
     int row;
-    Cell* cell = &g_game->cells[index];
-    int rowStep = g_game->width - w;
+    Cell* cell = &g_game->heightMap[index];
+    int rowStep = g_game->mapWidthTiles - w;
     int minHeight = g_game->seaLevel - obj->maxWaterDepth;
     int maxHeight = g_game->seaLevel - obj->minWaterDepth;
     // Increments live in the for headers: schedules the pointer advance.
@@ -898,7 +898,7 @@ int __stdcall GetPassMapFootprintValue(MovementClass* obj, int x, int y, int w, 
                 blocked = 1;
             } else {
                 Cell* other =
-                    cell - (cell->offsetY * g_game->width + cell->offsetX);
+                    cell - (cell->offsetY * g_game->mapWidthTiles + cell->offsetX);
                 unsigned short f2 = other->feature;
                 if (f2 >= 0xfffb)
                     blocked = 0;
@@ -991,7 +991,7 @@ void __stdcall VisitObjectsInArea(Point16 pos, Point16 size, ClaimFootprintVisit
 {
     // Declared apart from its assignment: keeps the sum from fusing.
     int sumy;
-    Grid* grid = &g_game->grid;
+    Grid* grid = &g_game->spatialGrid;
     // Declaration order of the bounds is fixed: other orders change allocation.
     int xstart = -1 + (pos.x >> 3);
     int ystart = -1 + (pos.y >> 3);
@@ -1040,13 +1040,13 @@ static inline int Clamp_0047e750(int v, unsigned int size)
 // FUNCTION: 0x47e750
 void __stdcall VisitObjectsInRect(int x1, int y1, int x2, int y2, Visitor_0047e750* visitor)
 {
-    int cx1 = Clamp_0047e750(x1 >> 23, g_game->grid.width);
-    int cy1 = Clamp_0047e750(y1 >> 23, g_game->grid.height);
-    int cx2 = Clamp_0047e750(x2 >> 23, g_game->grid.width);
-    int cy2 = Clamp_0047e750(y2 >> 23, g_game->grid.height);
+    int cx1 = Clamp_0047e750(x1 >> 23, g_game->spatialGrid.width);
+    int cy1 = Clamp_0047e750(y1 >> 23, g_game->spatialGrid.height);
+    int cx2 = Clamp_0047e750(x2 >> 23, g_game->spatialGrid.width);
+    int cy2 = Clamp_0047e750(y2 >> 23, g_game->spatialGrid.height);
     for (int y = cy1; y <= cy2; y++) {
         for (int x = cx1; x <= cx2; x++) {
-            for (Unit* o = g_game->grid.cells[g_game->grid.width * y + x].first; o != 0; o = o->next) {
+            for (Unit* o = g_game->spatialGrid.cells[g_game->spatialGrid.width * y + x].first; o != 0; o = o->next) {
                 if (o->position.x >= x1 && o->position.x <= x2 && o->position.z >= y1 && o->position.z <= y2) {
                     visitor->Visit(o);
                 }
@@ -1104,14 +1104,14 @@ static inline int Dist2_0047e890(Vec3* b, Vec3* a)
 // FUNCTION: 0x47e890
 void __stdcall VisitObjectsInRange(Vec3* pos, int range, DamagedAllyCollector& visitor)
 {
-    int cx1 = ClampX_0047e890(pos, range, g_game->grid.width);
-    int cy1 = ClampZ_0047e890(pos, range, g_game->grid.height);
-    int cx2 = ClampX2_0047e890(pos, range, g_game->grid.width);
-    int cy2 = ClampZ2_0047e890(pos, range, g_game->grid.height);
+    int cx1 = ClampX_0047e890(pos, range, g_game->spatialGrid.width);
+    int cy1 = ClampZ_0047e890(pos, range, g_game->spatialGrid.height);
+    int cx2 = ClampX2_0047e890(pos, range, g_game->spatialGrid.width);
+    int cy2 = ClampZ2_0047e890(pos, range, g_game->spatialGrid.height);
     int range2 = (int)(((__int64)range * range) >> 32);
     for (int y = cy1; y <= cy2; y++) {
         for (int x = cx1; x <= cx2; x++) {
-            for (Unit* o = g_game->grid.cells[g_game->grid.width * y + x].first; o != 0; o = o->next) {
+            for (Unit* o = g_game->spatialGrid.cells[g_game->spatialGrid.width * y + x].first; o != 0; o = o->next) {
                 if (Dist2_0047e890(pos, &o->position) <= range2) {
                     visitor.CollectDamagedAlly(o);
                 }

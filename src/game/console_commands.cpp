@@ -167,22 +167,22 @@ struct Game {
     char unknown_2cb6[0x2cbc - 0x2cb6];
     unsigned short cellFeature;        // +0x2cbc
     char unknown_2cbe[0x14207 - 0x2cbe];
-    PathMap* paths;                    // +0x14207
+    PathMap* pathfinder;               // +0x14207
     char unknown_1420b[0x14223 - 0x1420b];
-    int baseX;                         // +0x14223
-    int baseY;                         // +0x14227
-    int mapWidth;                      // +0x1422b
-    int mapHeight;                     // +0x1422f
-    int width;                         // +0x14233
-    int height;                        // +0x14237
-    int screenTilesX;                  // +0x1423b
-    int screenTilesY;                  // +0x1423f
+    int mapWidthWorld;                 // +0x14223
+    int mapHeightWorld;                // +0x14227
+    int mapPixelWidth;                 // +0x1422b
+    int mapPixelHeight;                // +0x1422f
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
+    int viewWidthTiles;                // +0x1423b
+    int viewHeightTiles;               // +0x1423f
     char unknown_14243[0x1427f - 0x14243];
     unsigned char seaLevel;            // +0x1427f
-    unsigned char mode;                // +0x14280
+    unsigned char debugMode; // +0x14280
     ViewFlags mapFlags;                // +0x14281
     char unknown_14283[0x14287 - 0x14283];
-    Tile* tiles;                       // +0x14287
+    Tile* heightMap;                   // +0x14287
     char unknown_1428b[0x1431f - 0x1428b];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
@@ -718,8 +718,8 @@ void __stdcall CmdRCache(int unused)
 // FUNCTION: 0x416730
 void __stdcall CmdEdge(CommandArgs* args)
 {
-    g_game->mapWidth = g_game->baseX - args->GetIntArg(1, 0x20);
-    g_game->mapHeight = g_game->baseY - args->GetIntArg(2, 0x80);
+    g_game->mapPixelWidth = g_game->mapWidthWorld - args->GetIntArg(1, 0x20);
+    g_game->mapPixelHeight = g_game->mapHeightWorld - args->GetIntArg(2, 0x80);
 }
 
 // Console command: sets two fields of a game sub-object, the second from a
@@ -728,10 +728,10 @@ void __stdcall CmdEdge(CommandArgs* args)
 void __stdcall CmdSearch(CommandArgs* args)
 {
     if (args->GetIntArg(1, 0)) {
-        g_game->paths->value = args->GetIntArg(1, 0);
+        g_game->pathfinder->value = args->GetIntArg(1, 0);
     }
     if (args->count == 3) {
-        g_game->paths->fixed = (int)(atof(((CommandArgs*)args)->GetArg(2, DAT_005119b8)) * 65536.0);
+        g_game->pathfinder->fixed = (int)(atof(((CommandArgs*)args)->GetArg(2, DAT_005119b8)) * 65536.0);
     }
 }
 
@@ -1189,21 +1189,21 @@ void __stdcall CmdMakePoster(CommandArgs* args)
     if (args->count > 2)
         h = ((CommandArgs*)args)->GetIntArg(2, 0);
     if (_strcmpi(args->GetArg(1, DAT_005119b8), "all") == 0) {
-        w = g_game->mapWidth;
-        h = g_game->mapHeight;
+        w = g_game->mapPixelWidth;
+        h = g_game->mapPixelHeight;
     }
-    int sx = g_game->screenTilesX;
+    int sx = g_game->viewWidthTiles;
     w = max(w, sx * 16);
-    w = min(w, g_game->mapWidth);
-    int sy = g_game->screenTilesY;
+    w = min(w, g_game->mapPixelWidth);
+    int sy = g_game->viewHeightTiles;
     h = max(h, sy * 16);
-    h = min(h, g_game->mapHeight);
+    h = min(h, g_game->mapPixelHeight);
     int x = g_game->scrollX - w / 2 + sx * 8;
     int y = g_game->scrollY - h / 2 + sy * 8;
     x = max(x, 0);
-    x = min(x, g_game->mapWidth - w);
+    x = min(x, g_game->mapPixelWidth - w);
     y = max(y, 0);
-    y = min(y, g_game->mapHeight - h);
+    y = min(y, g_game->mapPixelHeight - h);
     char buf[256];
     sprintf(buf, "%s\\screenshots", g_game->path);
     MakeDirectoryPath(buf);
@@ -1270,7 +1270,7 @@ void __stdcall DefaultCommandHandler(CommandArgs* args)
             SnapWorldPosToFootprint(def,&pos);
             CreateUnit(((CommandArgs*)args)->GetIntArg(1,0),i,pos,1,1,0);
             pos.x+=def->modelMaxX+0x200000;
-            if (pos.x >= (g_game->mapWidth<<16)) { pos.x=0xa00000; pos.z+=0xa00000; }
+            if (pos.x >= (g_game->mapPixelWidth<<16)) { pos.x=0xa00000; pos.z+=0xa00000; }
             ++count;
         }
     }
@@ -1548,18 +1548,18 @@ struct StringPool;
 // FUNCTION: 0x418310
 void __stdcall DrawMapDebugOverlay(void* surface)
 {
-    if (!g_game->mode && !g_contourSpacing) return;
+    if (!g_game->debugMode && !g_contourSpacing) return;
     Movement* movement = 0;
     Player* player = &g_game->players[g_game->playerIndex];
-    if (g_game->mode == 1) {
+    if (g_game->debugMode == 1) {
         Unit* unit = FindNextSelectedUnit(0, 0);
         if (unit) movement = (Movement*)unit->def->movementclass;
     }
     int firstY = g_game->scrollY / 16;
     int firstX = g_game->scrollX / 16;
     // __min, not an if-clamp: one store of lastX after the select.
-    int lastX = __min(g_game->screenTilesX + firstX + 1, g_game->width - 1);
-    int lastY = g_game->height - 1;
+    int lastX = __min(g_game->viewWidthTiles + firstX + 1, g_game->mapWidthTiles - 1);
+    int lastY = g_game->mapHeightTiles - 1;
     unsigned char* colors = g_game->colors;
     unsigned char arrowColor;
     for (int y = firstY; y < lastY; ++y) {
@@ -1568,7 +1568,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
         unsigned char heights[4];
         for (int x = firstX; x < lastX; ++x) {
             // The four corners, walking round the cell from its own tile.
-            Tile* tile = &g_game->tiles[y * g_game->width + x];
+            Tile* tile = &g_game->heightMap[y * g_game->mapWidthTiles + x];
             heights[0] = tile->height;
             p[0].x = (x + 8) * 16 - g_game->scrollX;
             p[0].y = (y + 2) * 16 - (heights[0] >> 1) - g_game->scrollY;
@@ -1576,7 +1576,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
             heights[1] = tile->height;
             p[1].x = (x + 8) * 16 - g_game->scrollX;
             p[1].y = (y + 2) * 16 - (heights[1] >> 1) - g_game->scrollY;
-            tile += g_game->width; ++y;
+            tile += g_game->mapWidthTiles; ++y;
             heights[2] = tile->height;
             p[2].x = (x + 8) * 16 - g_game->scrollX;
             p[2].y = (y + 2) * 16 - (heights[2] >> 1) - g_game->scrollY;
@@ -1584,9 +1584,9 @@ void __stdcall DrawMapDebugOverlay(void* surface)
             heights[3] = tile->height;
             p[3].x = (x + 8) * 16 - g_game->scrollX;
             p[3].y = (y + 2) * 16 - (heights[3] >> 1) - g_game->scrollY;
-            tile -= g_game->width; --y;
+            tile -= g_game->mapWidthTiles; --y;
             if (p[0].y < g_game->bottom) offscreen = 0;
-            if (g_game->mode == 1) {
+            if (g_game->debugMode == 1) {
                 if (movement) {
                     unsigned int state = (movement->states[movement->width * (y >> 4) + x] >> ((y & 15) * 2)) & 3;
                     if (state < 3) {
@@ -1595,7 +1595,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
                         DrawLine(surface, p[1].x, p[1].y, p[3].x, p[3].y, color);
                     }
                 }
-                PathCell* cell = g_game->paths->grid.At(x, y);
+                PathCell* cell = g_game->pathfinder->grid.At(x, y);
                 if (cell->flags & 4) {
                     SetFont(g_game->font);
                     SetTextColors(rand() & 255, GetTextKeyColor());
@@ -1620,7 +1620,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
                     DrawLine(surface, cx - g_dirDeltaX[direction] * 4,
                                  cy - g_dirDeltaZ[direction] * 4, cx, cy, arrowColor);
                 }
-            } else if (g_game->mode == 2) {
+            } else if (g_game->debugMode == 2) {
                 if (tile->height > g_game->seaLevel) {
                     DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[15]);
                     DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[15]);
@@ -1645,7 +1645,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
                     DrawLine(surface, (p[3].x + p[0].x) / 2 + 2, (p[3].y + p[0].y) / 2,
                                  (p[0].x + p[1].x) / 2, (p[0].y + p[1].y) / 2 + 2, colors[15]);
                 }
-            } else if (g_game->mode == 3) {
+            } else if (g_game->debugMode == 3) {
                 if (tile->height > g_game->seaLevel) {
                     DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[15]);
                     DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[15]);
@@ -1657,7 +1657,7 @@ void __stdcall DrawMapDebugOverlay(void* surface)
                 SetTextColors(colors[15], GetTextKeyColor());
                 char buffer[20];
                 DrawString(surface, _itoa(tile->metal, buffer, 10), p[0].x + 2, p[0].y + 2, -1);
-            } else if (g_game->mode == 4) {
+            } else if (g_game->debugMode == 4) {
                 DrawLine(surface, p[0].x, p[0].y, p[1].x, p[1].y, colors[0]);
                 DrawLine(surface, p[0].x, p[0].y, p[3].x, p[3].y, colors[0]);
                 if (player->fog[(y / 2) * player->fogWidth + x / 2]) {

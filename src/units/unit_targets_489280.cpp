@@ -154,14 +154,14 @@ struct MapInfo_0048a490;
 
 struct Game {
     char unknown_0[0x2a42];
-    unsigned char teamId;              // +0x2a42
+    unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x14233 - 0x2a43];
-    int gridW;                         // +0x14233
-    int gridH;                         // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x1427f - 0x1423b];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14287 - 0x14280];
-    unsigned char* hmaps;              // +0x14287
+    unsigned char* heightMap;          // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x14377 - 0x1435b];
@@ -534,7 +534,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
         unsigned char c = target->teamId;
         unit->unknown_f4 = c;
         unit->last = target;
-        if (target->teamId == g_game->teamId || unit->teamId == g_game->teamId)
+        if (target->teamId == g_game->localPlayer || unit->teamId == g_game->localPlayer)
             AddCdActivitySample(1);
     }
 
@@ -816,16 +816,16 @@ void __stdcall AlignUnitToGround(Unit* u)
             int fx = wx & 0xf;
             unsigned gz = (unsigned)hz >> 4;
             int fz = hz & 0xf;
-            gw = g_game->gridW;
+            gw = g_game->mapWidthTiles;
             unsigned gx = (unsigned)wx >> 4;
             if (gx >= gw - 1)
                 return;
-            if (gz >= g_game->gridH - 1)
+            if (gz >= g_game->mapHeightTiles - 1)
                 return;
-            unsigned char* tb = g_game->hmaps + (gz * gw + gx) * 13;
+            unsigned char* tb = g_game->heightMap + (gz * gw + gx) * 13;
             int b0 = tb[4];
-            // gridW read again, not gw: keeps the allocation.
-            unsigned char* tb1 = tb + g_game->gridW * 13;
+            // mapWidthTiles read again, not gw: keeps the allocation.
+            unsigned char* tb1 = tb + g_game->mapWidthTiles * 13;
             int b1 = tb1[4];
             c0 = tb[0x11];
             int c1 = tb1[0x11];

@@ -146,7 +146,7 @@ struct Game {
         };
     };
     char unknown_2851[0x2a42 - 0x2851];
-    unsigned char player;              // +0x2a42
+    unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x1427f - 0x2a43];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x37ef6 - 0x14280];
@@ -1424,9 +1424,9 @@ int MissionConditions::AnyDefeatConditionMet()
 // FUNCTION: 0x48ffd0
 int AreEnemiesEliminated()
 {
-    Player* p = &g_game->players[g_game->player];
+    Player* p = &g_game->players[g_game->localPlayer];
     for (unsigned char i = 0; i < 10; i++) {
-        if (i != g_game->player && !p->allied[i] && g_game->players[i].unitCount != 0)
+        if (i != g_game->localPlayer && !p->allied[i] && g_game->players[i].unitCount != 0)
             return 0;
     }
     return 1;
@@ -1437,7 +1437,7 @@ int AreEnemiesEliminated()
 // FUNCTION: 0x490050
 int IsLocalPlayerEliminated()
 {
-    return g_game->players[g_game->player].unitCount == 0 ? 1 : 0;
+    return g_game->players[g_game->localPlayer].unitCount == 0 ? 1 : 0;
 }
 
 // FUNCTION: 0x490080
@@ -1454,10 +1454,10 @@ int CheckAlliedVictory()
     if (g_game->value_37ef6 == 2) {
         return 0;
     }
-    mine = &g_game->players[g_game->player];
+    mine = &g_game->players[g_game->localPlayer];
     for (i = 0; i < 10; i++) {
         other = &g_game->players[i];
-        if (i == g_game->player) {
+        if (i == g_game->localPlayer) {
             continue;
         }
         if (other->active == 0) {
@@ -1513,7 +1513,7 @@ int CheckAlliedVictory()
 // FUNCTION: 0x490200
 int FUN_00490200()
 {
-    return g_game->players[g_game->player].unitCount == 0 ? 1 : 0;
+    return g_game->players[g_game->localPlayer].unitCount == 0 ? 1 : 0;
 }
 
 // FUNCTION: 0x490360
@@ -1535,9 +1535,9 @@ int MissionConditions::CheckDefeat()
         case 1:
             return AnyDefeatConditionMet();
         case 2:
-            return g_game->players[g_game->player].unitCount == 0;
+            return g_game->players[g_game->localPlayer].unitCount == 0;
         case 3:
-            return g_game->players[g_game->player].unitCount == 0;
+            return g_game->players[g_game->localPlayer].unitCount == 0;
         }
     }
     return 0;

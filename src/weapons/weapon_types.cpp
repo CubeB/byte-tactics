@@ -156,7 +156,7 @@ struct Weapon_0042e440 {
 
 struct Game {
     char unknown_0[0x2cf3];
-    Weapon_0042e440 weapons[0x100]; // +0x2cf3, stride 0x115
+    Weapon_0042e440 weaponDefs[0x100];  // +0x2cf3, stride 0x115
 };
 #pragma pack(pop)
 
@@ -185,7 +185,7 @@ void LoadWeaponTypes()
 {
     int n = 0;
     for (int i = 0; i < 0x100; i++) {
-        Weapon_0042e440* p = &g_game->weapons[i];
+        Weapon_0042e440* p = &g_game->weaponDefs[i];
         p->id = n++;
         p->name[0] = 0;
     }
@@ -217,7 +217,7 @@ void LoadWeaponTypes()
 // FUNCTION: 0x42e440
 void __stdcall LoadWeaponType(TdfRecord* parser) {
     char* id = (char*)parser->GetRecordName();
-    Weapon_0042e440* w = &g_game->weapons[parser->GetFieldInt("ID", -1)];
+    Weapon_0042e440* w = &g_game->weaponDefs[parser->GetFieldInt("ID", -1)];
     strcpy(w->name, id);
     parser->GetFieldString(w->name2, "name", 0x40, DAT_005119b8);
 
@@ -299,9 +299,9 @@ void __stdcall LoadWeaponType(TdfRecord* parser) {
         unsigned char i;
         unsigned char count = w->id;
         for (i = 0; i < count; i++) {
-            if (_strcmpi(model, g_game->weapons[i].model) == 0) {
-                g_game->weapons[count].model[0] = 0;
-                g_game->weapons[count].text = g_game->weapons[i].text;
+            if (_strcmpi(model, g_game->weaponDefs[i].model) == 0) {
+                g_game->weaponDefs[count].model[0] = 0;
+                g_game->weaponDefs[count].text = g_game->weaponDefs[i].text;
                 goto model_done;
             }
         }
@@ -312,8 +312,8 @@ void __stdcall LoadWeaponType(TdfRecord* parser) {
             FatalError(path);
         MirrorObject(h);
         BindModelTextures(h, model);
-        g_game->weapons[count].text = h;
-        strcpy(g_game->weapons[count].model, model);
+        g_game->weaponDefs[count].text = h;
+        strcpy(g_game->weaponDefs[count].model, model);
     } else {
         w->text = 0;
     }
@@ -397,7 +397,7 @@ void FreeWeaponTypes()
 {
     int i = 0;
     while (i < 256) {
-        Weapon_0042e440* o = &g_game->weapons[i];
+        Weapon_0042e440* o = &g_game->weaponDefs[i];
         if (strlen(o->model) != 0) {
             GameFreeThunk(o->text);
             o->text = 0;

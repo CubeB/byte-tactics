@@ -70,7 +70,7 @@ struct Game {
     FeatureSpot* spots;                // +0x1420b
     Unit* unit;                        // +0x1420f
     char unknown_14213[0x14233 - 0x14213];
-    int width;                         // +0x14233
+    int mapWidthTiles;                 // +0x14233
     char unknown_14237[0x1426f - 0x14237];
     Feature* features;                 // +0x1426f
     char unknown_14273[0x1431f - 0x14273];
@@ -114,8 +114,8 @@ void __stdcall BlitFeatureGaf(void* dest, Cell* cell, int ix, int iy)
     // Second row indexed as cell[width], not through a next pointer: load order.
     int s = cell->shade;
     s += cell[1].shade;
-    s += cell[g_game->width].shade;
-    s += cell[g_game->width + 1].shade;
+    s += cell[g_game->mapWidthTiles].shade;
+    s += cell[g_game->mapWidthTiles + 1].shade;
     int shade = s >> 3;
     int y = f->footprint.y * 16 / 2 - shade + (iy + 2) * 16 - g_game->scrollY;
     if (cell->flags) {

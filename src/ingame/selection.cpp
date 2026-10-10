@@ -154,24 +154,24 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];                // +0x1b63, 0x14b each
     char unknown_2851[0x2a42 - 0x2851];
-    unsigned char player;              // +0x2a42
+    unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x2c76 - 0x2a44];
     Point view;                        // +0x2c76
     char unknown_2c7e[0x2c92 - 0x2c7e];
-    int rect_x1;                       // +0x2c92
-    int rect_x2;                       // +0x2c96
-    int rect_y1;                       // +0x2c9a
-    int rect_y2;                       // +0x2c9e
-    int rect_x3;                       // +0x2ca2
-    int rect_y3;                       // +0x2ca6
+    int boxStartX;                     // +0x2c92
+    int boxStartHeight;                // +0x2c96
+    int boxStartZ;                     // +0x2c9a
+    int boxEndX;                       // +0x2c9e
+    int boxEndHeight;                  // +0x2ca2
+    int boxEndZ;                       // +0x2ca6
     int pos;                           // +0x2caa
     char unknown_2cae[0x2cba - 0x2cae];
     unsigned short hoverUnitId;        // +0x2cba
     char unknown_2cbc[0x2cc3 - 0x2cbc];
     unsigned char orderMode;           // +0x2cc3
     char unknown_2cc4[0x142bb - 0x2cc4];
-    Rect rect_142bb;                   // +0x142bb
+    Rect minimapHitRect;               // +0x142bb
     char unknown_142cb[0x1431f - 0x142cb];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
@@ -293,7 +293,7 @@ void ClearSelection(void)
 // FUNCTION: 0x48bd50
 void SelectAllIdleUnits(void)
 {
-    Player* pl = &g_game->players[g_game->player];
+    Player* pl = &g_game->players[g_game->localPlayer];
     Unit* u = pl->unitsBegin;
     if (u <= pl->unitsEnd) {
         do {
@@ -331,7 +331,7 @@ static inline unsigned int* FlagsPtr(Unit* u)
 // FUNCTION: 0x48be00
 void SelectUnitsOfSameTypes(void)
 {
-    Player* player = &g_game->players[g_game->player];
+    Player* player = &g_game->players[g_game->localPlayer];
     unsigned int selected[16];
     memset(selected, 0, sizeof(selected));
     {
@@ -368,7 +368,7 @@ void SelectUnitsOfSameTypes(void)
 void __stdcall SelectUnitsByCategory(char* name, int param_2)
 {
     int* mask = (int*)GetCategoryMask(name);
-    int player = g_game->player;
+    int player = g_game->localPlayer;
     // Head read through q, end read through p: two pointers fix the address forms.
     Player* p = &g_game->players[player];
     Player* q = &g_game->players[player];
@@ -411,7 +411,7 @@ void SelectAllVisibleUnits(void)
         unsigned int flags = u->flags.raw;
         if ((flags & 0x20) && u->buildLeft == 0.0f && u->postTransferHoldoff == 0
             && (u->owner == 0 || (u->owner->flags.highByte & 0x40))
-            && u->player == g_game->player) {
+            && u->player == g_game->localPlayer) {
             found = 1;
             u->flags.raw = flags | 0x10;
         }
@@ -438,7 +438,7 @@ static inline Unit* GetUnit_0048c190(unsigned short i)
 // FUNCTION: 0x48c190
 Unit* __stdcall FindNextSelectedUnit(Unit* unit, int dir)
 {
-    Player* p = &g_game->players[g_game->player];
+    Player* p = &g_game->players[g_game->localPlayer];
     unsigned short x = unit == 0 ? 0 : unit->id;
     if (x < p->firstIndex || x > p->lastIndex) {
         x = p->firstIndex;
@@ -484,7 +484,7 @@ void MarkLocalVisibleUnits(void)
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
         Unit* u = &g_game->units[list[i]];
-        if (u->player == g_game->player)
+        if (u->player == g_game->localPlayer)
             u->flags.state = 1;
     }
 }
@@ -508,10 +508,10 @@ int __stdcall SelectUnitsInBox(void* param_1)
     int found = 0;
     // Declared in the order ymin, xmin, ymax, xmax, reading g_game->scrollX/Y
     // directly (no scroll temporaries): fixes the order of the loads.
-    int ymin = (g_game->rect_x1 - g_game->scrollX) + 0x80;
-    int xmin = ((g_game->rect_y1 - (g_game->rect_x2 >> 1)) - g_game->scrollY) + 0x20;
-    int ymax = (g_game->rect_y2 - g_game->scrollX) + 0x80;
-    int xmax = ((g_game->rect_y3 - (g_game->rect_x3 >> 1)) - g_game->scrollY) + 0x20;
+    int ymin = (g_game->boxStartX - g_game->scrollX) + 0x80;
+    int xmin = ((g_game->boxStartZ - (g_game->boxStartHeight >> 1)) - g_game->scrollY) + 0x20;
+    int ymax = (g_game->boxEndX - g_game->scrollX) + 0x80;
+    int xmax = ((g_game->boxEndZ - (g_game->boxEndHeight >> 1)) - g_game->scrollY) + 0x20;
     int t;
     if (ymin > ymax) { t = ymin; ymin = ymax; ymax = t; }
     if (xmin > xmax) { t = xmin; xmin = xmax; xmax = t; }
@@ -521,7 +521,7 @@ int __stdcall SelectUnitsInBox(void* param_1)
             v->flags.raw &= 0xffffff2f;
         PopUntilNamedLayout(0);
     }
-    Player* p = &g_game->players[g_game->player];
+    Player* p = &g_game->players[g_game->localPlayer];
     int count = 0;
     Unit* last;
     for (Unit* u = p->unitsBegin; u <= p->unitsEnd; u++) {
@@ -545,7 +545,7 @@ int __stdcall SelectUnitsInBox(void* param_1)
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
         Unit* v = &g_game->units[list[i]];
-        if (v->player == g_game->player)
+        if (v->player == g_game->localPlayer)
             v->flags.state = 1;
     }
     if (found)
@@ -620,7 +620,7 @@ void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
     Unit* unit = !g_game->hoverUnitId ? 0 : &g_game->units[g_game->hoverUnitId];
     if (unit == 0)
         return;
-    if (unit->player != g_game->player)
+    if (unit->player != g_game->localPlayer)
         return;
     if (!(unit->flags.raw & 0x20))
         return;
@@ -646,7 +646,7 @@ void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
         Unit* u = &g_game->units[list[i]];
-        if (u->player == g_game->player)
+        if (u->player == g_game->localPlayer)
             u->flags.raw = u->flags.raw & 0xffffff7f | 0x40;
     }
     unit->flags.raw |= 0x10;
@@ -675,7 +675,7 @@ void __stdcall DeselectIfIneligible(Unit* unit)
 void __stdcall CollectSelectedUnits(std::vector<Unit*>* list)
 {
     list->clear();
-    Player* team = &g_game->players[g_game->player];
+    Player* team = &g_game->players[g_game->localPlayer];
     for (Unit* u = team->unitsBegin; u <= team->unitsEnd; u++) {
         if (u->flags.selected)
             list->push_back(u);
@@ -694,7 +694,7 @@ void __stdcall DrawOrderOverlays(Unit* unit, int mask, void* obj,
 // FUNCTION: 0x48cc30
 void __stdcall DrawSelectedUnitOrderOverlays(void* obj, Unit** sel)
 {
-    Player* team = &g_game->players[g_game->player];
+    Player* team = &g_game->players[g_game->localPlayer];
     Unit* sel1unit = !g_game->unitIndex ? 0 : &g_game->units[g_game->unitIndex];
     Unit* sel2unit = !g_game->hoverUnitId ? 0 : &g_game->units[g_game->hoverUnitId];
     Unit* selunit = *sel;
@@ -748,7 +748,7 @@ unsigned short __stdcall PickUnitUnderCursor(void)
                 }
             }
         }
-    } else if (PointInRect(&g_game->rect_142bb, p->x, p->y)) {
+    } else if (PointInRect(&g_game->minimapHitRect, p->x, p->y)) {
         int best = 99999;
         Slot_0048cd80* s = g_game->list2;
         for (int i = g_game->count2; i > 0; i--) {
@@ -795,7 +795,7 @@ int __stdcall ResolveCursorModeForSelection(char arg)
     std::vector<Unit*> vec;
     vec.clear();
 
-    Player* player = &g_game->players[g_game->player];
+    Player* player = &g_game->players[g_game->localPlayer];
     for (Unit* u = player->unitsBegin; u <= player->unitsEnd; u++) {
         if (u->flags.selected)
             // push_back, not insert(end(), u): picks the out-of-line insert overload.
@@ -807,7 +807,7 @@ int __stdcall ResolveCursorModeForSelection(char arg)
 
     if (vec.empty()) {
         if (arg == 1 && target != 0
-            && target->player == g_game->player
+            && target->player == g_game->localPlayer
             && target->flags.done
             && target->buildLeft == 0.0f
             && target->postTransferHoldoff == 0
@@ -843,7 +843,7 @@ int __stdcall ResolveCursorModeForSelection(char arg)
 // FUNCTION: 0x48d420
 Unit* FindNextUnmarkedLocalUnit(void)
 {
-    Player* player = &g_game->players[g_game->player];
+    Player* player = &g_game->players[g_game->localPlayer];
     Unit* u;
     for (u = player->unitsBegin; u <= player->unitsEnd; u++) {
         if (u->unitDefIndex != 0) {
@@ -896,7 +896,7 @@ static inline Unit* PickUnit(Player* player)
 // FUNCTION: 0x48d4d0
 void FocusNextLocalUnit(void)
 {
-    Unit* u = PickUnit(&g_game->players[g_game->player]);
+    Unit* u = PickUnit(&g_game->players[g_game->localPlayer]);
     if (u == 0)
         return;
     g_game->focusUnitId = u->id;
@@ -905,7 +905,7 @@ void FocusNextLocalUnit(void)
     unsigned short* list = g_game->list;
     for (int i = 0; i < g_game->count; i++) {
         Unit* unit = &g_game->units[list[i]];
-        if (unit->player == g_game->player)
+        if (unit->player == g_game->localPlayer)
             unit->flags.state = 1;
     }
     u->flags.state = 1;
@@ -1014,7 +1014,7 @@ void __stdcall SetUnitSquad(Unit* unit, int arg);
 // FUNCTION: 0x48d920
 void __stdcall CreateSquad(int param_1)
 {
-    Player* player = &g_game->players[g_game->player];
+    Player* player = &g_game->players[g_game->localPlayer];
     for (Unit* u = player->unitsBegin; u <= player->unitsEnd; u++) {
         if (u->unitDefIndex != 0) {
             if (u->flags.selected) {
@@ -1036,7 +1036,7 @@ bool __stdcall SelectSquad(int id, int param_2)
 {
     UnitTypeSet* setA = GetCategoryMask("CTRL_F");
     int cnt = 0;
-    Player* player = &g_game->players[g_game->player];
+    Player* player = &g_game->players[g_game->localPlayer];
     UnitTypeSet* setB = GetCategoryMask("CTRL_F");
 
     Unit* u;
@@ -1045,13 +1045,13 @@ bool __stdcall SelectSquad(int id, int param_2)
     int found;
     // The outer and nested scans each read through their own Player pointer
     // local (q, r); sharing or dropping one changes the addressing.
-    Player* q = &g_game->players[g_game->player];
+    Player* q = &g_game->players[g_game->localPlayer];
     for (u = q->unitsBegin; u <= q->unitsEnd; u++) {
         if ((u->flags.byte & 0x20) && u->buildLeft == 0.0f && u->postTransferHoldoff == 0
             && (u->owner == 0 || (u->owner->flags.raw & 0x40000000))
             && u->group == id && TestBit(setB, u->unitDefIndex)) {
             {
-                Player* r = &g_game->players[g_game->player];
+                Player* r = &g_game->players[g_game->localPlayer];
                 for (v = r->unitsBegin;
                      v <= r->unitsEnd; v++) {
                     if ((v->flags.raw & 0x20) && v->buildLeft == 0.0f && v->postTransferHoldoff == 0
@@ -1108,7 +1108,7 @@ select_units:
 int __stdcall SquadHasCtrlFMember(int id)
 {
     UnitTypeSet* set = GetCategoryMask("CTRL_F");
-    Player* p = &g_game->players[g_game->player];
+    Player* p = &g_game->players[g_game->localPlayer];
     Unit* u = p->unitsBegin;
     Unit* end = p->unitsEnd;
     if (u > end)
@@ -1133,7 +1133,7 @@ int __stdcall SquadHasCtrlFMember(int id)
 // FUNCTION: 0x48dd10
 int __stdcall SquadHasReadyMember(int param_1)
 {
-    Player* player = &g_game->players[g_game->player];
+    Player* player = &g_game->players[g_game->localPlayer];
     for (Unit* u = player->unitsBegin; u <= player->unitsEnd; u++) {
         unsigned int flags = u->flags.raw;
         if (flags & 0x20) {

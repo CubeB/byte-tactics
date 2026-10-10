@@ -53,7 +53,7 @@ struct Game {
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;     // +0x2a43
     char unknown_2a44[0x14263 - 0x2a44];
-    int rise;                      // +0x14263
+    int gravity;                   // +0x14263
     char unknown_14267[0x14273 - 0x14267];
     unsigned short* visibilityMask;// +0x14273
     char unknown_14277[0x14281 - 0x14277];

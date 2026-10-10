@@ -167,7 +167,7 @@ struct Player {                        // 0x14b bytes, array at g_game+0x1b63
 // slots), and two name the Mission pointer at +0x391e9 (obj, net).
 struct Game {
     char unknown_0[0x519];
-    Sub_00496b10 sub;                          // +0x519
+    Sub_00496b10 gui;                          // +0x519
     char unknown_5bf[0x1b63 - 0x5bf];
     union {
         Player players[10];                // +0x1b63
@@ -183,7 +183,7 @@ struct Game {
         Slot_00497080* slots;
     };
     char unknown_29a4[0x2a3c - 0x29a4];
-    unsigned short state_2a3c;                 // +0x2a3c
+    unsigned short numPlayers;                 // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
     unsigned char localPlayer;                 // +0x2a42
     char unknown_2a43[0x2a44 - 0x2a43];
@@ -195,8 +195,8 @@ struct Game {
     char unknown_2a46[0x2b4c - 0x2a46];
     Flags_00496ce0 flags_2b4c;                 // +0x2b4c
     char unknown_2b4e[0x2bbe - 0x2b4e];
-    unsigned char state_2bbe;                  // +0x2bbe
-    unsigned char state_2bbf;                  // +0x2bbf
+    unsigned char frontendMenuState;           // +0x2bbe
+    unsigned char frontendSubstate;            // +0x2bbf
     char unknown_2bc0[0x2bee - 0x2bc0];
     unsigned short pad_2bee : 5;               // +0x2bee
     unsigned short flags_2bee : 3;
@@ -417,7 +417,7 @@ void InitFrame()
 {
     if (g_game->cursorMode != 0x13) {
         g_game->cursorMode = 0x13;
-        SetCursorAnimation((Obj_004ab400*)&g_game->sub, g_game->table[0x13]);
+        SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[0x13]);
     }
     ShowSoftwareCursor();
     g_game->bit2 = 0;
@@ -443,7 +443,7 @@ void ReturnToMainMenuFrame()
     g_game->flag4_3923b = 0;
     g_game->flag2_3923b = 0;
     ClearKeyQueue();
-    EnableKeyCommands(&g_game->sub);
+    EnableKeyCommands(&g_game->gui);
     g_game->mode = 2;
     g_game->handler = MenuFrame;
     SetCloseHandler(LeaveNetGameCallback, 0);
@@ -467,7 +467,7 @@ void MenuFrame()
         g_game->mode = 5;
         g_game->handler = LoadingScreenFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
-    } else if (g_game->state_2bbe == 0x11) {
+    } else if (g_game->frontendMenuState == 0x11) {
         // This branch and the 0x10 one stay nested ifs, each with its own copy of
         // the state change; a && chain would fold the bitfield test.
         if (g_game->bit2) {
@@ -476,9 +476,9 @@ void MenuFrame()
             g_game->handler = PreBattleFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
         }
-    } else if (g_game->state_2bbe == 0x10) {
+    } else if (g_game->frontendMenuState == 0x10) {
         if (g_game->flags_2b4c.flag) {
-            if (g_game->state_2bbf == 0x12 || g_game->state_2bbf == 0x13) {
+            if (g_game->frontendSubstate == 0x12 || g_game->frontendSubstate == 0x13) {
                 HideSoftwareCursor();
                 g_game->mode = 3;
                 g_game->handler = PreBattleFrame;
@@ -487,7 +487,7 @@ void MenuFrame()
         }
     }
     HideSoftwareCursor();
-    BlitMenuLayers(&g_game->sub, 0, 0);
+    BlitMenuLayers(&g_game->gui, 0, 0);
     ShowSoftwareCursor();
 }
 
@@ -526,7 +526,7 @@ void PreBattleFrame()
 // FUNCTION: 0x496db0
 void CampaignSetupFrame()
 {
-    g_game->state_2a3c = 2;
+    g_game->numPlayers = 2;
     SetupPlayerSlot(0, 1);
     SetupPlayerSlot(1, 2);
     g_game->sub_1cd5->flag_96 = 1;

@@ -196,7 +196,7 @@ struct Game {
     char unknown_283d[0x2a30 - 0x1b67 - sizeof(PlayerEntry_0046d6c0) * 10];
     UnitSync* sync;                     // +0x2a30
     char unknown_2a34[0x2a42 - 0x2a30 - sizeof(UnitSync*)];
-    unsigned char player;               // +0x2a42
+    unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x1438f - 0x2a42 - sizeof(unsigned char)];
     int unitDefCount;                   // +0x1438f
     char unknown_14393[0x1439b - 0x1438f - sizeof(int)];
@@ -260,7 +260,7 @@ int __stdcall ReportGameEvent(int msg)
             // ahead of the other nine arguments being set up
             int team = (int)g_game->mapInfo->GetMissionName();
             if (RIReport(msg, &rect, (char*)&g_game->providerGuid, thing, &g_reportPlayerName,
-                             team, g_game->player,
+                             team, g_game->localPlayer,
                              id, g_onlineReportPlayers, g_onlineReportScoreBoards))
                 g_hapinetOnlineReport = 0;
         }
@@ -269,7 +269,7 @@ int __stdcall ReportGameEvent(int msg)
     if (g_reporterDll) {
         int team = (int)g_game->mapInfo->GetMissionName();
         g_riReport(msg, &rect, (char*)&g_game->providerGuid, thing, &g_reportPlayerName,
-                     team, g_game->player,
+                     team, g_game->localPlayer,
                      id, g_onlineReportPlayers, g_onlineReportScoreBoards);
     }
 
@@ -282,11 +282,11 @@ int __stdcall ReportGameChat(int msg)
     if ((g_hapinetOnlineReport != 0 && (g_reportFlags & 8)) || g_reporterDll != 0) {
         FillScoreTables();
         if (g_hapinetOnlineReport != 0 && (g_reportFlags & 8)) {
-            if (RIReportGameChat(g_onlineReportPlayers[g_game->player], msg))
+            if (RIReportGameChat(g_onlineReportPlayers[g_game->localPlayer], msg))
                 g_hapinetOnlineReport = 0;
         }
         if (g_reporterDll != 0)
-            return g_riReportGameChat(g_onlineReportPlayers[g_game->player], msg);
+            return g_riReportGameChat(g_onlineReportPlayers[g_game->localPlayer], msg);
         return 0;
     }
     return 4;

@@ -92,7 +92,7 @@ struct Game {
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;          // +0x2a43
     char unknown_2a44[0x1427f - 0x2a44];
-    unsigned char limitY;               // +0x1427f
+    unsigned char seaLevel;             // +0x1427f
     char unknown_14280[0x14357 - 0x14280];
     Unit* units;                        // +0x14357
     char unknown_1435b[0x147f7 - 0x1435b];
@@ -474,7 +474,7 @@ void UnitScript::EmitSfx(int a, int b)
         v2.x = v1.x;
         v2.y = v1.y;
         v2.z = v1.z;
-        v2.y = g_game->limitY << 16;
+        v2.y = g_game->seaLevel << 16;
         EmitBubbles((int)&v1, (int)&v2, 8, 7);
         break;
     }

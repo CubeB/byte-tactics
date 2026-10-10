@@ -7,8 +7,8 @@
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14233];
-    int mapWidth;                    // +0x14233
-    int mapHeight;                   // +0x14237
+    int mapWidthTiles;               // +0x14233
+    int mapHeightTiles;              // +0x14237
     char unknown_1423b[0x38a47 - 0x1423b];
     // UpdateMeteors reads this as the tick counter, StartMeteorShower as a
     // plain int.
@@ -155,8 +155,8 @@ static inline void StartShower()
     g_meteorStrikeEndTime = g_meteorShowerDuration + g_game->ticks;
     g_meteorNextStrikeTime = g_meteorScheduleGap + g_meteorStrikeEndTime;
     g_meteorNextHitTime = g_game->ticks;
-    g_meteorTarget = MakePoint((int)((__int64)rand() * g_game->mapWidth / 0x8000),
-                             (int)((__int64)rand() * g_game->mapHeight / 0x8000));
+    g_meteorTarget = MakePoint((int)((__int64)rand() * g_game->mapWidthTiles / 0x8000),
+                             (int)((__int64)rand() * g_game->mapHeightTiles / 0x8000));
     g_meteorOrigin = AddPoints(MakePoint((int)((__int64)rand() * 30 / 0x8000) - 15,
                                        (int)((__int64)rand() * 10 / 0x8000) - 15),
                              g_meteorTarget);
@@ -209,8 +209,8 @@ void StartMeteorShower()
     g_meteorStrikeEndTime = g_meteorShowerDuration + g_game->field_38a47;
     g_meteorNextStrikeTime = g_meteorScheduleGap + g_meteorStrikeEndTime;
     g_meteorNextHitTime = g_game->field_38a47;
-    g_meteorTarget = MakePoint((int)((__int64)rand() * g_game->mapWidth / 0x8000),
-                             (int)((__int64)rand() * g_game->mapHeight / 0x8000));
+    g_meteorTarget = MakePoint((int)((__int64)rand() * g_game->mapWidthTiles / 0x8000),
+                             (int)((__int64)rand() * g_game->mapHeightTiles / 0x8000));
     g_meteorOrigin = AddPoints(MakePoint((int)((__int64)rand() * 30 / 0x8000) - 15,
                                        (int)((__int64)rand() * 10 / 0x8000) - 15),
                              g_meteorTarget);

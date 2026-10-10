@@ -14,7 +14,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
-    unsigned char local_player;        // +0x2a42
+    unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x391f1 - 0x2a43];
     int mode;                          // +0x391f1
 };
@@ -122,7 +122,7 @@ void SendLobbySyncRequests()
                 msg.type = 0x21;
                 msg.flag = 1;
                 msg.id = p->id;
-                msg.arg = g_game->players[g_game->local_player].id;
+                msg.arg = g_game->players[g_game->localPlayer].id;
                 if (FindHostSlot() == 10)
                     continue;
                 SendPacketToPlayer(FindFrom_00450530(), FindToB_00450530(), &msg, 10);

@@ -43,7 +43,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];                   // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
-    unsigned char player;                 // +0x2a42
+    unsigned char localPlayer;            // +0x2a42
     char unknown_2a43[0x391e9 - 0x2a43];
     Mission* mode;                        // +0x391e9
 };
@@ -91,13 +91,13 @@ int MissionConditions::CheckVictory()
     case 1:
         return AllVictoryConditionsMet();
     case 2: {
-        unsigned char player = g_game->player;
+        unsigned char player = g_game->localPlayer;
         Player* me = &g_game->players[player];
         for (unsigned char i = 0; i < 10; i++) {
             // Separate unsigned char copy of the counter: puts it in the base slot
             // and keeps the zero-extension after the player test.
             unsigned char j = i;
-            if (i == g_game->player)
+            if (i == g_game->localPlayer)
                 continue;
             if (me->allied[j])
                 continue;

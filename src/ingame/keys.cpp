@@ -5,7 +5,7 @@
 //
 // The Game views: 0x495860/0x4958c0 read 0x531 as a struct pointer with
 // `value` at +0x4, while 0x495e90 reads the same pointer as an int and then
-// `*(int*)(field_531 + 4)`. One pointer type covers both. The two byte flags
+// `*(int*)(layer + 4)`. One pointer type covers both. The two byte flags
 // 0x495a30 names as `uiOptionFlags`/`pauseFlags` are anonymous unions with the
 // bitfield views 0x495e90 uses.
 //
@@ -140,7 +140,7 @@ struct Game {
     char unknown_0[0x519];
     Sub_495e90 gui;                     // +0x519
     char unknown_529[0x531 - 0x529];
-    Struct_004958c0* field_531;         // +0x531
+    Struct_004958c0* layer;             // +0x531
     char unknown_535[0x1b63 - 0x535];
     Player_495e90 players[10];          // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -153,10 +153,10 @@ struct Game {
     char unknown_2cc4[0x2cc6 - 0x2cc4];
     unsigned char inputFlags;           // +0x2cc6
     char unknown_2cc7[0x1423b - 0x2cc7];
-    int screenTilesX;                   // +0x1423b
-    int screenTilesY;                   // +0x1423f
+    int viewWidthTiles;                 // +0x1423b
+    int viewHeightTiles;                // +0x1423f
     char unknown_14243[0x14280 - 0x14243];
-    unsigned char debugMode;            // +0x14280
+    unsigned char debugMode;  // +0x14280
     unsigned short mapFlags;            // +0x14281
     char unknown_14283[0x1431f - 0x14283];
     int scrollX;                        // +0x1431f
@@ -282,7 +282,7 @@ void SelectStopOrder(void)
 
     g_game->orderMode = 1;
     g_game->inputFlags &= 0xdf;
-    index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+    index = FindGadgetIndexBySubstring(g_game->layer->value, "STOP");
     if (index != -1) {
         ClearGroupStatus(&g_game->gui, index);
     }
@@ -300,7 +300,7 @@ void __stdcall SetOrSelectStopOrder(int set)
     }
     g_game->orderMode = 1;
     g_game->inputFlags &= 0xdf;
-    index = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+    index = FindGadgetIndexBySubstring(g_game->layer->value, "STOP");
     if (index != -1) {
         ClearGroupStatus(&g_game->gui, index);
     }
@@ -367,9 +367,9 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
         GafFrame* bm;
         off27 = g_game->viewCullMinX;
         int bh, off2b;
-        bw = g_game->screenTilesX * 16;
+        bw = g_game->viewWidthTiles * 16;
         off2b = g_game->viewCullMinY;
-        bh = (g_game->screenTilesY * 16) - 1;
+        bh = (g_game->viewHeightTiles * 16) - 1;
 
         SetOutOfMemoryHandler(0);
         bm = AllocFrame("ScreenShot", w, bh);
@@ -500,7 +500,7 @@ void HandleGameKey(void)
             if (g_game->orderMode != 1) {
                 g_game->orderMode = 1;
                 g_game->inputFlags = g_game->inputFlags & 0xdf;
-                int handle = FindGadgetIndexBySubstring(g_game->field_531->value, "STOP");
+                int handle = FindGadgetIndexBySubstring(g_game->layer->value, "STOP");
                 if (handle != -1)
                     ClearGroupStatus(&g_game->gui, handle);
             } else {

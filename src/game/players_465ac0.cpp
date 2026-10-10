@@ -31,7 +31,7 @@ struct Game {
     char unknown_2a44[0x14273 - 0x2a44];
     unsigned short* visibilityMask;      // +0x14273
     char unknown_14277[0x1427f - 0x14277];
-    unsigned char limitY;                // +0x1427f
+    unsigned char seaLevel;              // +0x1427f
     char debugMode;
     unsigned short mapFlags;             // +0x14281
 };
@@ -153,7 +153,7 @@ int __stdcall IsUnitVisibleToPlayer(Map_00465ac0* map, Unit* u)
     p.y = u->def->f16e + u->pos.y;
     p.z = u->def->f166 + u->pos.z;
     if (!(u->flags & 0x200)) {
-        if (p.y < (g_game->limitY << 16))
+        if (p.y < (g_game->seaLevel << 16))
             return 0;
     }
     if (IsVisible(map, (Position_00465ac0*)&p))

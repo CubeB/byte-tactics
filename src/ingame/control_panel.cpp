@@ -328,7 +328,7 @@ struct Follow_0041ca10 {
 
 struct Game {
     char unknown_0[0x519];
-    Gui menu;                          // +0x519, the GUI context TALK.GUI lives in
+    Gui gui;                           // +0x519, the GUI context TALK.GUI lives in
     char unknown_120f[0x1b63 - 0x120f];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -352,15 +352,15 @@ struct Game {
     Flags_004197d0 flags;              // +0x2cc6
     CursorState cursor;                // +0x2cc7
     char unknown_2cf3[0x1422b - 0x2cf3];
-    int mapWidth;                      // +0x1422b
-    int mapHeight;                     // +0x1422f
+    int mapPixelWidth;                 // +0x1422b
+    int mapPixelHeight;                // +0x1422f
     char unknown_14233[0x14281 - 0x14233];
     unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142cb - 0x14283];
     char field_142cb[0x142f1 - 0x142cb]; // +0x142cb, the radar viewport rectangle
     CameraFlags flags_142f1;           // +0x142f1
-    Unit* followUnit;                  // +0x142f3
-    Follow_0041ca10* follow;           // +0x142f7
+    Unit* cameraFollowUnit;            // +0x142f3
+    Follow_0041ca10* cameraFollowTrackObj;  // +0x142f7
     char unknown_142fb[0x1431f - 0x142fb];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
@@ -665,7 +665,7 @@ void __stdcall RefreshBuildCountTexts(Gui* menu, Unit* unit)
         // Incremented after the reads, not before.
         e++;
     }
-    MarkChanged(&g_game->menu);
+    MarkChanged(&g_game->gui);
 }
 
 // Sets the "ONOFF" menu entry from bit 0 of the unit's flags at +0x10e
@@ -673,9 +673,9 @@ void __stdcall RefreshBuildCountTexts(Gui* menu, Unit* unit)
 // FUNCTION: 0x419ac0
 void __stdcall UpdateOnOffButton(Unit* unit)
 {
-    int index = FindGadgetIndexBySubstring((int)g_game->menu.layer->entries, "ONOFF");
+    int index = FindGadgetIndexBySubstring((int)g_game->gui.layer->entries, "ONOFF");
     if (index != -1) {
-        SetGadgetStatus(&g_game->menu, index, unit->onOff);
+        SetGadgetStatus(&g_game->gui, index, unit->onOff);
     }
 }
 
@@ -843,8 +843,8 @@ int __stdcall HandleOrderButtonClick(MenuEntry* button, MenuEntry* entries)
 // FUNCTION: 0x41a120
 void __stdcall RefreshOrderButtons(Unit* unit)
 {
-    Gui* menu = &g_game->menu;
-    int layer = (int)g_game->menu.layer->entries;
+    Gui* menu = &g_game->gui;
+    int layer = (int)g_game->gui.layer->entries;
     int index;
 
     index = FindGadgetIndexBySubstring(layer, "BUILD");
@@ -1001,7 +1001,7 @@ int __stdcall HandleOrdersPanelClick(Gui* menu, MenuEntry* entries)
             break;
         }
         PlaySoundByName("setmoveorders", 0);
-        SetGadgetStatus(&g_game->menu, index, g_game->orderState.bits.moveOrder);
+        SetGadgetStatus(&g_game->gui, index, g_game->orderState.bits.moveOrder);
     } else if (Contains(entries, "FIREORD", index)) {
         switch (g_game->orderState.bits.fireOrder) {
         case 0:
@@ -1019,7 +1019,7 @@ int __stdcall HandleOrdersPanelClick(Gui* menu, MenuEntry* entries)
             break;
         }
         PlaySoundByName("setfireorders", 0);
-        SetGadgetStatus(&g_game->menu, index, g_game->orderState.bits.fireOrder);
+        SetGadgetStatus(&g_game->gui, index, g_game->orderState.bits.fireOrder);
     } else if (Contains(entries, "STATUS", index) || Contains(entries, "ONOFF", index)) {
         switch (g_game->orderState.bits.onOff) {
         case 0:
@@ -1036,7 +1036,7 @@ int __stdcall HandleOrdersPanelClick(Gui* menu, MenuEntry* entries)
             break;
         }
         PlaySoundByName("specialorders", 0);
-        SetGadgetStatus(&g_game->menu, index, g_game->orderState.bits.onOff);
+        SetGadgetStatus(&g_game->gui, index, g_game->orderState.bits.onOff);
     } else if (Contains(entries, "CLOAK", index)) {
         if (g_game->orderState.bits.cloak) {
             IssueOrderToSelection(orders, 0, "CLOAK_OFF", 0, 0, 0);
@@ -1046,12 +1046,12 @@ int __stdcall HandleOrdersPanelClick(Gui* menu, MenuEntry* entries)
             g_game->orderState.bits.cloak = 1;
         }
         PlaySoundByName("specialorders", 0);
-        SetGadgetStatus(&g_game->menu, index, g_game->orderState.bits.cloak);
+        SetGadgetStatus(&g_game->gui, index, g_game->orderState.bits.cloak);
     } else {
         return 0;
     }
     RefreshOrderButtons(g_game->unitIndex ? unit : 0);
-    RenderLayer(&g_game->menu, 0x40);
+    RenderLayer(&g_game->gui, 0x40);
     return 1;
 }
 
@@ -1063,9 +1063,9 @@ void __stdcall SetPrevNextGadgetNames(Unit* unit)
     char buf[256];
     if (unit->type->buildMenuPageCount < 2) {
         sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->playerIndex].name);
-        SetGadgetActiveByName(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->gui, buf, 0);
         sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->playerIndex].name);
-        SetGadgetActiveByName(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->gui, buf, 0);
     }
 }
 
@@ -1120,7 +1120,7 @@ void __stdcall HandleBuildPanelClick(Gui* menu)
                 if (unit->flags.bits.flag_29
                     || (((UnitType*)unit->weapons[0].weapon)->field_111 & 0x10000000))
                     RefreshBuildCountTexts(menu, unit);
-                MarkChanged(&g_game->menu);
+                MarkChanged(&g_game->gui);
             }
         }
         // One call after the chain, not one per branch.
@@ -1151,9 +1151,9 @@ static inline void SetPrevNext(Unit* unit)
     char buf[256];
     if (unit->type->buildMenuPageCount < 2) {
         sprintf(buf, "%sPREV", g_game->sideNames[unit->player->info->playerIndex].name);
-        SetGadgetActiveByName(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->gui, buf, 0);
         sprintf(buf, "%sNEXT", g_game->sideNames[unit->player->info->playerIndex].name);
-        SetGadgetActiveByName(&g_game->menu, buf, 0);
+        SetGadgetActiveByName(&g_game->gui, buf, 0);
     }
 }
 
@@ -1187,7 +1187,7 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
             sprintf(name, "%sDL", g_game->sideNames[player->info->playerIndex].name);
         else
             strcpy(name, guiName);
-        Layer* layer = LoadGuiLayer(&g_game->menu, name, 0);
+        Layer* layer = LoadGuiLayer(&g_game->gui, name, 0);
         if (layer != 0) {
             layer->handler = HandleBuildPanelClick;
             layer->data = 0;
@@ -1209,20 +1209,20 @@ void __stdcall OpenBuildMenuGui(Unit* unit, char* guiName, int page)
                 }
             }
             if (found) {
-                RenderLayer(&g_game->menu, 2);
-                RenderLayer(&g_game->menu, 1);
+                RenderLayer(&g_game->gui, 2);
+                RenderLayer(&g_game->gui, 1);
             }
             SetPrevNext(unit);
             RefreshOrderButtons(unit);
-            RefreshBuildCountTexts(&g_game->menu, unit);
+            RefreshBuildCountTexts(&g_game->gui, unit);
             if (unit->flags.raw & 0x20000000) {
-                int index = FindGadgetIndexBySubstring(g_game->menu.layer->entries, "ONOFF");
+                int index = FindGadgetIndexBySubstring(g_game->gui.layer->entries, "ONOFF");
                 if (index != -1)
-                    SetGadgetStatus(&g_game->menu, index, unit->onOff);
+                    SetGadgetStatus(&g_game->gui, index, unit->onOff);
             }
             if (page != 0)
-                UpdateCounts(&g_game->menu);
-            RenderLayer(&g_game->menu, 0x40);
+                UpdateCounts(&g_game->gui);
+            RenderLayer(&g_game->gui, 0x40);
             g_game->unitIndex = unit->id;
             g_game->unitDefIndex = unit->unitDefIndex;
         }
@@ -1237,12 +1237,12 @@ void __stdcall OpenGeneratorDialog(Unit* unit)
     char name[256];
     sprintf(name, "%sGEN.GUI",
             g_game->sideNames[g_game->players[g_game->localPlayer].info->playerIndex].name);
-    Layer* gadget = LoadGuiLayer(&g_game->menu, name, 0);
+    Layer* gadget = LoadGuiLayer(&g_game->gui, name, 0);
     if (gadget != 0) {
         gadget->handler = HandleBuildPanelClick;
         gadget->data = 0;
         RefreshOrderButtons(unit);
-        RenderLayer(&g_game->menu, 0x40);
+        RenderLayer(&g_game->gui, 0x40);
         if (unit != 0) {
             g_game->unitIndex = unit->id;
             g_game->unitDefIndex = unit->unitDefIndex;
@@ -1302,8 +1302,8 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
         if (target->player->active != 0
             && (target->player->type == 1 || target->player->type == 2)) {
             if (target->flags.raw & 0x20000000) {
-                if (IsScreenNamed(&g_game->menu, "BUILDER.GUI"))
-                    MarkChanged(&g_game->menu);
+                if (IsScreenNamed(&g_game->gui, "BUILDER.GUI"))
+                    MarkChanged(&g_game->gui);
             } else {
                 if (target->carrier != 0)
                     AttachUnitToPiece(target, 0, -1, 1);
@@ -1312,7 +1312,7 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
         if (target->type->flags.bits.flag_18)
             target->SetStateBits(1, 1);
         if (g_game->unitIndex == unit->id)
-            RefreshBuildCountTexts(&g_game->menu, unit);
+            RefreshBuildCountTexts(&g_game->gui, unit);
         if (target->type->flags.bits.flag_24) {
             target->lastDamageType = 7;
             target->flags.raw |= 0x4000;
@@ -1508,7 +1508,7 @@ void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit)
     unsigned short val1 = g->unitIndex;
     unsigned short val2 = unit->id;
     if (val1 == val2) {
-        RefreshBuildCountTexts(&g->menu, unit);
+        RefreshBuildCountTexts(&g->gui, unit);
     }
 }
 
@@ -1565,16 +1565,16 @@ void DispatchOrdersPanelPageFlags()
 void ResetCameraState()
 {
     char saved = g_game->scrollSpeed;
-    memset(&g_game->followUnit, 0, 0x5c);
+    memset(&g_game->cameraFollowUnit, 0, 0x5c);
     g_game->scrollSpeed = saved;
 }
 
 // FUNCTION: 0x41c2e0
 void __stdcall CycleCameraFollow(int param)
 {
-    Unit* val = g_game->followUnit;
+    Unit* val = g_game->cameraFollowUnit;
     Unit* result = FindNextSelectedUnit(val, param);
-    g_game->followUnit = result;
+    g_game->cameraFollowUnit = result;
 }
 
 // Returns the bit set of the unit types in the named category.
@@ -1593,7 +1593,7 @@ void FindLocalCommander()
     unsigned int* set = GetCategoryMask("Commander");
     for (Unit* u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if (TestBit(set, u->unitDefIndex)) {
-            g_game->followUnit = u;
+            g_game->cameraFollowUnit = u;
         }
     }
 }
@@ -1602,8 +1602,8 @@ void FindLocalCommander()
 void __cdecl ClearCameraFollowState()
 {
     g_game->value_1434b = 0;
-    g_game->followUnit = 0;
-    g_game->follow = 0;
+    g_game->cameraFollowUnit = 0;
+    g_game->cameraFollowTrackObj = 0;
 }
 
 // The original calls this out of line from the camera functions.
@@ -1611,8 +1611,8 @@ void __cdecl ClearCameraFollowState()
 // FUNCTION: 0x41c3c0
 void ClampCameraPosition()
 {
-    int maxX = g_game->mapWidth - g_game->viewWidth;
-    int maxY = g_game->mapHeight - g_game->viewHeight;
+    int maxX = g_game->mapPixelWidth - g_game->viewWidth;
+    int maxY = g_game->mapPixelHeight - g_game->viewHeight;
     if (g_game->scrollX < 0) {
         g_game->scrollX = 0;
     } else if (g_game->scrollX > maxX) {
@@ -1631,8 +1631,8 @@ void ClampCameraPosition()
 // FUNCTION: 0x41c450
 void ClampCameraTarget()
 {
-    int maxX = g_game->mapWidth - g_game->viewWidth;
-    int maxY = g_game->mapHeight - g_game->viewHeight;
+    int maxX = g_game->mapPixelWidth - g_game->viewWidth;
+    int maxY = g_game->mapPixelHeight - g_game->viewHeight;
     if (g_game->x2 < 0) {
         g_game->x2 = 0;
     } else if (g_game->x2 > maxX) {
@@ -1651,8 +1651,8 @@ void __stdcall SetCameraPosition(int x, int y, int instant)
     if (instant != 0) {
         g_game->x2 = x;
         g_game->y2 = y;
-        int maxX = g_game->mapWidth - g_game->viewWidth;
-        int maxY = g_game->mapHeight - g_game->viewHeight;
+        int maxX = g_game->mapPixelWidth - g_game->viewWidth;
+        int maxY = g_game->mapPixelHeight - g_game->viewHeight;
         if (g_game->x2 < 0) {
             g_game->x2 = 0;
         } else if (g_game->x2 > maxX) {
@@ -1740,8 +1740,8 @@ void __stdcall CenterCameraOnPoint(int a, int b, int c)
     if (c != 0) {
         g_game->x2 = cx;
         g_game->y2 = cy;
-        int maxX = g_game->mapWidth - g_game->viewWidth;
-        int maxY = g_game->mapHeight - g_game->viewHeight;
+        int maxX = g_game->mapPixelWidth - g_game->viewWidth;
+        int maxY = g_game->mapPixelHeight - g_game->viewHeight;
         if (g_game->x2 < 0) {
             g_game->x2 = 0;
         } else if (g_game->x2 > maxX) {
@@ -1771,8 +1771,8 @@ void __stdcall CenterCameraOnMapPosition(Vec3* p, int param_2)
     if (param_2 != 0) {
         g_game->x2 = cx;
         g_game->y2 = cy;
-        int maxX = g_game->mapWidth - g_game->viewWidth;
-        int maxY = g_game->mapHeight - g_game->viewHeight;
+        int maxX = g_game->mapPixelWidth - g_game->viewWidth;
+        int maxY = g_game->mapPixelHeight - g_game->viewHeight;
         if (g_game->x2 < 0) {
             g_game->x2 = 0;
         } else if (g_game->x2 > maxX) {
@@ -1803,8 +1803,8 @@ static inline void SetTarget(int x, int y)
 
 static inline void ClampTarget()
 {
-    int maxX = g_game->mapWidth - g_game->viewWidth;
-    int maxY = g_game->mapHeight - g_game->viewHeight;
+    int maxX = g_game->mapPixelWidth - g_game->viewWidth;
+    int maxY = g_game->mapPixelHeight - g_game->viewHeight;
     if (g_game->x2 < 0) {
         g_game->x2 = 0;
     } else if (g_game->x2 > maxX) {
@@ -1845,15 +1845,15 @@ void UpdateCameraFollow()
     if (g_game->value_1434b != 0) {
         g_game->value_1434b--;
         p = &g_game->jump;
-    } else if (g_game->follow != 0) {
-        p = &g_game->follow->pos;
-    } else if (g_game->followUnit != 0) {
-        if (g_game->followUnit->flags.raw & 0x10000000) {
-            p = &g_game->followUnit->pos;
+    } else if (g_game->cameraFollowTrackObj != 0) {
+        p = &g_game->cameraFollowTrackObj->pos;
+    } else if (g_game->cameraFollowUnit != 0) {
+        if (g_game->cameraFollowUnit->flags.raw & 0x10000000) {
+            p = &g_game->cameraFollowUnit->pos;
         } else {
             g_game->value_1434b = 0;
-            g_game->followUnit = 0;
-            g_game->follow = 0;
+            g_game->cameraFollowUnit = 0;
+            g_game->cameraFollowTrackObj = 0;
         }
     }
     if (p != 0) {
@@ -1880,8 +1880,8 @@ void UpdateCameraFollow()
 void BeginMouseScroll()
 {
     g_game->value_1434b = 0;
-    g_game->followUnit = 0;
-    g_game->follow = 0;
+    g_game->cameraFollowUnit = 0;
+    g_game->cameraFollowTrackObj = 0;
     HideSoftwareCursor();
     CursorState* cursor = &g_game->cursor;
     cursor->flag = 1;
@@ -1989,7 +1989,7 @@ void UpdateEdgeScroll()
         if (mouse.y >= h)
             mouse.y = h - 1;
     }
-    int talk = IsScreenNamed(&g_game->menu, "TALK.GUI");
+    int talk = IsScreenNamed(&g_game->gui, "TALK.GUI");
     int x = g_game->scrollX;
     int y = g_game->scrollY;
     if ((IsKeyDown(0xf4) && !talk) || (mouse.x == 0 && mouse.y < g_game->height))
@@ -2009,7 +2009,7 @@ void UpdateEdgeScroll()
         g_game->y2 = g_game->scrollY;
         g_game->mapFlags &= 0xfff7;
         g_game->value_1434b = 0;
-        g_game->followUnit = 0;
-        g_game->follow = 0;
+        g_game->cameraFollowUnit = 0;
+        g_game->cameraFollowTrackObj = 0;
     }
 }

@@ -537,12 +537,12 @@ struct Game {
     char unknown_1[0x2a43 - 0x287c];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2[0x14223 - 0x2a44];
-    int baseX;                         // +0x14223
-    int baseY;                         // +0x14227
-    int mapWidth;                      // +0x1422b
-    int mapHeight;                     // +0x1422f
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthWorld;                 // +0x14223
+    int mapHeightWorld;                // +0x14227
+    int mapPixelWidth;                 // +0x1422b
+    int mapPixelHeight;                // +0x1422f
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_6[0x1426f - 0x1423b];
     Feature* features;                 // +0x1426f
     unsigned short* visibilityMask;    // +0x14273
@@ -1188,7 +1188,7 @@ void SquadScoutTimer::OnTimer()
             group->Send(9, 1, 0, &target->pos, 0, 0);
         } else {
             int n = RandomInt(2) + 2;
-            int w = g_game->baseX / 8, h = g_game->baseY / 8;
+            int w = g_game->mapWidthWorld / 8, h = g_game->mapHeightWorld / 8;
             for (int i = 0; i < n; i++) {
                 // dx and dz stay named: the sum then lands in pos's register.
                 int dx = (RandomInt(w) - w / 2) << 16;
@@ -1205,11 +1205,11 @@ void SquadScoutTimer::OnTimer()
     } else {
         dest.y = 0;
         if (RandomInt(2)) {
-            dest.x = RandomInt(g_game->baseX) << 16;
-            dest.z = (RandomInt(2) ? MakeFixed(0) : MakeFixed(g_game->baseY - 1)).value;
+            dest.x = RandomInt(g_game->mapWidthWorld) << 16;
+            dest.z = (RandomInt(2) ? MakeFixed(0) : MakeFixed(g_game->mapHeightWorld - 1)).value;
         } else {
-            dest.x = (RandomInt(2) ? MakeFixed(0) : MakeFixed(g_game->baseX - 1)).value;
-            dest.z = RandomInt(g_game->baseY) << 16;
+            dest.x = (RandomInt(2) ? MakeFixed(0) : MakeFixed(g_game->mapWidthWorld - 1)).value;
+            dest.z = RandomInt(g_game->mapHeightWorld) << 16;
         }
         group->Send(9, 0, 0, &dest, 0, 0);
     }
@@ -1421,7 +1421,7 @@ void SquadManager::DeleteTimers()
 // FUNCTION: 0x409160
 PlayerAI::PlayerAI(unsigned char p)
     : owner(&g_game->players[p]), index(p),
-      center(g_game->width / 2, g_game->height / 2), builders(0)
+      center(g_game->mapWidthTiles / 2, g_game->mapHeightTiles / 2), builders(0)
 {
     lastTick = 0;
     searchRadius = 0;
@@ -1745,8 +1745,8 @@ bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Poin
 void PlayerAI::BuildFeatureCells()
 {
     cells.clear();
-    int w = g_game->width;
-    for (int y = 0; y < g_game->height; y++) {
+    int w = g_game->mapWidthTiles;
+    for (int y = 0; y < g_game->mapHeightTiles; y++) {
         Cell* row = GetMapCell(0, y);
         for (int x = 0; x < w; x++) {
             if (row[x].feature < 0xfffb) {
@@ -1914,10 +1914,10 @@ void __stdcall GetBasePosition(int index, Struct_0040ba80* out)
 // FUNCTION: 0x40bab0
 void __stdcall GetMirroredBasePosition(int index, int unused, Struct_0040bab0* out)
 {
-    out->a = (g_game->baseX << 16) -
+    out->a = (g_game->mapWidthWorld << 16) -
              ((Struct_0040bab0*)((char*)g_playerAI[index] + 0x35))->a;
     out->b = 0;
-    out->c = (g_game->baseX << 16) -
+    out->c = (g_game->mapWidthWorld << 16) -
              ((Struct_0040bab0*)((char*)g_playerAI[index] + 0x35))->c;
 }
 
@@ -2005,7 +2005,7 @@ Vec3_0040beb0 __stdcall MoveToward(const Vec3_0040beb0* from, const Vec3_0040beb
 int __stdcall FindBuildPosition(int player, const Vec3* from, UnitDef* type, Vec3* out)
 {
     PlayerAI* ai=g_playerAI[player];
-    int maximum=g_game->baseX > g_game->baseY ? g_game->baseX : g_game->baseY;
+    int maximum=g_game->mapWidthWorld > g_game->mapHeightWorld ? g_game->mapWidthWorld : g_game->mapHeightWorld;
     if (ai->searchRadius<maximum) ai->searchRadius+=160;
     Vec3 pos=MoveTowards(from,(const Vec3*)&ai->centre,ai->searchRadius<<16);
     Point16 cell;

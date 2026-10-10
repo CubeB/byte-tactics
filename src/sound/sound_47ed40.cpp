@@ -113,10 +113,10 @@ struct Game {
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14233 - 0x2a44];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
-    int screenTilesX;                  // +0x1423b
-    int screenTilesY;                  // +0x1423f
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
+    int viewWidthTiles;                // +0x1423b
+    int viewHeightTiles;               // +0x1423f
     char unknown_14243[0x14273 - 0x14243];
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x14281 - 0x14277];
@@ -514,19 +514,19 @@ int __stdcall PlaySoundAt(int index, Pos_0047f300* pos, int param_3)
     if (vis != 0) {
         if (g_game->sound->Is3DEnabled()) {
             Vector3_0047f300 p;
-            p.x = pos->x - g_game->scrollX - (g_game->screenTilesX / 2) * 16;
-            p.z = g_game->scrollY + (g_game->screenTilesY / 2) * 16
+            p.x = pos->x - g_game->scrollX - (g_game->viewWidthTiles / 2) * 16;
+            p.z = g_game->scrollY + (g_game->viewHeightTiles / 2) * 16
                 + (pos->y >> 1) - pos->z;
             // p.z is written before p.y: the store order follows the original.
             p.y = 0;
             g_game->sound->Set3DDistances(
-                (float)(((g_game->screenTilesX + g_game->screenTilesY) / 2) * 16),
-                (float)((g_game->width + g_game->height) * 16));
+                (float)(((g_game->viewWidthTiles + g_game->viewHeightTiles) / 2) * 16),
+                (float)((g_game->mapWidthTiles + g_game->mapHeightTiles) * 16));
             return g_game->sound->PlaySampleSet(sound, -585, &p);
         } else {
             if (g_game->scrollX > pos->x || g_game->scrollY > pos->z
-                || g_game->scrollX + g_game->screenTilesX * 16 < pos->x
-                || g_game->scrollY + g_game->screenTilesY * 16 < pos->z)
+                || g_game->scrollX + g_game->viewWidthTiles * 16 < pos->x
+                || g_game->scrollY + g_game->viewHeightTiles * 16 < pos->z)
                 return g_game->sound->PlaySampleSet(sound, -1585, 0);
             return g_game->sound->PlaySampleSet(sound, -585, 0);
         }

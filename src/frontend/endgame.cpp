@@ -243,10 +243,10 @@ struct Game {
     unsigned short flag4 : 1;          // +0x2bee, bit 4
     unsigned short bits5 : 11;
     char unknown_2bf0[0x2c7e - 0x2bf0];
-    int advance;                       // +0x2c7e
+    int cursorKeyFlags;                // +0x2c7e
     char unknown_2c82[0x1428f - 0x2c82];
-    Grid grid_1428f;                   // +0x1428f
-    Grid grid_1429f;                   // +0x1429f
+    Grid losHalfResHeightBand;         // +0x1428f
+    Grid spatialGrid;                  // +0x1429f
     int field_142af;                   // +0x142af
     int field_142b3;                   // +0x142b3
     char unknown_142b7[0x14813 - 0x142b7];
@@ -1141,7 +1141,7 @@ void __stdcall RunEndGameState()
             if(!g_endGameGlamourSoundStarted) { StartGlamourSound(); g_endGameGlamourSoundStarted=1; }
             if(g_game->deadline<GetTicks()) {
                 GetCurrentMouseEvent(event);
-                if(PopKey() || g_game->advance) {
+                if(PopKey() || g_game->cursorKeyFlags) {
                     g_game->sound->StopStream();
                     OpenEndMissionScreen(); EnableEndMissionButtons(); FillEndGameStatistics();
                     MarkLayerChanged(&g_game->gui); MarkChanged(&g_game->gui);

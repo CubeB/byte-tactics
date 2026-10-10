@@ -267,17 +267,17 @@ struct Game {
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x141fb - 0x2a44];
-    int* sortUnits;                    // +0x141fb
+    int* sortUnitList;                 // +0x141fb
     int* sortIndices;                  // +0x141ff
     int* sortLineCount;                // +0x14203
     char unknown_14207[0x1421f - 0x14207];
     Grid* grid;                        // +0x1421f
-    int baseX;                         // +0x14223, map size in x
-    int baseY;                         // +0x14227, map size in y
-    int mapWidth;                      // +0x1422b
-    int mapHeight;                     // +0x1422f
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthWorld;                 // +0x14223, map size in x
+    int mapHeightWorld;                // +0x14227, map size in y
+    int mapPixelWidth;                 // +0x1422b
+    int mapPixelHeight;                // +0x1422f
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x1426b - 0x1423b];
     void* radarFrame;                  // +0x1426b
     char unknown_1426f[0x14273 - 0x1426f];
@@ -288,10 +288,10 @@ struct Game {
     unsigned char debugMode;
     Flags_14281 mapFlags;              // +0x14281
     IconSet* iconSet;                  // +0x14283
-    Cell* cells;                       // +0x14287
+    Cell* heightMap;                   // +0x14287
     unsigned short* mapValues;         // +0x1428b
-    Grid grid1;                        // +0x1428f
-    Grid2 grid2;                       // +0x1429f
+    Grid losHalfResHeightBand;         // +0x1428f
+    Grid2 spatialGrid;                 // +0x1429f
     Rec* overflowBucket;               // +0x142b7
     char unknown_142bb[0x142f1 - 0x142bb];
     Flags_142f1 viewDirtyFlags;        // +0x142f1
@@ -413,8 +413,8 @@ static inline Point MakePoint(int x, int y)
 
 static inline Cell* GetCell(int x, int y)
 {
-    if (x >= 0 && x < g_game->width && y >= 0 && y < g_game->height)
-        return &g_game->cells[y * g_game->width + x];
+    if (x >= 0 && x < g_game->mapWidthTiles && y >= 0 && y < g_game->mapHeightTiles)
+        return &g_game->heightMap[y * g_game->mapWidthTiles + x];
     return 0;
 }
 
@@ -422,8 +422,8 @@ static inline Cell* GetCell(int x, int y)
 // the caller keeps in parallel with the cell row `y`.
 static inline Cell* GetCellPixel(int x, int y, int py)
 {
-    if (x >= 0 && x < g_game->width && py >= 0 && y < g_game->height)
-        return &g_game->cells[y * g_game->width + x];
+    if (x >= 0 && x < g_game->mapWidthTiles && py >= 0 && y < g_game->mapHeightTiles)
+        return &g_game->heightMap[y * g_game->mapWidthTiles + x];
     return 0;
 }
 
@@ -470,8 +470,8 @@ void FreeEyeballs()
 // FUNCTION: 0x481550
 Cell* __stdcall GetMapCell(int x, int y)
 {
-    if (x >= 0 && x < g_game->width && y >= 0 && y < g_game->height)
-        return &g_game->cells[y * g_game->width + x];
+    if (x >= 0 && x < g_game->mapWidthTiles && y >= 0 && y < g_game->mapHeightTiles)
+        return &g_game->heightMap[y * g_game->mapWidthTiles + x];
     return 0;
 }
 
@@ -480,8 +480,8 @@ Cell* __stdcall GetMapCellAtPosition(Vec3* pos)
 {
     int x = pos->x >> 20;
     int y = pos->z >> 20;
-    if (x >= 0 && x < g_game->width && y >= 0 && y < g_game->height)
-        return &g_game->cells[y * g_game->width + x];
+    if (x >= 0 && x < g_game->mapWidthTiles && y >= 0 && y < g_game->mapHeightTiles)
+        return &g_game->heightMap[y * g_game->mapWidthTiles + x];
     return 0;
 }
 
@@ -490,17 +490,17 @@ Cell* __stdcall GetOriginCellAtPosition(Vec3* pos)
 {
     int x = pos->x >> 20;
     int z = pos->z >> 20;
-    if (x < 0 || x >= g_game->width || z < 0 || z >= g_game->height)
+    if (x < 0 || x >= g_game->mapWidthTiles || z < 0 || z >= g_game->mapHeightTiles)
         return 0;
-    Cell* cell = &g_game->cells[z * g_game->width + x];
+    Cell* cell = &g_game->heightMap[z * g_game->mapWidthTiles + x];
     if (cell->feature == 0xfffe)
     {
         x -= cell->sf.offsetX;
         z -= cell->sf.offsetY;
-        if (x < 0 || x >= g_game->width || z < 0 || z >= g_game->height)
+        if (x < 0 || x >= g_game->mapWidthTiles || z < 0 || z >= g_game->mapHeightTiles)
             cell = 0;
         else
-            cell = &g_game->cells[z * g_game->width + x];
+            cell = &g_game->heightMap[z * g_game->mapWidthTiles + x];
     }
     return cell;
 }
@@ -575,7 +575,7 @@ void __stdcall UpdateLineOfSight(SightQuery* params)
             }
             params->cacheCell[0] = (short)x;
             params->cacheCell[1] = (short)y;
-            if ((unsigned)x >= g_game->grid1.width || (unsigned)y >= g_game->grid1.height) {
+            if ((unsigned)x >= g_game->losHalfResHeightBand.width || (unsigned)y >= g_game->losHalfResHeightBand.height) {
                 *params->frameIdx = 0;
                 return;
             }
@@ -676,9 +676,9 @@ void BuildDerivedLayers(void)
     g_game->overflowBucket = rec;
     g_game->overflowBucket->flags = 0x1f;
 
-    Grid2* grid2 = &g_game->grid2;
-    int b = g_game->baseY * 0x10000;
-    int a = g_game->baseX * 0x10000;
+    Grid2* grid2 = &g_game->spatialGrid;
+    int b = g_game->mapHeightWorld * 0x10000;
+    int a = g_game->mapWidthWorld * 0x10000;
     grid2->heightFixed = b;
     grid2->widthFixed = a;
     int w2;
@@ -694,7 +694,7 @@ void BuildDerivedLayers(void)
     grid2->cells = count2 != 0 ? (FogCell*)new Rec[count2] : 0;
     int outer;
     unsigned char* cells2 = (unsigned char*)grid2->cells;
-    unsigned char* cellp = (unsigned char*)g_game->cells;
+    unsigned char* cellp = (unsigned char*)g_game->heightMap;
     int inner;
     int accum;
 
@@ -713,9 +713,9 @@ void BuildDerivedLayers(void)
         ((unsigned char*)grid2->cells)[d * 10] = g_game->seaLevel;
 
     {
-        for (int y = 0; y < g_game->height; y++) {
+        for (int y = 0; y < g_game->mapHeightTiles; y++) {
             unsigned char* recp = cells2;
-            for (int x = 0; x < g_game->width; x++, cellp += 0xd) {
+            for (int x = 0; x < g_game->mapWidthTiles; x++, cellp += 0xd) {
                 if (cellp[5] > recp[0])
                     recp[0] = cellp[5];
                 if ((x & 7) == 7)
@@ -756,11 +756,11 @@ void BuildDerivedLayers(void)
         p[1] = prev;
     }
 
-    Grid* grid1 = &g_game->grid1;
+    Grid* grid1 = &g_game->losHalfResHeightBand;
     // Declared apart from the assignments: decides which register each takes.
     int w1, h1;
-    h1 = g_game->height / 2;
-    w1 = g_game->width / 2;
+    h1 = g_game->mapHeightTiles / 2;
+    w1 = g_game->mapWidthTiles / 2;
 
     grid1->width = w1;
     grid1->height = h1;
@@ -773,18 +773,18 @@ void BuildDerivedLayers(void)
         ((unsigned char*)grid1->cells)[hf * 2 + 1] = 0xff;
     }
 
-    for (outer = 0; outer < g_game->width; outer++) {
+    for (outer = 0; outer < g_game->mapWidthTiles; outer++) {
         int t20 = (outer - 1) >> 1;
         int t24 = outer >> 1;
         unsigned char* p1 = 0;
         unsigned char* p2 = 0;
         inner = 0;
         // Guarded do-while: sinks the accum = 0 store below the guard.
-        if (inner < g_game->height) {
+        if (inner < g_game->mapHeightTiles) {
             accum = 0;
             do {
-                int idx = g_game->width * inner + outer;
-                int cellval = ((unsigned char*)g_game->cells)[idx * 0xd + 4];
+                int idx = g_game->mapWidthTiles * inner + outer;
+                int cellval = ((unsigned char*)g_game->heightMap)[idx * 0xd + 4];
                 int v = accum - (cellval >> 1);
                 int block = v >> 5;
                 if (block > -1) {
@@ -825,7 +825,7 @@ void BuildDerivedLayers(void)
                 }
                 inner++;
                 accum += 0x10;
-            } while (inner < g_game->height);
+            } while (inner < g_game->mapHeightTiles);
         }
     }
 
@@ -848,8 +848,8 @@ void BuildDerivedLayers(void)
 // FUNCTION: 0x483210
 void __stdcall UpdateCellHeightRange(Point pos, Point size)
 {
-    int width = g_game->width;
-    int height = g_game->height;
+    int width = g_game->mapWidthTiles;
+    int height = g_game->mapHeightTiles;
     int xmax = SumX(pos, size);
     int ymax = SumY(pos, size);
     if (pos.x < 0)
@@ -866,7 +866,7 @@ void __stdcall UpdateCellHeightRange(Point pos, Point size)
         return;
     int col, row;
     for (row = pos.y; row < ymax; row++) {
-        Cell* c = &g_game->cells[row * width + pos.x];
+        Cell* c = &g_game->heightMap[row * width + pos.x];
         for (col = pos.x; col < xmax; col++, c++) {
             unsigned char lo = c->height;
             unsigned char hi = c->height;
@@ -900,23 +900,23 @@ void __stdcall UpdateCellHeightRange(Point pos, Point size)
 // FUNCTION: 0x483370
 void UpdateAllCellHeightRanges()
 {
-    UpdateCellHeightRange(MakePoint(0, 0), MakePoint(g_game->width, g_game->height));
+    UpdateCellHeightRange(MakePoint(0, 0), MakePoint(g_game->mapWidthTiles, g_game->mapHeightTiles));
 }
 
 // FUNCTION: 0x4833b0
 void ClearBorderFeatures()
 {
-    g_game->mapWidth = g_game->baseX - 0x20;
-    g_game->mapHeight = g_game->baseY - 0x80;
+    g_game->mapPixelWidth = g_game->mapWidthWorld - 0x20;
+    g_game->mapPixelHeight = g_game->mapHeightWorld - 0x80;
 
-    int col = g_game->width - 2;
-    for (int row = 0; row < g_game->height; row++) {
+    int col = g_game->mapWidthTiles - 2;
+    for (int row = 0; row < g_game->mapHeightTiles; row++) {
         Cell* c = GetCell(col, row);
         ClearFeature(c);
         ClearFeature(c + 1);
     }
 
-    for (int x = 0; x < g_game->width; x++) {
+    for (int x = 0; x < g_game->mapWidthTiles; x++) {
         int y = 0;
         int y16 = 0;
         for (;; y++, y16 += 16) {
@@ -927,21 +927,21 @@ void ClearBorderFeatures()
         }
     }
 
-    for (int x2 = 0; x2 < g_game->width; x2++) {
-        int y2 = g_game->height - 1;
+    for (int x2 = 0; x2 < g_game->mapWidthTiles; x2++) {
+        int y2 = g_game->mapHeightTiles - 1;
         int y16b = y2 * 16;
         for (;; y2--, y16b -= 16) {
             Cell* c = GetCell(x2, y2);
-            if (y16b - (c->height >> 1) <= g_game->mapHeight)
+            if (y16b - (c->height >> 1) <= g_game->mapPixelHeight)
                 break;
-            Cell* prev = c - g_game->width;
+            Cell* prev = c - g_game->mapWidthTiles;
             ClearFeature(prev);
         }
     }
 
     if (g_game->net->lavaWorld != 0) {
-        Cell* c = g_game->cells;
-        Cell* end = c + g_game->width * g_game->height;
+        Cell* c = g_game->heightMap;
+        Cell* end = c + g_game->mapWidthTiles * g_game->mapHeightTiles;
         while (c < end) {
             if (c->low <= g_game->seaLevel)
                 ClearFeature(c);
@@ -1217,8 +1217,8 @@ void LoadTntMap()
     g_game->mapFlags.raw &= 0xfff7;
     b.p.x = 0;
     b.p.y = 0;
-    a.p.x = (short)g_game->width;
-    a.p.y = (short)g_game->height;
+    a.p.x = (short)g_game->mapWidthTiles;
+    a.p.y = (short)g_game->mapHeightTiles;
     UpdateCellHeightRange(b.p, a.p);
     // REGION r4 end
 
@@ -1256,17 +1256,17 @@ void FreeMapResources()
     }
     GameFreeThunk(g_game->sortLineCount);
     GameFreeThunk(g_game->sortIndices);
-    GameFreeThunk(g_game->sortUnits);
+    GameFreeThunk(g_game->sortUnitList);
     GameFreeThunk(g_game->iconSet);
     GameFreeThunk(g_game->visibilityMask);
-    GameFreeThunk(g_game->cells);
+    GameFreeThunk(g_game->heightMap);
     GameFreeThunk(g_game->mapValues);
     g_game->sortLineCount = 0;
     g_game->sortIndices = 0;
-    g_game->sortUnits = 0;
+    g_game->sortUnitList = 0;
     g_game->iconSet = 0;
     g_game->visibilityMask = 0;
-    g_game->cells = 0;
+    g_game->heightMap = 0;
     g_game->mapValues = 0;
 
     void** p = (void**)g_game->grid;
@@ -1276,14 +1276,14 @@ void FreeMapResources()
     }
     g_game->grid = 0;
 
-    Grid* g1 = &g_game->grid1;
+    Grid* g1 = &g_game->losHalfResHeightBand;
     g1->width = 0;
     g1->height = 0;
     operator delete(g1->cells);
     g1->count = 0;
     g1->cells = 0;
 
-    Grid2* g2 = &g_game->grid2;
+    Grid2* g2 = &g_game->spatialGrid;
     g2->width = 0;
     g2->height = 0;
     operator delete(g2->cells);
@@ -1325,7 +1325,7 @@ void __stdcall DrawMapTiles(void* surface)
         tilesX++;
     if (edgeY != 0)
         tilesY++;
-    int stride = g_game->width / 2;
+    int stride = g_game->mapWidthTiles / 2;
     bmp.width = 32;
     bmp.height = 32;
     bmp.xOffset = 0;
@@ -1459,12 +1459,12 @@ void __stdcall ClampWorldPosToTerrain(int x, int y, Vec3* out)
 {
     if (x < 0)
         x = 0;
-    if (x >= g_game->baseX)
-        x = g_game->baseX - 1;
+    if (x >= g_game->mapWidthWorld)
+        x = g_game->mapWidthWorld - 1;
     if (y < 0)
         y = 0;
-    if (y >= g_game->baseY)
-        y = g_game->baseY - 1;
+    if (y >= g_game->mapHeightWorld)
+        y = g_game->mapHeightWorld - 1;
 
     Vec3 p;
     int s1;

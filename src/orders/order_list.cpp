@@ -280,7 +280,7 @@ struct Slot_0043a1f0 {
 
 struct Game {
     char unknown_0[0x14263];
-    int count2;                        // +0x14263
+    int gravity;                       // +0x14263
     char unknown_14267[0x1427f - 0x14267];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x142b7 - 0x14280];
@@ -1824,7 +1824,7 @@ void UnitMotion::ApplyBankAndPitch(Unit* owner, Vec3* v)
     xz[0] = p2.x;
     xz[1] = p2.z;
     FUN_004b7173(owner->heading, xz);
-    int n = (int)(((__int64)g_game->count2 << 16) / 0xccd);
+    int n = (int)(((__int64)g_game->gravity << 16) / 0xccd);
     owner->bank = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a2 * -xz[0]) >> 16), n);
     owner->pitch = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a6 * -xz[0]) >> 16), n);
 }

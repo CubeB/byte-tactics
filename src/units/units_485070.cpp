@@ -6,10 +6,10 @@
 
 struct Game {
     char unknown_0[0x14233];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x14287 - 0x1423b];
-    Cell* cells;                       // +0x14287
+    Cell* heightMap;                   // +0x14287
 };
 #pragma pack(pop)
 
@@ -35,13 +35,13 @@ int __stdcall GetGroundHeight(Pos_00485070* p)
     int zc = z >> 4;
     int xf = x & 15;
     int zf = z & 15;
-    if (xc < 0 || xc + 1 >= g_game->width || zc < 0 || zc + 1 >= g_game->height)
+    if (xc < 0 || xc + 1 >= g_game->mapWidthTiles || zc < 0 || zc + 1 >= g_game->mapHeightTiles)
         return -1;
-    Cell* c = &g_game->cells[zc * g_game->width + xc];
+    Cell* c = &g_game->heightMap[zc * g_game->mapWidthTiles + xc];
     int a = c->height;
     int b = c[1].height;
     // Advance the pointer instead of indexing c[width]: gives the original's address chain.
-    c += g_game->width;
+    c += g_game->mapWidthTiles;
     int e = c->height;
     int f = c[1].height;
     // Named local used inside the second expression: computed once, stays in ecx.

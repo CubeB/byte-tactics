@@ -38,9 +38,9 @@ struct UnitDef_0043db50 {
 struct Game {
     char unknown_0[0x2a42];
     unsigned char localPlayer;    // +0x2a42
-    unsigned char localPlayerBit; // +0x2a43
+    unsigned char playerIndex;    // +0x2a43
     char unknown_2a44[0x14233 - 0x2a44];
-    int mapWidth; // +0x14233
+    int mapWidthTiles;  // +0x14233
     char unknown_14237[0x14253 - 0x14237];
     int featureCount; // +0x14253
     char unknown_14257[0x1426f - 0x14257];
@@ -521,7 +521,7 @@ static inline int Visible(Unit_0043e490* unit, Pos_0043e490* pos) {
     x = pos->x >> 5;
     y = (pos->z - (pos->y >> 1)) >> 5;
     return (unsigned int)x < p->exploredWidth && (unsigned int)y < p->exploredHeight &&
-           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->exploredWidth]);
+           0 != ((1 << g_game->playerIndex) & g_game->visibilityMask[x + y * unit->player->exploredWidth]);
 }
 
 // The feature on a map cell, as GetFeature in 0x4237d0.cpp but with the id in
@@ -538,7 +538,7 @@ static inline Feature_0043e490* GetFeature(Cell* cell) {
     }
     if (id != 0xfffe)
         return 0;
-    id = (cell - (cell->offsetY * g_game->mapWidth + cell->offsetX))->feature;
+    id = (cell - (cell->offsetY * g_game->mapWidthTiles + cell->offsetX))->feature;
     if (id >= 0xfffb)
         return 0;
     return &g_game->features[id];

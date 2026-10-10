@@ -224,8 +224,8 @@ struct Struct_Game391e9 {
 
 struct Game {
     char unknown_0[0x1422b];
-    int width;                         // +0x1422b
-    int height;                        // +0x1422f
+    int mapPixelWidth;                 // +0x1422b
+    int mapPixelHeight;                // +0x1422f
     char unknown_14233[0x1426f - 0x14233];
     Feature* features;                 // +0x1426f
     char unknown_14273[0x1427f - 0x14273];
@@ -650,8 +650,8 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
         return 5;
     if (unit->spatialBucket == g_game->overflowBucket) {
         Vec3 centre;
-        centre.x = g_game->width / 2 << 16;
-        centre.z = g_game->height / 2 << 16;
+        centre.x = g_game->mapPixelWidth / 2 << 16;
+        centre.z = g_game->mapPixelHeight / 2 << 16;
         short angle = GetHeadingBetween(&unit->pos, &centre);
         Vec3 dest = AddVec3(unit->pos, Offset(angle, 0x3200000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);

@@ -256,7 +256,7 @@ struct Player {
 
 // Note: Rule_0045f1d0 (24 bytes, startMetal at +0xc, startEnergy at +0x10)
 // and RuleSet_0045f1d0 (startType at +0x118) are the SAME memory: the exe
-// walks g_game->rules with a 24-byte stride for metal and energy but reads
+// walks g_game->options with a 24-byte stride for metal and energy but reads
 // startType from element 0, i.e. it ignores playerType for that field.
 struct RuleSet_0045f1d0 {              // +0x118 startType, read from element 0
     char unknown_0[0xc];
@@ -286,7 +286,7 @@ struct Game {
     char unknown_120f[0x1b63 - 0x120f];
     Player players[10];         // +0x1b63, the info pointer at +0x27
     char unknown_2851[0x29a0 - 0x2851];
-    RuleSet_0045f1d0* rules;           // +0x29a0
+    RuleSet_0045f1d0* options;         // +0x29a0
     char unknown_29a4[0x2a42 - 0x29a4];
     union {
         unsigned char localPlayer;     // +0x2a42
@@ -489,7 +489,7 @@ struct Object_0045ed50 {
     void (__stdcall* fn)(void* obj, int arg);   // +0x08
 };
 
-struct Rule_0045f1d0 {                 // 0x18 bytes, the record g_game->rules is
+struct Rule_0045f1d0 {                 // 0x18 bytes, the record g_game->options is
     char unknown_0[0xc];               //   walked with (stride 24)
     int startMetal;                    // +0xc
     int startEnergy;                   // +0x10
@@ -2267,7 +2267,7 @@ void ShowGameSettingsDialog()
     index &= 0xff;
     char num[0x40];
     Opts_0045f1d0* opts = g_game->players[index].info;
-    Rule_0045f1d0* rule = &((Rule_0045f1d0*)g_game->rules)[g_game->playerType];
+    Rule_0045f1d0* rule = &((Rule_0045f1d0*)g_game->options)[g_game->playerType];
     char* deathStrs[3] = { "Game Continues", "Game Ends", "Deathmatch" };
     char* locStrs[2] = { "Random", "Fixed" };
     char* mapStrs[2] = { "Mapped", "Unmapped" };
@@ -2280,7 +2280,7 @@ void ShowGameSettingsDialog()
                  0x5a, 0x78, 2);
     AddTextGadget(layer, "TEXT", Translate("Starting Locations:"), 0x12, 0x6c, 0x6e, 2);
     if (g_game->mode->GetGameType() == 2) {
-        AddTextGadget(layer, "TEXT", Translate(locStrs[g_game->rules->startType]), 0x8c,
+        AddTextGadget(layer, "TEXT", Translate(locStrs[g_game->options->startType]), 0x8c,
                      0x6c, 0x78, 2);
     } else {
         AddTextGadget(layer, "TEXT", Translate(locStrs[opts->u.b.b14]), 0x8c, 0x6c,

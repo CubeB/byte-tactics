@@ -30,7 +30,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];       // +0x1b63
     char unknown_2851[0x2a38 - 0x2851];
-    unsigned char* buffer;             // +0x2a38
+    unsigned char* recvPacketPtr;      // +0x2a38
     char unknown_2a3c[0x391e9 - 0x2a3c];
     Mission* net;                      // +0x391e9
 };
@@ -147,7 +147,7 @@ int __stdcall SetAlliance(int from, int to, unsigned char value, int extra)
         }
         result = 1;
     } else if (IsType3_00452960(p2)) {
-        AllyFlagsPacket* msg = (AllyFlagsPacket*)g_game->buffer;
+        AllyFlagsPacket* msg = (AllyFlagsPacket*)g_game->recvPacketPtr;
         msg->allied = value;
         msg->type = 0x23;
         msg->fromNetId = from;

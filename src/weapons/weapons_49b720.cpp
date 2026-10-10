@@ -121,14 +121,14 @@ struct Net_0049b720 {
 
 struct Game {
     char unknown_0[0x141f3];
-    int projCount;                     // +0x141f3
-    Proj_0049b720* projs;              // +0x141f7
+    int projectileCount;               // +0x141f3
+    Proj_0049b720* projectiles;        // +0x141f7
     char unknown_141fb[0x14263 - 0x141fb];
     int gravity;                       // +0x14263
     char unknown_14267[0x1427f - 0x14267];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x142f7 - 0x14280];
-    Proj_0049b720* selected;           // +0x142f7
+    Proj_0049b720* cameraFollowTrackObj;  // +0x142f7
     char unknown_142fb[0x1433f - 0x142fb];
     Vec3_0049b720 lastPos;             // +0x1433f
     unsigned short lastSound;          // +0x1434b
@@ -165,8 +165,8 @@ int __cdecl FUN_004b7123(short angle, int scale);
 Proj_0049b720* AllocProjectile()
 {
     Proj_0049b720* p = 0;
-    if (g_game->projCount < 300) {
-        p = &g_game->projs[g_game->projCount++];
+    if (g_game->projectileCount < 300) {
+        p = &g_game->projectiles[g_game->projectileCount++];
         p->flags.dead = 0;
         p->f4e = 0;
     }
@@ -182,10 +182,10 @@ static inline void Fall(Vec3_0049b720* v)
 
 static inline void Remove(Proj_0049b720* p)
 {
-    if (p == g_game->selected) {
-        g_game->lastPos = g_game->selected->pos;
+    if (p == g_game->cameraFollowTrackObj) {
+        g_game->lastPos = g_game->cameraFollowTrackObj->pos;
         g_game->lastSound = p->type->deathSound;
-        g_game->selected = 0;
+        g_game->cameraFollowTrackObj = 0;
     }
     p->flags.dead = 1;
 }
@@ -195,9 +195,9 @@ static inline void Remove(Proj_0049b720* p)
 // FUNCTION: 0x49b720
 void UpdateProjectiles()
 {
-    int n = g_game->projCount;
+    int n = g_game->projectileCount;
     for (int i = 0; i < n; i++) {
-        Proj_0049b720* p = &g_game->projs[i];
+        Proj_0049b720* p = &g_game->projectiles[i];
         // type is read before oldY: orders the two spill stores.
         WeaponDef* type = p->type;
         int oldY = p->pos.yw.hi;

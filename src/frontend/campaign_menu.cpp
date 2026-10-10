@@ -146,7 +146,7 @@ struct Game {
     // MSVC 5 gives players[10] a total size 8 bytes larger than 10 * 0x14b,
     // so the pad below starts at 0x2878 and every later offset is right.
     char unknown_2878[0x29a0 - 0x2878];
-    Item* items;                       // +0x29a0
+    Item* options;                     // +0x29a0
     char unknown_29a4[0x2a42 - 0x29a4];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x2bc0 - 0x2a43];
@@ -1527,7 +1527,7 @@ int CountComputerSlots()
     int count = 0;
     int num_items = *(int*)((char*)g_game + 0x38d81);
     if (num_items > 0) {
-        Item* ptr = g_game->items;
+        Item* ptr = g_game->options;
         do {
             if (ptr->type == 2) {
                 count++;
@@ -1563,7 +1563,7 @@ int __cdecl CountHumanSlots()
 int FindOpenSlot()
 {
     for (int i = 0; i < g_game->itemCount; i++) {
-        if (g_game->items[i].id == 0) {
+        if (g_game->options[i].id == 0) {
             return i;
         }
     }
@@ -1577,7 +1577,7 @@ int AreAllSlotsEmpty()
     Game* g = g_game;
     int n = g->itemCount;
     if (n > 0) {
-        Item* p = g->items;
+        Item* p = g->options;
         do {
             if (p->flag != 0) {
                 result = 0;
@@ -1593,7 +1593,7 @@ int AreAllSlotsEmpty()
 int __stdcall IsColorTaken(int owner, int skip)
 {
     for (int i = 0; i < g_game->itemCount; i++) {
-        if (g_game->items[i].owner == owner && g_game->items[i].id != 0 && i != skip) {
+        if (g_game->options[i].owner == owner && g_game->options[i].id != 0 && i != skip) {
             return 1;
         }
     }
@@ -1606,7 +1606,7 @@ int FindFreeColor()
     for (int owner = 0; owner < 10; owner++) {
         int i;
         for (i = 0; i < g_game->itemCount; i++) {
-            if (g_game->items[i].owner == owner)
+            if (g_game->options[i].owner == owner)
                 break;
         }
         if (i == g_game->itemCount)
@@ -1620,7 +1620,7 @@ int __stdcall CountPlayersInAllyGroup(int owner)
 {
     int n = 0;
     for (int i = 0; i < g_game->itemCount; i++) {
-        if (g_game->items[i].allyGroup == owner && g_game->items[i].active != 0) {
+        if (g_game->options[i].allyGroup == owner && g_game->options[i].active != 0) {
             n++;
         }
     }

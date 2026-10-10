@@ -433,10 +433,10 @@ struct Game {
             };
             char unknown_1421f[0x14233 - 0x1421f];
             union {
-                int width;             // +0x14233
+                int mapWidthTiles;     // +0x14233
                 int mapWidth;
             };
-            int height;                // +0x14237
+            int mapHeightTiles;        // +0x14237
             char unknown_1423b[0x14253 - 0x1423b];
             union {
                 int featureCount;      // +0x14253
@@ -453,7 +453,7 @@ struct Game {
     char unknown_14273[0x1427f - 0x14273];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14287 - 0x14280];
-    Cell* cells;                       // +0x14287
+    Cell* heightMap;                   // +0x14287
     char unknown_1428b[0x1439b - 0x1428b];
     int unitDefs;                   // +0x1439b
     char unknown_1439f[0x37ecc - 0x1439f];
@@ -554,13 +554,13 @@ Vec3 __stdcall GetFootprintCentre(Point16* cell, Feature* def)
 // FUNCTION: 0x422040
 void StampFeatureMetal(void)
 {
-    Cell* c = g_game->cells;
-    for (int i = 0; i < g_game->width * g_game->height; i++, c++) {
+    Cell* c = g_game->heightMap;
+    for (int i = 0; i < g_game->mapWidthTiles * g_game->mapHeightTiles; i++, c++) {
         if (c->feature < 0xfffb) {
             Feature* f = &g_game->features[c->feature];
             if (f->value != 0.0f && (f->flags16 & 0x200)) {
-                int x0 = i % g_game->width;
-                int y0 = i / g_game->width;
+                int x0 = i % g_game->mapWidthTiles;
+                int y0 = i / g_game->mapWidthTiles;
                 for (int y = y0; y < y0 + f->footprintz; y++) {
                     for (int x = x0; x < x0 + f->footprintx; x++) {
                         Cell* cc = GetMapCell(x, y);
@@ -904,9 +904,9 @@ static inline Feature* GetFeature(Cell* cell)
     if (cell->feature != 0xfffe)
         return 0;
     // Full expression twice, no locals or `cell -=`; ends with the feature return.
-    if ((cell - (cell->offsetY * g_game->width + cell->offsetX))->feature >= 0xfffb)
+    if ((cell - (cell->offsetY * g_game->mapWidthTiles + cell->offsetX))->feature >= 0xfffb)
         return 0;
-    return &g_game->features[(cell - (cell->offsetY * g_game->width + cell->offsetX))->feature];
+    return &g_game->features[(cell - (cell->offsetY * g_game->mapWidthTiles + cell->offsetX))->feature];
 }
 
 // Takes the field by reference and the amount as a double; the metal add stays plain code.
@@ -1065,18 +1065,18 @@ Spot* __stdcall PlaceFeature(Cell* cell, unsigned short feature,
     }
     // Computed before the cell index.
     Feature* f = &g_game->features[feature];
-    int n = cell - g_game->cells;
-    int w = g_game->width;
+    int n = cell - g_game->heightMap;
+    int w = g_game->mapWidthTiles;
     Point16 at;
     at.x = n % w;
     at.z = n / w;
     if (at.x + f->footprint.x > w)
         return 0;
-    if (at.z + f->footprint.z > g_game->height)
+    if (at.z + f->footprint.z > g_game->mapHeightTiles)
         return 0;
     // Both footprint loops walk an explicit `c++` pointer, not `row[x]`.
     for (int z = 0; z < f->footprint.z; z++) {
-        Cell* c = &cell[z * g_game->width];
+        Cell* c = &cell[z * g_game->mapWidthTiles];
         for (int x = 0; x < f->footprint.x; x++, c++) {
             if (c->feature != 0xffff && !RemoveFeature(c, 0))
                 return 0;
@@ -1109,7 +1109,7 @@ Spot* __stdcall PlaceFeature(Cell* cell, unsigned short feature,
     }
     cell->owner = owner;
     for (int z2 = 0; z2 < f->footprint.z; z2++) {
-        Cell* c = &cell[z2 * g_game->width];
+        Cell* c = &cell[z2 * g_game->mapWidthTiles];
         for (int x = 0; x < f->footprint.x; x++, c++) {
             if (x != 0 || z2 != 0) {
                 c->feature = 0xfffe;
@@ -1127,10 +1127,10 @@ Spot* __stdcall PlaceFeature(Cell* cell, unsigned short feature,
             EmitTimedSubParticles(&p, 4);
         }
     }
-    int index = cell - g_game->cells;
+    int index = cell - g_game->heightMap;
     Point16 p2;
-    p2.x = index % g_game->width;
-    p2.z = index / g_game->width;
+    p2.x = index % g_game->mapWidthTiles;
+    p2.z = index / g_game->mapWidthTiles;
     RefreshAllPassMaps(p2, f->footprint);
     return spot;
 }
@@ -1184,8 +1184,8 @@ static inline SmokePos SmokeAt(Spot* spot, Feature* f)
 // debris moves under gravity until it lands (or sinks below sea level), burning
 // features puff smoke every third tick, burn down and spread fire
 // (SpreadFire), and finished animations are replaced by their remains.
-// Suspected original bug: the seed position's row is scanIndex / height
-// (+0x14237), not scanIndex / width, so on non-square maps the seed lands in
+// Suspected original bug: the seed position's row is scanIndex / mapHeightTiles
+// (+0x14237), not scanIndex / mapWidthTiles, so on non-square maps the seed lands in
 // the wrong row.
 // FUNCTION: 0x424050
 void __stdcall UpdateFeatures()
@@ -1198,14 +1198,14 @@ void __stdcall UpdateFeatures()
         }
     }
     if (--g_game->scanIndex < 0) {
-        g_game->scanIndex = g_game->width * g_game->height - 1;
+        g_game->scanIndex = g_game->mapWidthTiles * g_game->mapHeightTiles - 1;
     } else {
-        Cell* c = &g_game->cells[g_game->scanIndex];
+        Cell* c = &g_game->heightMap[g_game->scanIndex];
         if (c->feature < 0xfffb && !(c->flags & 1)) {
             Feature* f = &g_game->features[c->feature];
             if (RandomInt(100) < f->seedChance) {
-                int x = g_game->scanIndex % g_game->width;
-                int z = g_game->scanIndex / g_game->height;
+                int x = g_game->scanIndex % g_game->mapWidthTiles;
+                int z = g_game->scanIndex / g_game->mapHeightTiles;
                 x += RandomInt(f->seedSpread) - f->seedSpread / 2;
                 z += RandomInt(f->seedSpread) - f->seedSpread / 2;
                 Cell* t = GetMapCell(x, z);
@@ -1330,7 +1330,7 @@ static inline void ClearCell(Cell* c)
 int __stdcall RemoveFeature(Cell* cell, int flag)
 {
     if (cell->feature == 0xfffe)
-        cell -= cell->sf.offsetY * g_game->width + cell->sf.offsetX;
+        cell -= cell->sf.offsetY * g_game->mapWidthTiles + cell->sf.offsetX;
     if (cell->feature >= 0xfffb)
         return 0;
     Feature* f = &g_game->features[cell->feature];
@@ -1346,16 +1346,16 @@ int __stdcall RemoveFeature(Cell* cell, int flag)
     }
     ClearCell(cell);
     for (int y = 0; y < f->footprint.z; y++) {
-        Cell* row = &cell[y * g_game->width];
+        Cell* row = &cell[y * g_game->mapWidthTiles];
         for (int x = 0; x < f->footprint.x; x++) {
             if (row[x].feature == 0xfffe)
                 ClearCell(&row[x]);
         }
     }
-    int index = cell - g_game->cells;
+    int index = cell - g_game->heightMap;
     Point16 p;
-    p.x = index % g_game->width;
-    p.z = index / g_game->width;
+    p.x = index % g_game->mapWidthTiles;
+    p.z = index / g_game->mapWidthTiles;
     RefreshAllPassMaps(p, f->footprint);
     return 1;
 }
@@ -1363,9 +1363,9 @@ int __stdcall RemoveFeature(Cell* cell, int flag)
 // FUNCTION: 0x424840
 void RemoveAllFeatures(void)
 {
-    int n = g_game->width * g_game->height;
+    int n = g_game->mapWidthTiles * g_game->mapHeightTiles;
     for (int i = 0; i < n; i++) {
-        Cell* c = &g_game->cells[i];
+        Cell* c = &g_game->heightMap[i];
         if (c->feature < 0xfffb || c->feature == 0xfffe) {
             RemoveFeature(c, 1);
         }
@@ -1385,8 +1385,8 @@ void __stdcall SaveFeatures(HapiBank* file)
     file->WriteBox(names.begin(), g_game->featureCount * sizeof(FeatureName));
 
     // Declared before `end` and the counters, and walked by `for (; c < end; c++)`.
-    Cell* c = g_game->cells;
-    Cell* end = g_game->cells + g_game->width * g_game->height;
+    Cell* c = g_game->heightMap;
+    Cell* end = g_game->heightMap + g_game->mapWidthTiles * g_game->mapHeightTiles;
     int normalCount = 0;
     int modelCount = 0;
     int animCount = 0;
@@ -1444,7 +1444,7 @@ void __stdcall SaveFeatures(HapiBank* file)
         }
     next:
         x++;
-        if (x >= g_game->width) {
+        if (x >= g_game->mapWidthTiles) {
             x = 0;
             y++;
         }

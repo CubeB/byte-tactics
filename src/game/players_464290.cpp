@@ -158,35 +158,35 @@ struct Game {
     char unknown_0[0xc];
     Map* map;                          // +0x0c
     char unknown_10[0x519 - 0x10];
-    Menu menu;                         // +0x519
+    Menu gui;                          // +0x519
     char unknown_559[0x1a3f - 0x559];
     // Unused but must stay: the info pointer is addressed one slot below players.
     PlayerInfo* infos[11];             // +0x1a3f (addressing only, see above)
     char unknown_1a6b[0x1b63 - 0x1a6b];
     Player players[11];                // +0x1b63
     char unknown_299c[0x29a0 - 0x299c];
-    SkirmishPlayerSlot* slots;         // +0x29a0
+    SkirmishPlayerSlot* options;       // +0x29a0
     char unknown_29a4[0x2a3e - 0x29a4];
-    unsigned short tail;               // +0x2a3e
-    unsigned short head;               // +0x2a40
+    unsigned short chatHudWriteIdx;    // +0x2a3e
+    unsigned short chatHudReadIdx;     // +0x2a40
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x2c28 - 0x2a44];
-    int table_2c28[11];                // +0x2c28
+    int playerIds[11];                 // +0x2c28
     char unknown_2c54[0x14207 - 0x2c54];
     Pathfinder* pathfinder;            // +0x14207
     char unknown_1420b[0x14223 - 0x1420b];
-    int screen_x;                      // +0x14223
-    int screen_y;                      // +0x14227
+    int mapWidthWorld;                 // +0x14223
+    int mapHeightWorld;                // +0x14227
     char unknown_1422b[0x14233 - 0x1422b];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x1427f - 0x1423b];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14281 - 0x14280];
     unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142ef - 0x14283];
-    short blinkTimer;                  // +0x142ef
+    short minimapBlinkCounter;         // +0x142ef
     unsigned short blinkOn : 1;        // +0x142f1, bit 0
     unsigned short rest_142f1 : 15;
     char unknown_142f3[0x1439b - 0x142f3];
@@ -304,7 +304,7 @@ void ResetPlayerSlots()
 
     g_game->localPlayer = 0;
     g_game->playerIndex = 0;
-    memset(g_game->table_2c28, 0, 0x2c);
+    memset(g_game->playerIds, 0, 0x2c);
 
     p = &g_game->players[0];
     for (i = 0; i <= 10; i++, p++) {
@@ -341,8 +341,8 @@ void ResetPlayerSlots()
         p->info->bit5 = 0;
     }
 
-    g_game->tail = 0;
-    g_game->head = 0;
+    g_game->chatHudWriteIdx = 0;
+    g_game->chatHudReadIdx = 0;
 }
 
 void* __cdecl operator new(unsigned int size);
@@ -397,8 +397,8 @@ guard:
     p->unused_102 = p->unused_100 = -1;
     // w declared first: puts height/2 in edi and width/2 in ebx.
     int w, h;
-    h = g_game->height / 2;
-    w = g_game->width / 2;
+    h = g_game->mapHeightTiles / 2;
+    w = g_game->mapWidthTiles / 2;
     p->exploredWidth = w;
     p->exploredHeight = h;
     operator delete(p->buffer);
@@ -726,18 +726,18 @@ void __stdcall RenderLayer(Menu* menu, int value);
 // FUNCTION: 0x464e70
 void ShowContinueWatchingDialog()
 {
-    Screen* screen = LoadGuiLayer(&g_game->menu, g_yesNoGuiName, 0x900);
+    Screen* screen = LoadGuiLayer(&g_game->gui, g_yesNoGuiName, 0x900);
     if (screen) {
         Form* form;
-        SetKeyboardInput(&g_game->menu, 1);
+        SetKeyboardInput(&g_game->gui, 1);
         form = screen->form;
-        SetTranslatedTextByName(&g_game->menu, g_choice1GadgetName, g_yesText, 0);
-        SetTranslatedTextByName(&g_game->menu, g_choice2GadgetName, g_noText, 0);
-        SetTranslatedTextByName(&g_game->menu, g_titleGadgetName, g_continueWatchingTitle, 0);
+        SetTranslatedTextByName(&g_game->gui, g_choice1GadgetName, g_yesText, 0);
+        SetTranslatedTextByName(&g_game->gui, g_choice2GadgetName, g_noText, 0);
+        SetTranslatedTextByName(&g_game->gui, g_titleGadgetName, g_continueWatchingTitle, 0);
         strcpy(form->choice1, g_choice1GadgetName);
         strcpy(form->choice2, g_choice2GadgetName);
         screen->callback = ContinueWatchingCallback;
-        RenderLayer(&g_game->menu, 0x40);
+        RenderLayer(&g_game->gui, 0x40);
     }
 }
 
@@ -904,19 +904,19 @@ void __stdcall UpdatePlayers()
                             int typeOff = typeId * 0x249;
                             Vec3 pos;
                             do {
-                                int cx = g_game->screen_x / 10;
-                                int cy = g_game->screen_y / 10;
-                                pos.x = (RandomInt(g_game->screen_x - 2 * cx) + cx) << 16;
+                                int cx = g_game->mapWidthWorld / 10;
+                                int cy = g_game->mapHeightWorld / 10;
+                                pos.x = (RandomInt(g_game->mapWidthWorld - 2 * cx) + cx) << 16;
                                 pos.y = 0;
-                                pos.z = (RandomInt(g_game->screen_y - 2 * cy) + cy) << 16;
+                                pos.z = (RandomInt(g_game->mapHeightWorld - 2 * cy) + cy) << 16;
                                 // Declared in the order hh, hits, zacc, outer, hw: places the
                                 // `shl` where the original has it.
-                                int hh = g_game->height << 16;
+                                int hh = g_game->mapHeightTiles << 16;
                                 int hits = 0;
                                 unsigned int zacc =
                                     (unsigned int)pos.z - (unsigned int)hh;
                                 int outer = 3;
-                                int hw = g_game->width << 16;
+                                int hw = g_game->mapWidthTiles << 16;
                                 do {
                                     unsigned int xacc =
                                         (unsigned int)pos.x - (unsigned int)hw;
@@ -1036,24 +1036,24 @@ void __stdcall UpdatePlayers()
                     RecalculateLineOfSight(1);
                     BroadcastPlayerInfo();
                     if (CountActiveAIPlayers() == 0) {
-                        Screen* dlg = LoadGuiLayer(&g_game->menu, "YESORNO.GUI", 0x900);
+                        Screen* dlg = LoadGuiLayer(&g_game->gui, "YESORNO.GUI", 0x900);
                         if (dlg != 0) {
-                            SetKeyboardInput(&g_game->menu, 1);
+                            SetKeyboardInput(&g_game->gui, 1);
                             Form* w = dlg->form;
-                            SetTranslatedTextByName(&g_game->menu, "CHOICE1", "Yes", 0);
-                            SetTranslatedTextByName(&g_game->menu, "CHOICE2", "No", 0);
-                            SetTranslatedTextByName(&g_game->menu, "TITLE",
+                            SetTranslatedTextByName(&g_game->gui, "CHOICE1", "Yes", 0);
+                            SetTranslatedTextByName(&g_game->gui, "CHOICE2", "No", 0);
+                            SetTranslatedTextByName(&g_game->gui, "TITLE",
                                          "You're out!  Continue Watching?", 0);
                             strcpy(w->choice1, "CHOICE1");
                             strcpy(w->choice2, "CHOICE2");
                             dlg->callback = ContinueWatchingCallback;
-                            RenderLayer(&g_game->menu, 0x40);
+                            RenderLayer(&g_game->gui, 0x40);
                         }
                         goto skip508;
                     }
                     if (CountCombatPlayers() <= 0)
                         goto skip508;
-                    OpenMessageBox(&g_game->menu,
+                    OpenMessageBox(&g_game->gui,
                                  Translate("You are placed in watch mode because you are hosting AI players which are still alive.  If you exit, they will be terminated."),
                                  500, 1, 1);
                     g_game->flags_3923b.w &= 0xffef;
@@ -1133,8 +1133,8 @@ void InitPlayerResources()
                 player->metal = g_game->mission->startMetal[i];
                 break;
             case 2:
-                player->energy = (float)g_game->slots[i].field_10;
-                player->metal = (float)g_game->slots[i].field_c;
+                player->energy = (float)g_game->options[i].field_10;
+                player->metal = (float)g_game->options[i].field_c;
                 break;
             case 3: {
                 int index = FindHostSlot();
@@ -1159,7 +1159,7 @@ void __stdcall LoadPlayerControllers(HapiBank* file)
     char name[16];
     for (int i = 0; i < 10; i++) {
         Player* player = &g_game->players[i];
-        int* slot = &g_game->slots[i].controller;
+        int* slot = &g_game->options[i].controller;
         sprintf(name, "Player%i", i);
         if (file->OpenAccount(name)) {
             *slot = file->GetIntegerItem("Controller", 0);
@@ -1174,10 +1174,10 @@ void __stdcall LoadPlayerControllers(HapiBank* file)
 // FUNCTION: 0x466580
 void UpdateBlink()
 {
-    if (g_game->blinkTimer > 0) {
-        g_game->blinkTimer--;
+    if (g_game->minimapBlinkCounter > 0) {
+        g_game->minimapBlinkCounter--;
         return;
     }
-    g_game->blinkTimer = 7;
+    g_game->minimapBlinkCounter = 7;
     g_game->blinkOn = !g_game->blinkOn;
 }

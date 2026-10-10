@@ -157,10 +157,10 @@ struct Game {
         Player_00440cd0 players2[10];  // +0x1b63
     };
     char unknown_2851[0x14233 - 0x2851];
-    unsigned int width;                // +0x14233
-    unsigned int height;               // +0x14237
+    unsigned int mapWidthTiles;        // +0x14233
+    unsigned int mapHeightTiles;       // +0x14237
     char unknown_1423b[0x14287 - 0x1423b];
-    Cell* cells;                       // +0x14287
+    Cell* heightMap;                   // +0x14287
     char unknown_1428b[0x14357 - 0x1428b];
     Record_00440af0* units;            // +0x14357
     Record_00440af0* unitsEnd;         // +0x1435b
@@ -321,7 +321,7 @@ void Class_00440500::BuildPassMap()
     // Braces keep the two int j apart: MSVC 5 leaks a for-init variable into the enclosing scope.
     {
     for (int j = 0; j < height; j++) {
-        Cell* c = &g_game->cells[j * width];
+        Cell* c = &g_game->heightMap[j * width];
         for (n = 0; n < width; n++, c++)
             v[n] = (unsigned char)GetPassMapCellValue(this, c);
         v[-2] = 0;
@@ -439,8 +439,8 @@ void BuildAllPassMaps(void)
     unsigned int* q = (unsigned int*)DAT_00512370;
     do {
         if (q[-6] != 0) {
-            unsigned int h = g_game->height;
-            unsigned int w = g_game->width;
+            unsigned int h = g_game->mapHeightTiles;
+            unsigned int w = g_game->mapWidthTiles;
             q[-2] = w;
             q[-1] = h;
             // Size from the stored entry fields q[-1], q[-2], not the w/h locals.

@@ -61,8 +61,8 @@ struct Game {
     char unknown_0[0x2a43];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14233 - 0x2a44];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x14281 - 0x1423b];
     unsigned short bit0 : 1;           // +0x14281
     unsigned short bit1 : 1;
@@ -70,7 +70,7 @@ struct Game {
     unsigned short flag3 : 1;
     unsigned short rest : 12;
     char unknown_14283[0x1428f - 0x14283];
-    Grid grid1;                        // +0x1428f
+    Grid losHalfResHeightBand;         // +0x1428f
     char unknown_1429f[0x142f1 - 0x1429f];
     unsigned short f0 : 1;             // +0x142f1 bit 0
     unsigned short f1 : 1;
@@ -103,12 +103,12 @@ void __stdcall AddLineOfSight(SightQuery* params)
         g_game->flag3 = 0;
         g_game->flagA = 1;
     }
-    int halfW = g_game->width / 2;
-    int halfH = g_game->height / 2;
+    int halfW = g_game->mapWidthTiles / 2;
+    int halfH = g_game->mapHeightTiles / 2;
     int x = params->cacheCell[0];
     int y = params->cacheCell[1];
     if (g_game->flag2 == 1) {
-        Grid* grid = &g_game->grid1;
+        Grid* grid = &g_game->losHalfResHeightBand;
         if ((unsigned)x >= grid->width)
             return;
         if ((unsigned)y >= grid->height)

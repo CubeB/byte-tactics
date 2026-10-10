@@ -104,21 +104,21 @@ struct Game {
     unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
     unsigned char localPlayer;         // +0x2a42
-    unsigned char player;              // +0x2a43
+    unsigned char playerIndex;         // +0x2a43
     unsigned char flags_2a44;          // +0x2a44
     char unknown_2a45[0x2bee - 0x2a45];
     union {
         unsigned short lobbyUiDirtyFlags;  // +0x2bee
         Flags16 bits_2bee;
     };
-    unsigned char mode_2bf0;           // +0x2bf0
+    unsigned char chatMode;            // +0x2bf0
     unsigned char chatRecipients[11];  // +0x2bf1
     char unknown_2bfc[0x2c74 - 0x2bfc];
     unsigned char lockFlags;           // +0x2c74
     char unknown_2c75[0x2cba - 0x2c75];
     unsigned short hoverUnitId;        // +0x2cba
     char unknown_2cbc[0x14280 - 0x2cbc];
-    unsigned char counter_14280;       // +0x14280
+    unsigned char debugMode; // +0x14280
     char unknown_14281[0x14357 - 0x14281];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x1439b - 0x1435b];
@@ -514,7 +514,7 @@ void ResetPlayerGadgets(void)
             sprintf(buf, "LIVEPLYR%d", i);
             int value = 0;
             unsigned char* flags = g_game->chatRecipients;
-            switch (g_game->mode_2bf0) {
+            switch (g_game->chatMode) {
             case 1:
                 value = *p;
                 break;
@@ -554,13 +554,13 @@ void __stdcall HandleTalkDialogEvent(Gui* gadget)
     }
     if (_strnicmp(entries[gadget->hotGadgetIndex].name, g_livePlayerPrefix, 8) == 0) {
         PlaySoundByName(g_smallButtonSoundName, 0);
-        g_game->mode_2bf0 = 3;
-        SetButtonStageByName(gadget, g_sendTypeGadgetName, g_game->mode_2bf0);
+        g_game->chatMode = 3;
+        SetButtonStageByName(gadget, g_sendTypeGadgetName, g_game->chatMode);
         n = atoi(&entries[gadget->hotGadgetIndex].name[8]);
         // Kept as the original has it: n is never range checked before it
         // indexes the 11-byte selection mask, so a "LIVEPLYR42" style name
-        // writes outside chatRecipients. The neighbouring mode_2bf0 is clamped
-        // (`if (g_game->mode_2bf0 >= 4) g_game->mode_2bf0 = 0;`), so the
+        // writes outside chatRecipients. The neighbouring chatMode is clamped
+        // (`if (g_game->chatMode >= 4) g_game->chatMode = 0;`), so the
         // omission looks like an oversight rather than a deliberate choice.
         unsigned char v = (unsigned char)GetButtonStage(gadget, gadget->hotGadgetIndex);
         g_game->chatRecipients[n] = v;
@@ -580,16 +580,16 @@ void __stdcall HandleTalkDialogEvent(Gui* gadget)
     }
     if (IsCurrentGadgetNamed(gadget, g_sendTypeGadgetName)) {
         PlaySoundByName(g_smallButtonSoundName, 0);
-        g_game->mode_2bf0 = (unsigned char)GetButtonStageByName(gadget, g_sendTypeGadgetName);
-        if (g_game->mode_2bf0 >= 4)
-            g_game->mode_2bf0 = 0;
+        g_game->chatMode = (unsigned char)GetButtonStageByName(gadget, g_sendTypeGadgetName);
+        if (g_game->chatMode >= 4)
+            g_game->chatMode = 0;
         ResetPlayerGadgets();
         ClearSelectedGadget(gadget);
         goto tail;
     }
     if (IsCurrentGadgetNamed(gadget, g_talkGadgetName)) {
         Gadget* talk = FindGadgetChecked_B(entries, g_talkGadgetName);
-        mode = g_game->mode_2bf0;
+        mode = g_game->chatMode;
         lstrcpynA(buf, (char*)talk + 0xb6, 0x100);
         char* p = buf;
         while (*p && *p == ' ')
@@ -609,7 +609,7 @@ void __stdcall HandleTalkDialogEvent(Gui* gadget)
         }
         if (strlen(p) != 0) {
             // These four statements stay in this order: oldmode, to, base, saved.
-            oldmode = g_game->mode_2bf0;
+            oldmode = g_game->chatMode;
             char* to = 0;
             Player* base = &g_game->players[g_game->localPlayer];
             Saved saved = *(Saved*)g_game->chatRecipients;
@@ -643,11 +643,11 @@ void __stdcall HandleTalkDialogEvent(Gui* gadget)
             }
 skip0:;
 after:
-            g_game->mode_2bf0 = mode;
+            g_game->chatMode = mode;
             memset(buf2, 0, sizeof(buf2));
             SendChatMessage(base, p, 4, to);
             *(Saved*)g_game->chatRecipients = saved;
-            g_game->mode_2bf0 = oldmode;
+            g_game->chatMode = oldmode;
         }
 clear:
         memset(g_chatDraftText, 0, 0x81);
@@ -688,7 +688,7 @@ void OpenTalkDialog()
     if (g_game->net->GetGameType() != 3) {
         SetGadgetActiveByName(&g_game->gui, "SENDTO", 0);
     } else if (multi) {
-        SetButtonStageByName(&g_game->gui, "SENDTYPE", g_game->mode_2bf0);
+        SetButtonStageByName(&g_game->gui, "SENDTYPE", g_game->chatMode);
         RefreshAlliesScreen(1);
         ResetPlayerGadgets();
     }
@@ -747,7 +747,7 @@ void __stdcall OpenUnitInfoDialog(void)
         unsigned short t = g_game->hoverUnitId;
         if (t != 0) {
             Unit* unit = &g_game->units[t];
-            Player* owner = &g_game->players[g_game->player];
+            Player* owner = &g_game->players[g_game->playerIndex];
             if (IsUnitVisibleToPlayer(owner, unit) == 0)
                 type = 0;
             else
@@ -1313,9 +1313,9 @@ void __stdcall HandleDebugHotkey(int eventType)
         g_game->bit0_3923b = !g_game->bit0_3923b;
         break;
     case 0x6d:
-        g_game->counter_14280++;
-        if (g_game->counter_14280 == 5)
-            g_game->counter_14280 = 0;
+        g_game->debugMode++;
+        if (g_game->debugMode == 5)
+            g_game->debugMode = 0;
         break;
     case 0x50:
         SetPageFlipping(1);

@@ -27,8 +27,8 @@ struct Unit { char pad[0x6a]; Vec3 pos; char pad76[0x92-0x76]; Def* def; Player*
 
 struct Game {
     char unknown_0[0x14233];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x1426f - 0x1423b];
     Feature* features;                 // +0x1426f
     char unknown_14273[0x14357 - 0x14273];

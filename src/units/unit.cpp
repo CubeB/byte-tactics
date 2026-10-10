@@ -86,7 +86,7 @@ struct Node_00489a90 {
 
 struct Game {
     char unknown_0[0x1427f];
-    unsigned char f1427f;              // +0x1427f
+    unsigned char seaLevel;            // +0x1427f
 };
 
 struct Player_0048b090 {
@@ -260,12 +260,12 @@ int Unit::CanRepair(Unit* other)
         && (other->f108 != other->def->f1fa)
         && ((other->f110 & 3) != 2)) {
         if (def->f241 & 0x800) {
-            if (!(def->f241 & 0x200000) && other->f70 + other->def->f170 < g_game->f1427f)
+            if (!(def->f241 & 0x200000) && other->f70 + other->def->f170 < g_game->seaLevel)
                 goto fail;
         }
         // Tests the same condition again, not an else.
         if (!(def->f241 & 0x800)) {
-            if (other->f70 + other->def->f170 < g_game->f1427f - def->f1be)
+            if (other->f70 + other->def->f170 < g_game->seaLevel - def->f1be)
                 goto fail;
         }
         return 1;
@@ -309,7 +309,7 @@ int Unit::CanLoad(Unit* other)
         return 0;
     if (!(ourDef->f241 & 0x800) && theirDef->f1c0 >= 0)
         return 0;
-    if (other->f6e + theirDef->f16e <= (g_game->f1427f << 16))
+    if (other->f6e + theirDef->f16e <= (g_game->seaLevel << 16))
         return 0;
     if (other->f104 != 0.0f)           // the fcomp tests equality, not a range
         return 0;

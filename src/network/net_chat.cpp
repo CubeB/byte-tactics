@@ -44,12 +44,12 @@ struct Game {
     char menu[0xdcb - 0x519];           // +0x519, the GUI system object
     unsigned char colors[16];          // +0xdcb
     char unknown_ddb[0x12ef - 0xddb];
-    ChatHudEntry entries[30];          // +0x12ef
+    ChatHudEntry chatHudRing[30];      // +0x12ef
     char unknown_1b5f[0x1b63 - 0x1b5f];
     Player players[11];       // +0x1b63
     char unknown_299c[0x2a3e - 0x299c];
-    unsigned short tail;               // +0x2a3e
-    unsigned short head;               // +0x2a40
+    unsigned short chatHudWriteIdx;    // +0x2a3e
+    unsigned short chatHudReadIdx;     // +0x2a40
     char unknown_2a42[0x14357 - 0x2a42];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x37efe - 0x1435b];
@@ -109,21 +109,21 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
         return;
     if (g_game->textLines == 0)
         return;
-    if ((g_game->tail + 1) % g_game->textLines == g_game->head) {
-        g_game->head++;
-        if (g_game->head == 30)
-            g_game->head = 0;
+    if ((g_game->chatHudWriteIdx + 1) % g_game->textLines == g_game->chatHudReadIdx) {
+        g_game->chatHudReadIdx++;
+        if (g_game->chatHudReadIdx == 30)
+            g_game->chatHudReadIdx = 0;
     }
-    strncpy(g_game->entries[g_game->tail].text, text, 0x40);
-    g_game->entries[g_game->tail].text[0x3f] = 0;
-    g_game->entries[g_game->tail].time = g_game->now;
-    unsigned char c = g_game->entries[g_game->tail].flags;
-    g_game->entries[g_game->tail].flags = (c ^ key) & 0xf ^ c;
-    g_game->entries[g_game->tail].unit = value;
-    g_game->entries[g_game->tail].player = last;
-    g_game->tail++;
-    if (g_game->tail == 30)
-        g_game->tail = 0;
+    strncpy(g_game->chatHudRing[g_game->chatHudWriteIdx].text, text, 0x40);
+    g_game->chatHudRing[g_game->chatHudWriteIdx].text[0x3f] = 0;
+    g_game->chatHudRing[g_game->chatHudWriteIdx].time = g_game->now;
+    unsigned char c = g_game->chatHudRing[g_game->chatHudWriteIdx].flags;
+    g_game->chatHudRing[g_game->chatHudWriteIdx].flags = (c ^ key) & 0xf ^ c;
+    g_game->chatHudRing[g_game->chatHudWriteIdx].unit = value;
+    g_game->chatHudRing[g_game->chatHudWriteIdx].player = last;
+    g_game->chatHudWriteIdx++;
+    if (g_game->chatHudWriteIdx == 30)
+        g_game->chatHudWriteIdx = 0;
     if (last != '\n')
         PlaySoundByName("MessageArrived", 0);
     if (IsScreenNamed((char*)&g_game->menu[0], "TIMEOUT.GUI")) {
@@ -150,13 +150,13 @@ void __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to)
 int ExpireOldestMessage()
 {
     int result = 0;
-    unsigned short i = g_game->head;
-    if (g_game->tail != i
-        && g_game->entries[i].time + (g_game->textScroll + 1) * 30 < g_game->now) {
+    unsigned short i = g_game->chatHudReadIdx;
+    if (g_game->chatHudWriteIdx != i
+        && g_game->chatHudRing[i].time + (g_game->textScroll + 1) * 30 < g_game->now) {
         result = 1;
-        g_game->head = i + 1;
-        if (g_game->head == 30)
-            g_game->head = 0;
+        g_game->chatHudReadIdx = i + 1;
+        if (g_game->chatHudReadIdx == 30)
+            g_game->chatHudReadIdx = 0;
     }
     return result;
 }
@@ -173,10 +173,10 @@ int ExpireOldestMessage()
 int ScrollToNextMessageUnit(void)
 {
     Game* g = g_game;
-    int i = g->head;
-    int end = g->tail;
+    int i = g->chatHudReadIdx;
+    int end = g->chatHudWriteIdx;
     while (end != i) {
-        ChatHudEntry* e = &g->entries[i];
+        ChatHudEntry* e = &g->chatHudRing[i];
         unsigned short id = e->unit;
         if (id != 0 && (e->flags & 0x10) == 0) {
             Unit* u = &g->units[id];
@@ -201,9 +201,9 @@ void __stdcall DrawMessages(void* surf)
     int t;
     if (max_lines == 0)
         return;
-    int i = g_game->tail;
+    int i = g_game->chatHudWriteIdx;
     for (int n = 1; n < max_lines; n++) {
-        if (i == g_game->head)
+        if (i == g_game->chatHudReadIdx)
             break;
         i--;
         if (i < 0)
@@ -211,24 +211,24 @@ void __stdcall DrawMessages(void* surf)
     }
     SetFont(g_game->font);
     int start = GetFontHeight();
-    if (g_game->tail == i)
+    if (g_game->chatHudWriteIdx == i)
         return;
     int y = 0x34;
-    while (g_game->tail != i) {
+    while (g_game->chatHudWriteIdx != i) {
         int show;
         switch (g_game->mode) {
         case 1:
             // Cavedog never assigns show in this arm when the team field is 2,
             // so the test below reads the previous iteration's value. Kept.
-            if ((g_game->entries[i].flags & 0xf) != 2)
+            if ((g_game->chatHudRing[i].flags & 0xf) != 2)
                 show = 0;
             break;
         case 2:
-            show = (g_game->entries[i].flags & 0xf) != 8;
+            show = (g_game->chatHudRing[i].flags & 0xf) != 8;
             break;
         case 3:
             if (g_game->unit_type_mask == 0) {
-                switch (g_game->entries[i].flags & 0xf) {
+                switch (g_game->chatHudRing[i].flags & 0xf) {
                 case 1:
                 case 4:
                 case 8:
@@ -253,12 +253,12 @@ void __stdcall DrawMessages(void* surf)
             show = 0;
         }
         if (show) {
-            if (g_game->entries[i].flags & 0x20)
+            if (g_game->chatHudRing[i].flags & 0x20)
                 SetTextColors(g_game->colors[10], 0xfe);
             else
                 SetTextColors(g_game->colors[15], 0xfe);
             int height = 138;
-            int id = g_game->entries[i].unit_46;
+            int id = g_game->chatHudRing[i].unit_46;
             if (id != 10) {
                 t = (int)(GetFontHeight() * 0.8);
                 Rect_00464060 r;
@@ -269,7 +269,7 @@ void __stdcall DrawMessages(void* surf)
                 height = (int)(138.0 - t * -1.5);
                 BlitSideLogoToRect(surf, &g_game->players[id], &r, 0);
             }
-            DrawTextClipped(surf, &g_game->entries[i], height, y, -1, 0);
+            DrawTextClipped(surf, &g_game->chatHudRing[i], height, y, -1, 0);
             y += start;
         }
         i++;

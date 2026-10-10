@@ -84,9 +84,9 @@ struct Game {
     char unknown_29fc[0x2a30 - 0x29fc];
     UnitSync* sync;                    // +0x2a30
     char unknown_2a34[4];
-    unsigned char* packet;             // +0x2a38
+    unsigned char* recvPacketPtr;      // +0x2a38
     char unknown_2a3c[6];
-    unsigned char local;               // +0x2a42
+    unsigned char localPlayer;         // +0x2a42
     char playerIndex;
     unsigned char flags_2a44;          // +0x2a44
     char unknown_2a45[0x2be3 - 0x2a45];
@@ -96,7 +96,7 @@ struct Game {
     char unknown_2bf0[0x2c28 - 0x2bf0];
     int playerIds[11];                 // +0x2c28
     char unknown_2c54[0x2cf3 - 0x2c54];
-    WeaponDef weapons[256];            // +0x2cf3
+    WeaponDef weaponDefs[256];         // +0x2cf3
     char unknown_after_weapons[0x14357 - (0x2cf3 + 0x115 * 256)];
     Unit* units;                       // +0x14357
     char unknown_1435b[0x38a51 - 0x1435b];
@@ -429,7 +429,7 @@ static inline int InGame(Player* p)
 
 static inline Player* LocalPlayer()
 {
-    return &g_game->players[g_game->local];
+    return &g_game->players[g_game->localPlayer];
 }
 
 static inline Unit* UnitAt(unsigned short index)
@@ -458,7 +458,7 @@ static inline void DropPlayer(int id)
 {
     if (FindPlayerSlot(id) == 10)
         return;
-    PlayerIdPacket* out = (PlayerIdPacket*)g_game->packet;
+    PlayerIdPacket* out = (PlayerIdPacket*)g_game->recvPacketPtr;
     out->type = 0x1c;
     out->id = id;
     Player* p = &g_game->players[FindPlayerSlot(id)];
@@ -489,7 +489,7 @@ int HandleNetPackets()
     int messages = 0;
     for (unsigned char i = 0; i < 10; i++)
         g_game->players[i].messages = 0;
-    unsigned char* packet = g_game->packet;
+    unsigned char* packet = g_game->recvPacketPtr;
     int more = 1;
     while (more) {
         more = ReceiveNetPacket();
@@ -579,7 +579,7 @@ int HandleNetPackets()
                     }
                     char* payload = msg->data;
                     memcpy(g_game->players[target].info, payload, 0xb9);
-                    if (FindHost() == g_game->local && !(LocalPlayer()->info->flags_9b & 0x80)
+                    if (FindHost() == g_game->localPlayer && !(LocalPlayer()->info->flags_9b & 0x80)
                         && (payload[0x9b] & 0x40))
                         RejectPlayer(p->id, 9);
                 }
@@ -587,7 +587,7 @@ int HandleNetPackets()
                 break;
             }
             case 0x104:
-                if (FindHost() != g_game->local)
+                if (FindHost() != g_game->localPlayer)
                     memcpy(&g_game->settings, &msg->playerType, sizeof(Settings));
                 break;
             case 0x103: {
@@ -651,7 +651,7 @@ int HandleNetPackets()
             break;
         case 24:
             g_game->players[to].info->color = packet[1];
-            if (to == g_game->local && (g_game->flags_2a44 & 1)) {
+            if (to == g_game->localPlayer && (g_game->flags_2a44 & 1)) {
                 for (int i = 0; i < 10; i++) {
                     Player* p = &g_game->players[i];
                     // Declared here, not inside the IsConnected block: keeps the pushes after the stores.
@@ -803,7 +803,7 @@ int HandleNetPackets()
             default:
                 DamageFeature(GetMapCell(damage->x, damage->z),
                              damage->x, damage->z,
-                             &g_game->weapons[damage->sub]);
+                             &g_game->weaponDefs[damage->sub]);
                 break;
             }
             break;

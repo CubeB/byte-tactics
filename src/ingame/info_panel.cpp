@@ -251,7 +251,7 @@ struct Game {
     int field_525;                     // +0x525
     char unknown_529[4];
     int field_52d;                     // +0x52d
-    Team_004689c0* teams;              // +0x531
+    Team_004689c0* layer;              // +0x531
     char unknown_535[0x57d - 0x535];
     int team_index;                    // +0x57d
     char unknown_581[0xdcb - 0x581];
@@ -261,9 +261,9 @@ struct Game {
         unsigned char colors[16];      // +0xdcb
         struct {
             char unknown_dcb[0xdd5 - 0xdcb];
-            unsigned char color_00467a50; // +0xdd5
+            unsigned char color2;         // +0xdd5
             char unknown_dd6[0xdda - 0xdd6];
-            unsigned char color;       // +0xdda
+            unsigned char shadowColor; // +0xdda
         };
     };
     // The ten player entries at +0x1b63, and the two other views of them the
@@ -285,7 +285,7 @@ struct Game {
     char unknown_29c7[0x2a3c - 0x29c7];
     unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
-    unsigned char team_number;         // +0x2a42
+    unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x2bee - 0x2a44];
     unsigned short flag0 : 1;          // +0x2bee, bit 0
@@ -294,7 +294,7 @@ struct Game {
     FeatureSpot* spots;                // +0x1420b
     Unit* unit;                        // +0x1420f
     char unknown_14213[0x14233 - 0x14213];
-    int width;                         // +0x14233
+    int mapWidthTiles;                 // +0x14233
     char unknown_14237[0x1426f - 0x14237];
     Feature* features;                 // +0x1426f
     unsigned short* visibilityMask;    // +0x14273
@@ -657,7 +657,7 @@ void __stdcall DrawRotatedQuadOutline(void* surface, Vec3* offset,
 {
     Vec3* scratch = g_game->scratch;
     Point* points = g_game->points;
-    unsigned char color = g_game->color_00467a50;
+    unsigned char color = g_game->color2;
     // corners is copied to c, which is the loop's induction variable: this
     // fixes the stack slot of the loop counter.
     Vec3* c = corners;
@@ -914,7 +914,7 @@ int __stdcall DrawUnitStateProbe(void* surface)
 // FUNCTION: 0x468310
 void __stdcall DrawPercentBar(void* surface, Rect_004b0510* rect, int percent)
 {
-    unsigned char& color = g_game->color;
+    unsigned char& color = g_game->shadowColor;
     DrawRectangle(surface, rect, color);
     if (percent >= 100)
         percent = 100;
@@ -933,7 +933,7 @@ void __stdcall DrawPercentBar(void* surface, Rect_004b0510* rect, int percent)
 // DrawPercentBar, the out-of-line bar, written here so both calls inline.
 static void Bar(void* surface, Rect_004b0510* rect, int percent)
 {
-    unsigned char& color = g_game->color;
+    unsigned char& color = g_game->shadowColor;
     DrawRectangle(surface, rect, color);
     if (percent >= 100)
         percent = 100;
@@ -1082,7 +1082,7 @@ void __stdcall DrawStatusPanel(Surface* win)
     int v = g_game->panel;
     if (g_statusPanelNextTick < (int)GetMilliseconds()) {
         g_statusPanelNextTick = GetMilliseconds() + 15;
-        if (!IsKeyDown(0x20) || (g_game->team_index != -1 && ((unsigned char*)g_game->teams->data)[g_game->team_index * 347] == 3)) {
+        if (!IsKeyDown(0x20) || (g_game->team_index != -1 && ((unsigned char*)g_game->layer->data)[g_game->team_index * 347] == 3)) {
             if (v < 0) {
                 if (v == -31)
                     PlaySoundByName("Panel", 0);
@@ -1123,7 +1123,7 @@ void __stdcall DrawStatusPanel(Surface* win)
     int seconds = (rest - minutes * 1800) / 30;
     sprintf(buf, "%s : %02d:%02d:%02d", Translate("Game Time"), hours, minutes, seconds);
     DrawTextClipped(win, buf, left + 0x19, bottom + 0xa, -1, 0);
-    int team = g_game->team_number;
+    int team = g_game->localPlayer;
     sprintf(buf, "%s : %d  (Max %d)", Translate("Total Units"),
             g_game->players_004689c0[team].unitCount, g_game->max_units);
     DrawTextClipped(win, buf, left + 0xbe, bottom + 0xa, -1, 0);

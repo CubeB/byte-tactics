@@ -25,7 +25,7 @@ struct Position_00475150 {             // 16.16 fixed point; only high words rea
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14263];
-    int rise;                          // +0x14263
+    int gravity;                       // +0x14263
     char unknown_14267[0x1431f - 0x14267];
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323

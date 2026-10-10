@@ -350,7 +350,7 @@ struct Game {
     };
     char unknown_2a46[0x2cf3 - 0x2a46];
     union {
-        WeaponDef defs[0x100];         // +0x2cf3
+        WeaponDef weaponDefs[0x100];   // +0x2cf3
         Entry_0049e5b0 entries[0x100];
     };
     union {
@@ -366,9 +366,9 @@ struct Game {
     char debugMode;
     unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142f3 - 0x14283];
-    Unit* trackedUnit;                 // +0x142f3
+    Unit* cameraFollowUnit;            // +0x142f3
     union {
-        Proj_0049c740* trackedProj;    // +0x142f7
+        Proj_0049c740* cameraFollowTrackObj;  // +0x142f7
         Projectile_0049c880* tracked;
         void* selected;                // 499a30's spelling
         Projectile_00499eb0* selectedProjectile; // 499e50's and 499eb0's
@@ -1607,8 +1607,8 @@ void __stdcall InitProjectile(Proj_0049c740* proj, WeaponDef* shot, Vec3* pos,
     proj->flags = f & ~0x30;
     if (unit) {
         proj->SetOwner(unit);
-        if ((unit->flags & 0x20000000) && g_game->trackedUnit == unit)
-            g_game->trackedProj = proj;
+        if ((unit->flags & 0x20000000) && g_game->cameraFollowUnit == unit)
+            g_game->cameraFollowTrackObj = proj;
         for (i = 0; i < 3; i++)
             if (unit->slots[i].weapon == shot)
                 break;
@@ -2254,7 +2254,7 @@ void __stdcall FireBallisticProjectile(void*, void*, void*, void*, void*);
 void __stdcall ApplyWeaponFirePacket(int arg1, WeaponFirePacket* ev)
 {
     unsigned char defIndex = ev->weaponDefIndex;
-    WeaponDef* def = &g_game->defs[defIndex];
+    WeaponDef* def = &g_game->weaponDefs[defIndex];
     if (def->flags.b5) {
         Vec3* pos = &ev->aimOrVel;
         void* arg = (void*)((char*)ev + 1);

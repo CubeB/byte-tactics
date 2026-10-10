@@ -92,11 +92,11 @@ struct Game {
     char unknown_0[0x1420b];
     FeatureSpot* spots;                // +0x1420b
     char unknown_1420f[0x14233 - 0x1420f];
-    int width;                         // +0x14233
+    int mapWidthTiles;                 // +0x14233
     char unknown_14237[0x1426f - 0x14237];
     Feature* features;                 // +0x1426f
     char unknown_14273[0x14287 - 0x14273];
-    Cell* cells;                       // +0x14287
+    Cell* heightMap;                   // +0x14287
     char unknown_1428b[0x1439b - 0x1428b];
     UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
@@ -227,8 +227,8 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         RemoveFeature(GetMapCellAtPosition(&order->pos), 0);
         if (g_game->net->GetGameType() == 3) {
             FeatureDamagePacket packet;
-            int n = c - g_game->cells;
-            int w = g_game->width;
+            int n = c - g_game->heightMap;
+            int w = g_game->mapWidthTiles;
             packet.type = 0x0f;
             packet.sub = 0xff;
             Point16 xz;

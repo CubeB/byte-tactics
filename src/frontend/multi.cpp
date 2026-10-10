@@ -363,8 +363,8 @@ struct Game {
     UnitSync* sync;                    // +0x2a30
     char unknown_2a34[0x2a3c - 0x2a34]; // +0x2a34
     unsigned short numPlayers;         // +0x2a3c
-    unsigned short scrollEnd;          // +0x2a3e
-    unsigned short scrollStart;        // +0x2a40
+    unsigned short chatHudWriteIdx;    // +0x2a3e
+    unsigned short chatHudReadIdx;     // +0x2a40
     unsigned char localPlayer;         // +0x2a42
     char playerIndex;                  // +0x2a43
     union {                            // +0x2a44
@@ -3952,17 +3952,17 @@ void RefreshBattleRoomRows()
     int ready = me->info->bit5;
     Gadget* output = FindGadgetChecked(g_game->gui.layer->entries, "OUTPUT");
 
-    int end = g_game->scrollEnd;
-    int start = g_game->scrollStart;
+    int end = g_game->chatHudWriteIdx;
+    int start = g_game->chatHudReadIdx;
     if (end < start)
         end += 30;
     if (end - start > output->height / (GetFontLineHeight() + 2)) {
-        g_game->scrollStart++;
-        if (g_game->scrollStart >= 30)
-            g_game->scrollStart = 0;
+        g_game->chatHudReadIdx++;
+        if (g_game->chatHudReadIdx >= 30)
+            g_game->chatHudReadIdx = 0;
     }
-    if (g_game->scrollEnd != g_game->scrollStart) {
-        for (int i = g_game->scrollStart; g_game->scrollEnd != i; ) {
+    if (g_game->chatHudWriteIdx != g_game->chatHudReadIdx) {
+        for (int i = g_game->chatHudReadIdx; g_game->chatHudWriteIdx != i; ) {
             char* line = SkipTextLines(g_game->chatter, count);
             strcpy(line, g_game->messages[i]);
             count++;

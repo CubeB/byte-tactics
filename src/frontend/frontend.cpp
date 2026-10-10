@@ -148,7 +148,7 @@ struct Game {
     char unknown_14[0x4e5 - 0x14];
     int net;                           // +0x4e5
     char unknown_4e9[0x519 - 0x4e9];
-    Sub_004263b0 sub;                  // +0x519
+    Sub_004263b0 gui;                  // +0x519
     char unknown_535[0xdda - 0x535];
     unsigned char shadowColor;         // +0xdda
     char unknown_ddb[0x11eb - 0xddb];
@@ -166,7 +166,7 @@ struct Game {
     char unknown_2b4e[0x2ba2 - 0x2b4e];
     V4i field_2ba2;                    // +0x2ba2
     char unknown_2bb2[0x2bbe - 0x2bb2];
-    char frontendState;                // +0x2bbe
+    char frontendMenuState;            // +0x2bbe
     char frontendSubstate;             // +0x2bbf
     char frontendSubstateRequest;      // +0x2bc0
     char unknown_2bc1[0x2bee - 0x2bc1];
@@ -365,7 +365,7 @@ void __stdcall CheckFrontendStateChange(int line, char* file)
     char buf[256];
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]", line, file);
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
 }
 #pragma auto_inline(on)
@@ -380,7 +380,7 @@ void __stdcall SetFrontendErrorText(char* param_1)
 void ShowFrontendErrorText()
 {
     if (strlen(g_frontendErrorText) != 0) {
-        OpenMessageBox(&g_game->sub, g_frontendErrorText, GetTextPixelWidth(g_frontendErrorText) + 0x14, 1, 1);
+        OpenMessageBox(&g_game->gui, g_frontendErrorText, GetTextPixelWidth(g_frontendErrorText) + 0x14, 1, 1);
         g_frontendErrorText[0] = 0;
     }
 }
@@ -410,7 +410,7 @@ void __stdcall SetFrontendSubState(char state, int line, char* file)
     char buf[256];
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]", line, file);
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
     g_game->frontendSubstate = state;
     g_game->frontendSubstateRequest = state;
@@ -425,12 +425,12 @@ void __stdcall SetFrontendState(char state, int line, char* file)
     char buf[256];
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]", line, file);
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
-    g_game->frontendState = state;
+    g_game->frontendMenuState = state;
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]", 155, "c:\\cavedog\\wargame\\frontend.cpp");
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
     g_game->frontendSubstate = 0;
     g_game->frontendSubstateRequest = 0;
@@ -449,7 +449,7 @@ void ApplyPendingSubState()
         if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     163, "c:\\cavedog\\wargame\\frontend.cpp");
-            OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+            OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
         }
         g_game->frontendSubstate = next;
         g_game->frontendSubstateRequest = next;
@@ -462,12 +462,12 @@ void ResetFrontendState()
     char buf[256];
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]", 0xa9, "c:\\cavedog\\wargame\\frontend.cpp");
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
-    g_game->frontendState = 0;
+    g_game->frontendMenuState = 0;
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]", 0x9b, "c:\\cavedog\\wargame\\frontend.cpp");
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
     g_game->frontendSubstate = 0;
     g_game->frontendSubstateRequest = 0;
@@ -486,13 +486,13 @@ void EnterMainMenuState()
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                 178, "c:\\cavedog\\wargame\\frontend.cpp");
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
-    g_game->frontendState = 2;
+    g_game->frontendMenuState = 2;
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                 155, "c:\\cavedog\\wargame\\frontend.cpp");
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
     g_game->frontendSubstate = 0;
     g_game->frontendSubstateRequest = 0;
@@ -524,7 +524,7 @@ void PresentFrontendFrame()
 // FUNCTION: 0x425b80
 void UpdateMenuSparks()
 {
-    Dialog_004263b0* terrain = g_game->sub.current;
+    Dialog_004263b0* terrain = g_game->gui.current;
     if (terrain->field_24 != 0) {
         unsigned char* src = ((Map_00425b80*)terrain->field_24)->cells;
         Smoke_00425b80* s = g_menuSparks;
@@ -633,27 +633,27 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
             FlipScreen();
             return;
         }
-        OpenMessageBox(&g_game->sub,
+        OpenMessageBox(&g_game->gui,
                      Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                      200, 1, 1);
-        ClearSelectedGadget(&g_game->sub);
+        ClearSelectedGadget(&g_game->gui);
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "INTRO")) {
         PlaySoundByName("smlButton", 0);
         Display_00425d80* display = GetDisplay();
         if (!display->fullscreen) {
-            OpenMessageBox(&g_game->sub,
+            OpenMessageBox(&g_game->gui,
                          "Debug:  You must be in full-screen mode to play a movie.",
                          200, 1, 1);
-            ClearSelectedGadget(&g_game->sub);
+            ClearSelectedGadget(&g_game->gui);
             return;
         }
         if (!FindGameCdDrive(0) && !FindGameCdDrive(1)) {
-            OpenMessageBox(&g_game->sub,
+            OpenMessageBox(&g_game->gui,
                          Translate("Please insert a Total Annihilation CD and try again"),
                          200, 1, 1);
-            ClearSelectedGadget(&g_game->sub);
+            ClearSelectedGadget(&g_game->gui);
             return;
         }
         SetCursorMode(0x14);
@@ -667,13 +667,13 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
         if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     580, "c:\\cavedog\\wargame\\frontend.cpp");
-            OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+            OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
         }
-        g_game->frontendState = 1;
+        g_game->frontendMenuState = 1;
         if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     155, "c:\\cavedog\\wargame\\frontend.cpp");
-            OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+            OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
         }
         g_game->frontendSubstate = 0;
         g_game->frontendSubstateRequest = 0;
@@ -689,17 +689,17 @@ void __stdcall HandleMainMenuClick(Gadget_00425d80* gadget)
         PlaySoundByName("smlButton", 0);
         Display_00425d80* display = GetDisplay();
         if (!display->fullscreen) {
-            OpenMessageBox(&g_game->sub,
+            OpenMessageBox(&g_game->gui,
                          "Debug:  You must be in full-screen mode to play a movie.",
                          200, 1, 1);
-            ClearSelectedGadget(&g_game->sub);
+            ClearSelectedGadget(&g_game->gui);
             return;
         }
         if (!FindGameCdDrive(0) && !FindGameCdDrive(1)) {
-            OpenMessageBox(&g_game->sub,
+            OpenMessageBox(&g_game->gui,
                          Translate("Please insert a Total Annihilation CD and try again"),
                          200, 1, 1);
-            ClearSelectedGadget(&g_game->sub);
+            ClearSelectedGadget(&g_game->gui);
             return;
         }
         SetCursorMode(0x14);
@@ -733,9 +733,9 @@ void __stdcall HandleCloseCdPlayerChoice(Gadget_00426190* gadget)
 // FUNCTION: 0x426200
 void __stdcall OpenCloseCdPlayerDialog()
 {
-    Dialog_004263b0* gadget = LoadGuiLayer(&g_game->sub, "YESORNO.GUI", 0x100);
+    Dialog_004263b0* gadget = LoadGuiLayer(&g_game->gui, "YESORNO.GUI", 0x100);
     if (gadget != 0) {
-        SetKeyboardInput(&g_game->sub, 1);
+        SetKeyboardInput(&g_game->gui, 1);
         char* entries = gadget->gadgets;
         char* choice1 = entries + 0x15b * FindGadgetIndex(entries, "CHOICE1", 1);
         char* choice2 = entries + 0x15b * FindGadgetIndex(entries, "CHOICE2", 1);
@@ -743,10 +743,10 @@ void __stdcall OpenCloseCdPlayerDialog()
         strcpy(entries + 0xdc, "CHOICE2");
         strcpy(choice1 + 0xb6, Translate("Yes"));
         strcpy(choice2 + 0xb6, Translate("No"));
-        SetTranslatedTextByName((char*)&g_game->sub, "TITLE", Translate("Close Windows CD Player?"), 0);
-        SelectGadgetByName((char*)&g_game->sub, "CHOICE1");
+        SetTranslatedTextByName((char*)&g_game->gui, "TITLE", Translate("Close Windows CD Player?"), 0);
+        SelectGadgetByName((char*)&g_game->gui, "CHOICE1");
         gadget->handler = (void (__stdcall*)(void*))HandleCloseCdPlayerChoice;
-        RenderLayer(&g_game->sub, 0x40);
+        RenderLayer(&g_game->gui, 0x40);
     }
 }
 
@@ -765,8 +765,8 @@ static char* Lookup_004263b0(const char* name)
 // FUNCTION: 0x4263b0
 void __stdcall OpenMainMenu()
 {
-    while (g_game->sub.current != 0) {
-        CloseTopScreen(&g_game->sub);
+    while (g_game->gui.current != 0) {
+        CloseTopScreen(&g_game->gui);
     }
 
     HideSoftwareCursor();
@@ -775,7 +775,7 @@ void __stdcall OpenMainMenu()
     FlipScreen();
     Force640x480Surfaces();
 
-    Dialog_004263b0* dialog = LoadGuiLayer(&g_game->sub, "MAINMENU.GUI", 0x80);
+    Dialog_004263b0* dialog = LoadGuiLayer(&g_game->gui, "MAINMENU.GUI", 0x80);
     dialog->handler = (void (__stdcall*)(void*))HandleMainMenuClick;
     dialog->field_c = 0;
     dialog->field_1c = UpdateMenuSparks;
@@ -783,7 +783,7 @@ void __stdcall OpenMainMenu()
     LoadPictureCached("FrontendX", 1, 1, 0);
     PlayLoopingSoundByName("BGM", 0);
     g_game->sound->SetTrackCategory(4);
-    EnableKeyCommands(&g_game->sub);
+    EnableKeyCommands(&g_game->gui);
 
     char* name = "FrontendX";
     char* found = Lookup_004263b0(name);
@@ -794,18 +794,18 @@ void __stdcall OpenMainMenu()
 
     BuildDataPath(palpath, "palettes", "guipal", "PAL");
     void* palette = HAPI_LoadFile(palpath, 0);
-    RemapPaletteToClosestIndices(&g_game->sub, (int)found, palette);
+    RemapPaletteToClosestIndices(&g_game->gui, (int)found, palette);
     GameFreeThunk(palette);
-    RenderLayer(&g_game->sub, 0xc0);
-    SetKeyboardInput(&g_game->sub, 1);
+    RenderLayer(&g_game->gui, 0xc0);
+    SetKeyboardInput(&g_game->gui, 1);
     SetFont(g_game->fontComix);
 
     strcpy(version, "v3.1");
     strcpy(palpath, version);
-    SetGadgetActiveByName(&g_game->sub, "DebugString", 1);
-    SetGadgetTextByName(&g_game->sub, "DebugString", palpath);
+    SetGadgetActiveByName(&g_game->gui, "DebugString", 1);
+    SetGadgetTextByName(&g_game->gui, "DebugString", palpath);
 
-    char* gadgets = g_game->sub.current->gadgets;
+    char* gadgets = g_game->gui.current->gadgets;
     int width = GetTextPixelWidth(palpath);
     short* px = (short*)(gadgets + 0x15b * FindGadgetIndex(gadgets, "DebugString", 5) + 0x13);
     *px += -(width / 2);
@@ -830,13 +830,13 @@ void __stdcall OpenMainMenu()
             if (_snprintf(text, 300, Translate(g_directXWarningText), "\n", "\n", "\n", "\n") < 0) {
                 text[299] = 0;
             }
-            OpenMessageBox(&g_game->sub, text, 200, 1, 1);
+            OpenMessageBox(&g_game->gui, text, 200, 1, 1);
         }
     }
 
     if (g_noSoundDriverShown == 0) {
         if (g_game->sound->HasNoDriver()) {
-            OpenMessageBox(&g_game->sub, Translate("No sound driver is available for use.\n"), 500, 1, 1);
+            OpenMessageBox(&g_game->gui, Translate("No sound driver is available for use.\n"), 500, 1, 1);
             g_noSoundDriverShown = 1;
         }
     }
@@ -952,13 +952,13 @@ void HandleFrontendDebugKey(void)
         if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     938, "c:\\cavedog\\wargame\\frontend.cpp");
-            OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+            OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
         }
-        g_game->frontendState = 2;
+        g_game->frontendMenuState = 2;
         if (CodeChecksumFailed()) {
             sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                     155, "c:\\cavedog\\wargame\\frontend.cpp");
-            OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+            OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
         }
         g_game->frontendSubstate = 0;
         g_game->frontendSubstateRequest = 0;
@@ -979,20 +979,20 @@ int ConnectToService(void)
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                 956, "c:\\cavedog\\wargame\\frontend.cpp");
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
-    g_game->frontendState = 0xf;
+    g_game->frontendMenuState = 0xf;
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                 155, "c:\\cavedog\\wargame\\frontend.cpp");
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
     g_game->frontendSubstate = 0;
     g_game->frontendSubstateRequest = 0;
     if (CodeChecksumFailed()) {
         sprintf(buf, "Code segment checksum error found when switching FE states.\nState change called from [line %d, file %s]",
                 957, "c:\\cavedog\\wargame\\frontend.cpp");
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
     g_game->frontendSubstate = 0;
     g_game->frontendSubstateRequest = 0;
@@ -1006,7 +1006,7 @@ static void LogStateChange(int line, char* file)
     char buf[256];
     if (CodeChecksumFailed()) {
         sprintf(buf, g_frontendStateChangeFormat, line, file);
-        OpenMessageBox(&g_game->sub, buf, 500, 1, 1);
+        OpenMessageBox(&g_game->gui, buf, 500, 1, 1);
     }
 }
 
@@ -1029,7 +1029,7 @@ static void SetSubStateLogged(char state, int line, char* file)
 static void SetState(char state, int line, char* file)
 {
     CheckFrontendStateChange(line, file);
-    g_game->frontendState = state;
+    g_game->frontendMenuState = state;
     SetSubState(0, 0x9b, g_frontendSourceFile);
 }
 
@@ -1037,14 +1037,14 @@ static void SetState(char state, int line, char* file)
 static void SetStateSubCall(char state, int line, char* file)
 {
     CheckFrontendStateChange(line, file);
-    g_game->frontendState = state;
+    g_game->frontendMenuState = state;
     SetFrontendSubState(0, 0x9b, g_frontendSourceFile);
 }
 
 static void SetStateLogged(char state, int line, char* file)
 {
     LogStateChange(line, file);
-    g_game->frontendState = state;
+    g_game->frontendMenuState = state;
     SetFrontendSubState(0, 0x9b, g_frontendSourceFile);
 }
 
@@ -1088,7 +1088,7 @@ void RunFrontendStateMachine(void)
 {
     UpdateSubState();
 
-    switch ((unsigned char)g_game->frontendState) {
+    switch ((unsigned char)g_game->frontendMenuState) {
     case 0: {
         Display_00425d80* p = GetDisplay();
         SetCursorOverlayEnabled(0);
@@ -1302,7 +1302,7 @@ void RunFrontendStateMachine(void)
             g_game->flags.b2 = 1;
             return;
         case 3:
-            switch ((unsigned char)g_game->frontendState) {
+            switch ((unsigned char)g_game->frontendMenuState) {
             case 0xb:
                 OpenNewGameMenu(0);
                 SetState(8, 0x505, g_frontendSourceFile);
@@ -1445,7 +1445,7 @@ void RunFrontendStateMachine(void)
                 BlankScreen();
                 Force640x480Surfaces();
                 if (InitScoreReporting()) {
-                    ClearSelectedGadget(&g_game->sub);
+                    ClearSelectedGadget(&g_game->gui);
                     SetSubState(0x14, 0x5c1, g_frontendSourceFile);
                 } else
                     SetSubState(0x15, 0x5c4, g_frontendSourceFile);
@@ -1507,7 +1507,7 @@ void RunFrontendStateMachine(void)
             PresentFrontendFrame();
             if (g_game->flags.b2) {
                 FinishUnitSync();
-                CloseTopScreen(&g_game->sub);
+                CloseTopScreen(&g_game->gui);
                 SetSubStateLogged(0x11, 0x613, g_frontendSourceFile);
             }
             return;
@@ -1558,8 +1558,8 @@ void FreePictureCache()
             if (g_game->surface == g_pictureCache[i].surface) {
                 g_game->surface = 0;
             }
-            if (g_game->sub.current != 0 && g_game->sub.current->field_24 == g_pictureCache[i].surface) {
-                g_game->sub.current->field_24 = 0;
+            if (g_game->gui.current != 0 && g_game->gui.current->field_24 == g_pictureCache[i].surface) {
+                g_game->gui.current->field_24 = 0;
             }
             g_pictureCache[i].surface = 0;
             g_pictureCache[i].data = 0;
@@ -1653,8 +1653,8 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
 after:
     // Nested if, one trailing return 0: both failure exits share one return block.
     if (param_4 == 0) {
-        if (g_game->sub.current != 0) {
-            SetBackgroundSurface((int)&g_game->sub, (int)surface);
+        if (g_game->gui.current != 0) {
+            SetBackgroundSurface((int)&g_game->gui, (int)surface);
             if (param_3 != 0)
                 SetPaletteColors((unsigned char*)data, 0, 0x100);
         } else {
@@ -1677,7 +1677,7 @@ after:
 // FUNCTION: 0x428b60
 void OrLabelAttribs(void)
 {
-    Entry_428b60* entries = (Entry_428b60*)g_game->sub.current->gadgets;
+    Entry_428b60* entries = (Entry_428b60*)g_game->gui.current->gadgets;
     for (int i = 1; i <= entries->count; i++) {
         if (entries[i].type == 5) {
             entries[i].attribs |= 8;

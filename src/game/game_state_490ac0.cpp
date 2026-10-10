@@ -75,13 +75,13 @@ struct Game {
         };
     };
     char unknown_2bf0[0x2bf1 - 0x2bf0];
-    Zero11_004917d0 zero_2bf1;   // +0x2bf1
+    Zero11_004917d0 chatRecipients;  // +0x2bf1
     char unknown_2bfc[0x2cba - 0x2bfc];
     unsigned short hoverUnitId;  // +0x2cba
     char unknown_2cbc[0x2cbe - 0x2cbc];
     signed char cursorMode;  // +0x2cbe
     char unknown_2cbf[0x2cc3 - 0x2cbf];
-    unsigned char mode_2cc3;   // +0x2cc3
+    unsigned char orderMode;   // +0x2cc3
     unsigned short buildTypeIndex;  // +0x2cc4
     union {
         unsigned char flags_2cc6;
@@ -96,7 +96,7 @@ struct Game {
     int windSpeedMin;  // +0x1425b
     int windSpeedMax;  // +0x1425f
     char unknown_14263[0x14280 - 0x14263];
-    unsigned char debugMode;     // +0x14280
+    unsigned char debugMode;  // +0x14280
     char unknown_14281[0x14383 - 0x14281];
     void* xform;   // +0x14383
     void* projected;   // +0x14387
@@ -742,8 +742,8 @@ unsigned int GetTicks();
 void LoadBattleAssets()
 {
     ResetChatHudIndices();
-    memset(&g_game->zero_2bf1, 0, 11);
-    g_game->mode_2cc3 = 1;
+    memset(&g_game->chatRecipients, 0, 11);
+    g_game->orderMode = 1;
     g_game->buildTypeIndex = 0;
     g_game->bit5_2cc6 = 0;
     g_game->bit6_2cc6 = 0;
@@ -919,7 +919,7 @@ void __stdcall UpdateBattleHoverMode(int unused)
 {
     unsigned char flags = g_game->flags_2cc6;
 
-    if ((flags & 2) != 0 && g_game->mode_2cc3 == 0xe) {
+    if ((flags & 2) != 0 && g_game->orderMode == 0xe) {
         UpdatePlacementGhostValidity();
         return;
     }
@@ -931,7 +931,7 @@ void __stdcall UpdateBattleHoverMode(int unused)
         return;
     }
     g_game->hoverUnitId = PickUnitUnderCursor();
-    int n = ResolveCursorModeForSelection(g_game->mode_2cc3);
+    int n = ResolveCursorModeForSelection(g_game->orderMode);
     if (g_game->cursorMode != n) {
         g_game->cursorMode = n;
         SetCursorAnimation((Obj_004ab400*)&g_game->gui, g_game->table[n]);

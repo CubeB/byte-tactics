@@ -56,8 +56,8 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];       // +0x1b63
     char unknown_2851[0x14233 - 0x2851];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x14273 - 0x1423b];
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
@@ -88,7 +88,7 @@ void __stdcall RecalculateLineOfSight(int arg)
 {
     if (arg != 0) {
         memset(g_game->visibilityMask, (g_game->mapFlags & 1) ? 0 : 0xFFFF,
-               g_game->width * g_game->height * sizeof(short) / 4);
+               g_game->mapWidthTiles * g_game->mapHeightTiles * sizeof(short) / 4);
     }
     for (unsigned char i = 0; i < 10; i++) {
         if (i >= 10) continue;

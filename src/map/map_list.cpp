@@ -25,7 +25,7 @@ struct Slot_00436860 {
 struct Game {
     char unknown_0[0x519];
     char messages[0x29a0 - 0x519];     // +0x519
-    Slot_00436860* slots;              // +0x29a0
+    Slot_00436860* options;            // +0x29a0
     char unknown_29a4[0x2a3c - 0x29a4];
     unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2c28 - 0x2a3e];
@@ -1043,7 +1043,7 @@ int Mission::SelectSchema(int type, TdfFile* parser, char* schema)
     }
     case 2: {
         for (int i = 0; i < 10; i++) {
-            if (g_game->slots[i].active != 0)
+            if (g_game->options[i].active != 0)
                 players = i + 1;
         }
         order[0] = 3;

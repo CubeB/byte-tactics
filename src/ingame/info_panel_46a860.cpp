@@ -229,7 +229,7 @@ struct Game {
     char unknown_0[0xc];
     Display_0046a860* displayContext;    // +0xc
     char unknown_10[0x531 - 0x10];
-    Struct_0046a860* field_531;           // +0x531
+    Struct_0046a860* layer;               // +0x531
     char unknown_535[0x581 - 0x535];
     int selected;                         // +0x581
     char unknown_585[0xdcb - 0x585];
@@ -249,7 +249,7 @@ struct Game {
     char unknown_14237[0x1426f - 0x14237];
     Feature_0046a860* features;           // +0x1426f
     char unknown_14273[0x14287 - 0x14273];
-    Cell_0046a860* cells;                 // +0x14287
+    Cell_0046a860* heightMap;             // +0x14287
     char unknown_1428b[0x1431f - 0x1428b];
     int scrollX;                          // +0x1431f
     int scrollY;                         // +0x14323
@@ -346,7 +346,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         int v = g_game->mapWidthTiles;
         v *= (short)g_game->field_2c90;
         v += (short)g_game->field_2c8e;
-        unsigned char c = g_game->cells[v].shade;
+        unsigned char c = g_game->heightMap[v].shade;
         sprintf(text, "XYH: %d %d %d\n", (short)g_game->field_2c8e,
                 (short)g_game->field_2c90, c);
         DrawString(surface, (unsigned char*)text, 0x208, pfstate, -1);
@@ -424,7 +424,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
     } while (y < g_game->width);
 
     if (snapshot.button != -1) {
-        strncpy(text, (char*)(snapshot.button * 0x15b + g_game->field_531->value + 2), 0x10);
+        strncpy(text, (char*)(snapshot.button * 0x15b + g_game->layer->value + 2), 0x10);
         text[0x10] = 0;
         unsigned short type = FindUnitTypeId(text);
         if (type != 0) {

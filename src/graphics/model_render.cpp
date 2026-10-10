@@ -239,7 +239,7 @@ struct Game {
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x1427f - 0x2a44];
     unsigned char seaLevel;            // +0x1427f
-    unsigned char debugMode;           // +0x14280
+    unsigned char debugMode; // +0x14280
     char unknown_14281[0x1437b - 0x14281];
     CMemoryCache* unitTable;           // +0x1437b
     char unknown_1437f[0x37f06 - 0x1437f];

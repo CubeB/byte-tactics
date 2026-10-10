@@ -25,20 +25,20 @@ struct Game {
     char unknown_0[0x2c76];
     Rect_0041d0f0 view;                // +0x2c76
     char unknown_2c8e[0x1422b - 0x2c8e];
-    int world_w;                       // +0x1422b
-    int world_h;                       // +0x1422f
+    int mapPixelWidth;                 // +0x1422b
+    int mapPixelHeight;                // +0x1422f
     char unknown_14233[0x14281 - 0x14233];
     unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142e7 - 0x14283];
-    short origin_x;                    // +0x142e7
-    short origin_y;                    // +0x142e9
-    short screen_w;                    // +0x142eb
-    short screen_h;                    // +0x142ed
+    short minimapGadgetX;              // +0x142e7
+    short minimapGadgetY;              // +0x142e9
+    short minimapGadgetW;              // +0x142eb
+    short minimapGadgetH;              // +0x142ed
     char unknown_142ef[0x142f1 - 0x142ef];
     unsigned char flags_142f1;         // +0x142f1
     char unknown_142f2;
-    int value_142f3;                   // +0x142f3
-    int value_142f7;                   // +0x142f7
+    int cameraFollowUnit;              // +0x142f3
+    int cameraFollowTrackObj;          // +0x142f7
     int xs[4];                         // +0x142fb
     int ys[4];                         // +0x1430b
     unsigned char valid[4];            // +0x1431b
@@ -81,8 +81,8 @@ static inline void SetPos(int x, int y)
 void CenterCameraOnRadarClick()
 {
     Rect_0041d0f0 r = g_game->view;
-    int y = g_game->world_h * (r.y - g_game->origin_y) / g_game->screen_h - g_game->viewHeight / 2;
-    int x = g_game->world_w * (r.x - g_game->origin_x) / g_game->screen_w - g_game->viewWidth / 2;
+    int y = g_game->mapPixelHeight * (r.y - g_game->minimapGadgetY) / g_game->minimapGadgetH - g_game->viewHeight / 2;
+    int x = g_game->mapPixelWidth * (r.x - g_game->minimapGadgetX) / g_game->minimapGadgetW - g_game->viewWidth / 2;
     g_game->scrollX = x;
     g_game->scrollY = y;
     g_game->flags_142f1 |= 2;
@@ -91,8 +91,8 @@ void CenterCameraOnRadarClick()
     g_game->y2 = g_game->scrollY;
     g_game->mapFlags &= 0xfff7;
     g_game->value_1434b = 0;
-    g_game->value_142f3 = 0;
-    g_game->value_142f7 = 0;
+    g_game->cameraFollowUnit = 0;
+    g_game->cameraFollowTrackObj = 0;
 }
 
 // FUNCTION: 0x41d1f0
@@ -153,8 +153,8 @@ void __stdcall RestoreCameraPosition(int index)
 {
     if (g_game->valid != 0) {
         g_game->value_1434b = 0;
-        g_game->value_142f3 = 0;
-        g_game->value_142f7 = 0;
+        g_game->cameraFollowUnit = 0;
+        g_game->cameraFollowTrackObj = 0;
         SetPos(g_game->xs[index], g_game->ys[index]);
         g_game->flags_142f1 |= 2;
         ClampCameraPosition();

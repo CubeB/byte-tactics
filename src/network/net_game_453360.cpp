@@ -11,11 +11,11 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a38 - 0x2851];
-    char* buffer;                      // +0x2a38
+    char* recvPacketPtr;               // +0x2a38
     char unknown_2a3c[0x2a42 - 0x2a3c];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x2bf0 - 0x2a43];
-    unsigned char mode;                // +0x2bf0
+    unsigned char chatMode;            // +0x2bf0
     unsigned char chatRecipients[10];  // +0x2bf1
 };
 #pragma pack(pop)
@@ -45,19 +45,19 @@ int __stdcall SendChatPacket(char* text)
     int i;
     // Function-scope and declared after i: symbol order sets the SIB operand order.
     extern Game* g_game;
-    g_game->buffer[0] = 5;
-    strncpy(g_game->buffer + 1, text, 0x40);
+    g_game->recvPacketPtr[0] = 5;
+    strncpy(g_game->recvPacketPtr + 1, text, 0x40);
 
     int target = FindTarget(g_game);
 
-    if (text[0] == '+' || g_game->mode == 0) {
-        result = BroadcastPacket(target, g_game->buffer, 0x41);
-    } else if (g_game->mode == 3) {
+    if (text[0] == '+' || g_game->chatMode == 0) {
+        result = BroadcastPacket(target, g_game->recvPacketPtr, 0x41);
+    } else if (g_game->chatMode == 3) {
         for (i = 0; i < 10; i++) {
             if (g_game->chatRecipients[i] != 0) {
                 int id = g_game->players[i].id;
                 if (id != 0)
-                    result = SendPacketToPlayer(target, id, g_game->buffer, 0x41);
+                    result = SendPacketToPlayer(target, id, g_game->recvPacketPtr, 0x41);
             }
         }
     } else {
@@ -65,9 +65,9 @@ int __stdcall SendChatPacket(char* text)
         for (int i = 0; i < 10; i++) {
             Player* p = &g_game->players[i];
             if (p->active != 0 && p->type == 3) {
-                if ((g_game->mode == 1 && lp->allied[i] != 0) ||
-                    (g_game->mode == 2 && lp->allied[i] == 0))
-                    result = SendPacketToPlayer(target, p->id, g_game->buffer, 0x41);
+                if ((g_game->chatMode == 1 && lp->allied[i] != 0) ||
+                    (g_game->chatMode == 2 && lp->allied[i] == 0))
+                    result = SendPacketToPlayer(target, p->id, g_game->recvPacketPtr, 0x41);
             }
         }
     }

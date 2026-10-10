@@ -73,13 +73,13 @@ struct Obj_0047cc30 {
 
 struct Game {
     char unknown_0[0x14233];
-    int width;                          // +0x14233
-    int height;                         // +0x14237
+    int mapWidthTiles;                  // +0x14233
+    int mapHeightTiles;                 // +0x14237
     char unknown_1423b[0x14287 - 0x1423b];
-    Cell* cells;                        // +0x14287
+    Cell* heightMap;                    // +0x14287
     char unknown_1428b[0x1429f - 0x1428b];
     Owner_0047cc30* owners;             // +0x1429f
-    int ownerCols;                      // +0x142a3
+    int bucketCols;                     // +0x142a3
     char unknown_142a7[0x142b7 - 0x142a7];
     Owner_0047cc30* overflowBucket;     // +0x142b7
     char unknown_142bb[0x14357 - 0x142bb];
@@ -128,16 +128,16 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
         if (px < 0)
             goto remove;
         short py = obj->pos.y;
-        if (py < 0 || px + size.x >= g_game->width || py + size.y >= g_game->height)
+        if (py < 0 || px + size.x >= g_game->mapWidthTiles || py + size.y >= g_game->mapHeightTiles)
             goto remove;
     }
     {
         Position_0047cc30 p = obj->position;
         SetOwner_0047cc30(obj,
-            &g_game->owners[(p.x >> 23) + (p.z >> 23) * g_game->ownerCols]);
+            &g_game->owners[(p.x >> 23) + (p.z >> 23) * g_game->bucketCols]);
     }
     {
-        Cell* cell = &g_game->cells[g_game->width * obj->pos.y + obj->pos.x];
+        Cell* cell = &g_game->heightMap[g_game->mapWidthTiles * obj->pos.y + obj->pos.x];
         unsigned int f = obj->flags.all;
         int index = 0;
 
@@ -170,7 +170,7 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
                         cell->flags |= 2;
                     cell++;
                 }
-                cell += g_game->width - size.x;
+                cell += g_game->mapWidthTiles - size.x;
             }
             Point_0047cc30 grown;
             grown.x = size.x + 2;
@@ -206,7 +206,7 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
                 b_next:
                     cell++;
                 }
-                cell += g_game->width - size.x;
+                cell += g_game->mapWidthTiles - size.x;
             }
             return;
         }
@@ -234,7 +234,7 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
                 c_next:
                     cell++;
                 }
-                cell += g_game->width - size.x;
+                cell += g_game->mapWidthTiles - size.x;
             }
         }
     }

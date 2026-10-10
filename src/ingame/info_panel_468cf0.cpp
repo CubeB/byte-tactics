@@ -259,12 +259,12 @@ struct Game {
       char unknown_141fb[0x1426f - 0x141fb];
       Feature_00468cf0* features;       // +0x1426f
       char unknown_14273[0x14280 - 0x14273];
-      char debugMode;                   // +0x14280
+      char debugMode;         // +0x14280
       char unknown_14281[0x1428b - 0x14281];
     };
   };
   char unknown_1428b[0x142f3 - 0x1428b];
-  void* followUnit;                     // +0x142f3
+  void* cameraFollowUnit;               // +0x142f3
   char unknown_142f7[0x1431f - 0x142f7];
   int scrollX;                          // +0x1431f
   int scrollY;                         // +0x14323
@@ -657,7 +657,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   }
   DrawParticleList((int)&ctx, 8);
   if (IsKeyDown(0xf9))
-    DrawSelectedUnitOrderOverlays((int)&ctx, (int)&g_game->followUnit);
+    DrawSelectedUnitOrderOverlays((int)&ctx, (int)&g_game->cameraFollowUnit);
 
   // unit group numbers. Suspected original bug: the outer test lets a unit
   // with a group number (group) through when the 0x37f06 bit is clear, but the

@@ -121,7 +121,7 @@ struct Game {
     char unknown_1b8e[0x1cd5 - 0x1b8e];
     SideData* p1cd5;                     // +0x1cd5
     char unknown_1cd9[0x29a0 - 0x1cd9];
-    SkirmishInfo* p29a0;                 // +0x29a0
+    SkirmishInfo* options;               // +0x29a0
     char unknown_29a4[0x2a3c - 0x29a4];
     short numPlayers;                    // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
@@ -486,7 +486,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             goto invalid;
         if (g_game->mapInfo->LoadMissionByName(mission) == 0)
             goto invalid;
-        strcpy((char*)&g_game->p29a0->aMapName[0], mission);
+        strcpy((char*)&g_game->options->aMapName[0], mission);
         char* thumbs = (g_game->p38d6b)->GetStringItem("Thumbs", 0);
         strncpy(g_game->buf391cf, thumbs, 0x19);
         if (strlen(g_game->buf391cf) != 0x19)
@@ -495,15 +495,15 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             (g_game->p38d6b)->OpenAccount("summary");
             g_game->numPlayers =
                 (short)(g_game->p38d6b)->GetIntegerItem("Players", 0);
-            g_game->p29a0->commanderDeath =
+            g_game->options->commanderDeath =
                 (g_game->p38d6b)->GetIntegerItem("CommanderDeath", 1);
-            g_game->p29a0->fixedLocations =
+            g_game->options->fixedLocations =
                 (g_game->p38d6b)->GetIntegerItem("Location", 1);
-            g_game->p29a0->mapping =
+            g_game->options->mapping =
                 (g_game->p38d6b)->GetIntegerItem("Mapping", 1);
-            g_game->p29a0->lineOfSight =
+            g_game->options->lineOfSight =
                 (g_game->p38d6b)->GetIntegerItem("LineOfSight", 1);
-            g_game->p29a0->losType =
+            g_game->options->losType =
                 (g_game->p38d6b)->GetIntegerItem("LineOfSightType", 1);
         }
         g_game->flags_2a44.b2 = 1;

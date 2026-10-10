@@ -167,9 +167,9 @@ union Flags245_0043f0e0 {
 struct Game {
     char unknown_0[0x2a42];
     unsigned char localPlayer;    // +0x2a42
-    unsigned char localPlayerBit; // +0x2a43
+    unsigned char playerIndex;    // +0x2a43
     char unknown_2a44[0x14233 - 0x2a44];
-    int mapWidth; // +0x14233
+    int mapWidthTiles;  // +0x14233
     char unknown_14237[0x14253 - 0x14237];
     union {
         int unitCount;    // +0x14253
@@ -179,7 +179,7 @@ struct Game {
     struct Feature_0043e490* features; // +0x1426f
     unsigned short* visibilityMask; // +0x14273
     char unknown_14277[0x1427f - 0x14277];
-    unsigned char threshold; // +0x1427f
+    unsigned char seaLevel;  // +0x1427f
     char unknown_14280[0x37efa - 0x14280];
     union {
         int interfaceType; // +0x37efa
@@ -311,7 +311,7 @@ static inline int Visible(Unit_0043e490* unit, Pos_0043e490* pos) {
     x = pos->x >> 5;
     y = (pos->z - (pos->y >> 1)) >> 5;
     return (unsigned int)x < p->exploredWidth && (unsigned int)y < p->exploredHeight &&
-           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->exploredWidth]);
+           0 != ((1 << g_game->playerIndex) & g_game->visibilityMask[x + y * unit->player->exploredWidth]);
 }
 
 // The feature on a map cell, as GetFeature in 0x4237d0.cpp but with the id in
@@ -328,7 +328,7 @@ static inline Feature_0043e490* GetFeature(Cell* cell) {
     }
     if (id != 0xfffe)
         return 0;
-    id = (cell - (cell->offsetY * g_game->mapWidth + cell->offsetX))->feature;
+    id = (cell - (cell->offsetY * g_game->mapWidthTiles + cell->offsetX))->feature;
     if (id >= 0xfffb)
         return 0;
     return &g_game->features[id];
@@ -483,7 +483,7 @@ static inline int Visible(Unit_0043f0e0* unit, Pos_0043f0e0* pos) {
     int x = pos->x >> 5;
     int y = (pos->z - (pos->y >> 1)) >> 5;
     return (unsigned int)x < p->exploredWidth && (unsigned int)y < p->exploredHeight &&
-           0 != ((1 << g_game->localPlayerBit) & g_game->visibilityMask[x + y * unit->player->exploredWidth]);
+           0 != ((1 << g_game->playerIndex) & g_game->visibilityMask[x + y * unit->player->exploredWidth]);
 }
 
 #define FEATURE_CHECK(def, unit, pos, mask, result)                                            \
@@ -506,7 +506,7 @@ static inline Thing_0043f0e0* Lookup(Pos_0043f0e0* pos) {
     }
     if (id != 0xfffe)
         return 0;
-    id = (cell - (cell->offsetY * g_game->mapWidth + cell->offsetX))->feature;
+    id = (cell - (cell->offsetY * g_game->mapWidthTiles + cell->offsetX))->feature;
     if (id >= 0xfffb)
         return 0;
     return (Thing_0043f0e0*)((char*)g_game->features + (id << 8));
@@ -548,7 +548,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                 if (node->f111 & 0x20000)
                     break;
             }
-            if (target->def->f170 + target->f70 < g_game->threshold) {
+            if (target->def->f170 + target->f70 < g_game->seaLevel) {
                 if (!(node->f111 & 0x10000)) {
                     if (!(unit->f3b & 2))
                         break;
@@ -556,7 +556,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                         break;
                 }
             }
-            if (target->def->f170 + target->f70 >= g_game->threshold) {
+            if (target->def->f170 + target->f70 >= g_game->seaLevel) {
                 if (def->f241 & 0x1000) {
                     if (node->f111 & 0x10000)
                         break;

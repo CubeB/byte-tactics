@@ -3,8 +3,8 @@
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14223];
-    int baseX;                         // +0x14223
-    int baseY;                         // +0x14227
+    int mapWidthWorld;                 // +0x14223
+    int mapHeightWorld;                // +0x14227
 };
 #pragma pack(pop)
 
@@ -15,14 +15,14 @@ struct Vec3_00407d40 {
 
     Vec3_00407d40() {}
     // The declaration of ax, the double and the assignment are three separate
-    // statements on purpose: folding them into `int ax = (int)(game->baseX / 2
+    // statements on purpose: folding them into `int ax = (int)(game->mapWidthWorld / 2
     // * 65536.0);` moves the constructor's `pop edi` back between c.y and c.z
     // and the function stops matching.
     Vec3_00407d40(Game* game) {
         int ax;
-        double halfX = ((double)(((game->baseX / 2) * 65536.0)));
+        double halfX = ((double)(((game->mapWidthWorld / 2) * 65536.0)));
         ax = (int)halfX;
-        *this = Vec3_00407d40(ax, 0, (int)((game->baseY / 2) * 65536.0));
+        *this = Vec3_00407d40(ax, 0, (int)((game->mapHeightWorld / 2) * 65536.0));
     }
     Vec3_00407d40(int ax, int ay, int az) : x(ax), y(ay), z(az) {}
 };

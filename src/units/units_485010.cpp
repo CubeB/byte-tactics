@@ -292,20 +292,20 @@ struct Game {
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14223 - 0x2a44];
-    int baseX;                         // +0x14223
-    int baseY;                         // +0x14227
+    int mapWidthWorld;                 // +0x14223
+    int mapHeightWorld;                // +0x14227
     char unknown_1422b[0x14233 - 0x1422b];
-    int width;                         // +0x14233
-    int height;                        // +0x14237
+    int mapWidthTiles;                 // +0x14233
+    int mapHeightTiles;                // +0x14237
     char unknown_1423b[0x1426f - 0x1423b];
     Entry_486360* features;            // +0x1426f
     unsigned short* visibilityMask;    // +0x14273
     char unknown_14277[0x1427f - 0x14277];
-    unsigned char limit;               // +0x1427f
+    unsigned char seaLevel;            // +0x1427f
     char debugMode;
     unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x14287 - 0x14283];
-    Cell* cells;                       // +0x14287
+    Cell* heightMap;                   // +0x14287
     char unknown_1428b[0x1434f - 0x1428b];
     unsigned short unitsPerPlayer;     // +0x1434f
     unsigned short poolCount;          // +0x14351
@@ -354,8 +354,8 @@ struct Point16_00485010 {
 
 static inline Cell* GetCell(int x, int y)
 {
-    if (x >= 0 && x < g_game->width && y >= 0 && y < g_game->height)
-        return &g_game->cells[y * g_game->width + x];
+    if (x >= 0 && x < g_game->mapWidthTiles && y >= 0 && y < g_game->mapHeightTiles)
+        return &g_game->heightMap[y * g_game->mapWidthTiles + x];
     return 0;
 }
 
@@ -375,9 +375,9 @@ static inline Cell* GetCellCachedWidth(int x, int y)
 {
     if (x >= 0) {
         // Width read into its own local after the x >= 0 test: decides the register tie.
-        int w = g_game->width;
-        if (x < w && y >= 0 && y < g_game->height)
-            return &g_game->cells[w * y + x];
+        int w = g_game->mapWidthTiles;
+        if (x < w && y >= 0 && y < g_game->mapHeightTiles)
+            return &g_game->heightMap[w * y + x];
     }
     return 0;
 }
@@ -411,7 +411,7 @@ void __stdcall GetCellPosition(int x, int y, Pos_00485070* out)
 }
 
 // Clamps a 16.16 fixed-point position's x and z to the map
-// ([0, baseX) and [0, baseY) in whole units).
+// ([0, mapWidthWorld) and [0, mapHeightWorld) in whole units).
 
 // Built as a bitfield struct in a local: plain integer arithmetic folds (size - 1) << 16.
 static inline Fixed_004853b0 MakeFixed(int i)
@@ -427,12 +427,12 @@ void __stdcall ClampPositionToMap(Vec3_004853b0* p)
 {
     if (p->x.value < 0)
         p->x.value = 0;
-    else if (p->x.value >= MakeFixed(g_game->baseX).value)
-        p->x = MakeFixed(g_game->baseX - 1);
+    else if (p->x.value >= MakeFixed(g_game->mapWidthWorld).value)
+        p->x = MakeFixed(g_game->mapWidthWorld - 1);
     if (p->z.value < 0)
         p->z.value = 0;
-    else if (p->z.value >= MakeFixed(g_game->baseY).value)
-        p->z = MakeFixed(g_game->baseY - 1);
+    else if (p->z.value >= MakeFixed(g_game->mapHeightWorld).value)
+        p->z = MakeFixed(g_game->mapHeightWorld - 1);
 }
 
 
@@ -442,7 +442,7 @@ void __stdcall ShareMapInfo(unsigned char from, unsigned char to)
 {
     unsigned short fromBit = 1 << from;
     unsigned short toBit = 1 << to;
-    int n = g_game->width * g_game->height / 4;
+    int n = g_game->mapWidthTiles * g_game->mapHeightTiles / 4;
     for (int i = 0; i < n; i++) {
         unsigned short* p = &g_game->visibilityMask[i];
         if (*p & fromBit)
@@ -1030,7 +1030,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
         void* target = GetMapCell(unit->screen.x, unit->screen.y);
         if (target != 0) {
             Pos_00485070* pos = (Pos_00485070*)&unit->pos;
-            if (GetGroundHeight(pos) <= g_game->limit) {
+            if (GetGroundHeight(pos) <= g_game->seaLevel) {
                 Result_486360* r = PlaceFeature(target, id, pos, &unit->bank, unit->playerIndex);
                 if (r != 0) {
                     if (!(unit->type->flags.all & 0x1000000)) {

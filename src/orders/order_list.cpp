@@ -121,9 +121,7 @@ struct PointInit_0043a1f0 : Point {
     PointInit_0043a1f0(short a, short b) { x = a; y = b; }
 };
 
-struct Short3 {
-    short x, y, z;
-};
+#include "../util/angles.h"
 
 struct Player_0043b7c0 {
     int active;                    // +0x0
@@ -303,14 +301,7 @@ struct Unit {                          // 0x118 bytes
     char unknown_48[0x5c - 0x48];
     Order* list;                       // +0x5c
     Order* list2;                      // +0x60, nodes with flag 0x40000
-    union {
-        Short3 f64;                    // +0x64
-        struct {
-            short bank;            // +0x64
-            short heading;             // +0x66
-            short pitch;            // +0x68, in 2048ths of a circle
-        };
-    };
+    Angles16 angles;                   // +0x64, pitch in 2048ths of a circle
     Vec3 pos;                          // +0x6a, 16.16
     Point cell;                        // +0x76
     char unknown_7a[0x7e - 0x7a];
@@ -1013,7 +1004,7 @@ void __cdecl FUN_004b7173(short angle, int* xz);
 int __cdecl FUN_004b715a(int x, int z);
 int __stdcall GetHeadingBetween(Vec3* from, Vec3* to);
 Vec3 __stdcall GetPiecePosition(Path_0043d6d0* obj, int index);
-Short3 __stdcall GetPieceAngles(Path_0043d6d0* obj, int index);
+Angles16 __stdcall GetPieceAngles(Path_0043d6d0* obj, int index);
 void __stdcall SetUnitPosition(Unit* unit, Vec3 pos, int mode);
 int __stdcall CanPlaceUnitFootprint(UnitType_0043cd20* type, short a8, Point cell, int mode);
 void __stdcall RemoveUnitFromMap(Unit* unit);
@@ -1649,7 +1640,7 @@ void UnitMotion::ApplyClampedTurnDelta(Unit* unit, short amount)
             turn = -max;
         else
             turn = amount;
-        unit->heading += turn;
+        unit->angles.heading += turn;
         unit->moved = 1;
     } else {
         turn = 0;
@@ -1701,7 +1692,7 @@ void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
     ClampToZero(speed);
 
     // Direction index, limited to the eleven entries of the table.
-    int idx = unit->pitch >> 11;
+    int idx = unit->angles.pitch >> 11;
     if (idx < -5)
         idx = -5;
     if (idx > 5)
@@ -1716,7 +1707,7 @@ void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
         speed = range;
 
     int dist = speed;
-    unsigned short angle = unit->heading;
+    unsigned short angle = unit->angles.heading;
     Vec3 v;
     v.x = -FUN_004b70ef(angle, dist);
     v.y = 0;
@@ -1763,7 +1754,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     int d1 = (int)(((__int64)ax * ax) >> 32) + (int)(((__int64)az * az) >> 32);
 
     short ang = (short)GetHeadingBetween(ppos, &p[1]);
-    short diff = ang - unit->heading;
+    short diff = ang - unit->angles.heading;
     int sdiff = diff;
     int adiff = abs(sdiff);
 
@@ -1779,7 +1770,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
             turn = -max;
         else
             turn = diff;
-        unit->heading += turn;
+        unit->angles.heading += turn;
         unit->moved = 1;
     } else {
         turn = 0;
@@ -1823,10 +1814,10 @@ void UnitMotion::ApplyBankAndPitch(Unit* owner, Vec3* v)
     int xz[2];
     xz[0] = p2.x;
     xz[1] = p2.z;
-    FUN_004b7173(owner->heading, xz);
+    FUN_004b7173(owner->angles.heading, xz);
     int n = (int)(((__int64)g_game->gravity << 16) / 0xccd);
-    owner->bank = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a2 * -xz[0]) >> 16), n);
-    owner->pitch = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a6 * -xz[0]) >> 16), n);
+    owner->angles.bank = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a2 * -xz[0]) >> 16), n);
+    owner->angles.pitch = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a6 * -xz[0]) >> 16), n);
 }
 #pragma auto_inline(on)
 
@@ -1887,7 +1878,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
         MulFixed(velocity.x, f);
         MulFixed(velocity.z, f);
         int g = (int)((double)(dist - maxd) * 65536.0);
-        velocity += Offset(unit->f64.y, g);
+        velocity += Offset(unit->angles.heading, g);
     }
 
     Vec3 da = unit->pos - a;
@@ -1908,7 +1899,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     }
 
     float hd = (float)_hypot(da.x, da.z) * eps;
-    short d = (short)(heading - unit->f64.y);
+    short d = (short)(heading - unit->angles.heading);
     if (d != 0) {
         unsigned short max = unit->type->max_turn;
         if (d >= (int)max)
@@ -1917,7 +1908,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
             turn = (short)-max;
         else
             turn = d;
-        unit->f64.y = (short)(unit->f64.y + turn);
+        unit->angles.heading = (short)(unit->angles.heading + turn);
         unit->moved = 1;
     } else {
         turn = 0;
@@ -1947,6 +1938,11 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     }
 }
 
+// Unused here: a real function declared for the symbol count that RegisterOrderTypes
+// (0x43bc90) and UpdatePosition (0x43d6d0) need with the shared Angles16
+// (docs/c2-regalloc.md).
+void FreeUnitInfo();
+
 // Moves the unit one step. With a path object it snaps to the path's next
 // point (raised to the draft/sea-level floor for units with the type flag at
 // +0x241 bit 19) and copies the path's velocity; without one it adds the
@@ -1965,8 +1961,8 @@ void UnitMotion::UpdatePosition(Unit* u)
             v.fy = MAXM_0043d6d0(v.fy, MakeFixed_0043d6d0(u->type->draft * 0xffff + g_game->seaLevel));
         }
         SetUnitPosition(u, v, mode);
-        Short3 o = GetPieceAngles(u->obj, u->index);
-        u->f64 = o;
+        Angles16 o = GetPieceAngles(u->obj, u->index);
+        u->angles = o;
         if (u->obj->motion != 0) {
             speed = u->obj->motion->speed;
             velocity = u->obj->motion->velocity;
@@ -2011,7 +2007,7 @@ void UnitMotion::UpdatePosition(Unit* u)
         if (speed > (u->type->maxvelocity / 2)) {
             int half = u->type->maxvelocity / 2;
             speed = half;
-            unsigned short angle = u->f64.y;
+            unsigned short angle = u->angles.heading;
             Vec3 vec;
             vec.x = -FUN_004b70ef(angle, half);
             vec.y = 0;

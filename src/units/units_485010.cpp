@@ -47,14 +47,11 @@ struct Entry_486360 {
 #include "../network/player_info.h"
 
 // Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
-int AimCobStub(int, int, int, int);
 int StepTowards(int, int, int);
 void NopRetC(int, int, int);
 
 struct Unit;
 
-// Unused here: these forward declarations take the symbol ids that keep 0x4854a0 matching (docs/c2-regalloc.md).
-struct Sound;
 #include "../network/player.h"
 
 struct Name_004864b0 {
@@ -223,9 +220,9 @@ union Flags114_485a40 {
 
 #include "../game/unit_resources.h"
 
-// Unused here: a real function declared to keep the file's symbol count; the
-// header's declarations moved 0x485140 and 0x4854a0 (docs/c2-regalloc.md).
-void RegisterUnitOrders();
+// This header's symbol ids replace those of three declarations that were here
+// to keep 0x485140 and 0x4854a0 matching (docs/c2-regalloc.md).
+#include "../util/angles.h"
 
 struct Unit {                          // 0x118 bytes
     UnitMotion* obj;                   // +0x0
@@ -234,9 +231,7 @@ struct Unit {                          // 0x118 bytes
     WeaponAimCobCb sub_24;             // +0x24
     WeaponAimCobCb sub_40;             // +0x40
     char unknown_5c[0x64 - 0x5c];
-    short bank;                    // +0x64
-    unsigned short heading;           // +0x66
-    short pitch;                    // +0x68
+    Angles16 angles;                   // +0x64
     Pos_00485a40 pos;                  // +0x6a
     ShortPair_485a40 screen;           // +0x76
     short losCacheCellX;                    // +0x7a
@@ -665,7 +660,7 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     unit->prevHealthPercent = 0;
     unit->activateFlags = 0;
     unit->workTime = 0;
-    unit->pitch = 0;
+    unit->angles.pitch = 0;
     unit->pos = pos;
 
     ShortPair_485a40 off = unit->offset;
@@ -674,9 +669,9 @@ void __stdcall InitUnitFromType(Unit* unit, Pos_00485a40 pos, int param_5)
     screen.y = (short)((pos.z - off.y * 0x80000 + 0x80000) >> 20);
     unit->screen = screen;
 
-    unit->heading = (short)(RandomInt(unit->type->buildangle)
-                             + (0x8000 - unit->type->buildangle / 2));
-    unit->bank = 0;
+    unit->angles.heading = (short)(RandomInt(unit->type->buildangle)
+                                    + (0x8000 - unit->type->buildangle / 2));
+    unit->angles.bank = 0;
     unit->losCacheCellX = 0;
     unit->losCacheCellZ = 0;
     unit->recentlyDamagedTimer = 0;
@@ -822,7 +817,7 @@ UnitScript* emit_00485e30() { return new UnitScript; }
 void __stdcall CreateUnitMotion(Unit* unit)
 {
     unit->obj = new UnitMotion(unit);
-    unit->heading = unit->type->buildangle;
+    unit->angles.heading = unit->type->buildangle;
 }
 
 extern void* g_weaponAimCobVtable[];
@@ -857,7 +852,7 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
     UpdateMetalExtraction(unit);
     if (type->mobile == 1) {
         unit->obj = new UnitMotion(unit);
-        unit->heading = unit->type->buildangle;
+        unit->angles.heading = unit->type->buildangle;
     }
 }
 
@@ -896,7 +891,7 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
     UpdateMetalExtraction(unit);
     if (type->mobile == 1) {
         unit->obj = new UnitMotion(unit);
-        unit->heading = unit->type->buildangle;
+        unit->angles.heading = unit->type->buildangle;
     }
 }
 
@@ -1031,7 +1026,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
         if (target != 0) {
             Pos_00485070* pos = (Pos_00485070*)&unit->pos;
             if (GetGroundHeight(pos) <= g_game->seaLevel) {
-                Result_486360* r = PlaceFeature(target, id, pos, &unit->bank, unit->playerIndex);
+                Result_486360* r = PlaceFeature(target, id, pos, &unit->angles, unit->playerIndex);
                 if (r != 0) {
                     if (!(unit->type->flags.all & 0x1000000)) {
                         r->velY = -11468;
@@ -1040,7 +1035,7 @@ void __stdcall CreateUnitCorpse(Unit* unit, int depth, int flag)
                     flag = 0;
                 }
             } else {
-                PlaceFeature(target, id, pos, &unit->bank, unit->playerIndex);
+                PlaceFeature(target, id, pos, &unit->angles, unit->playerIndex);
             }
             if (flag) {
                 EmitSmoke(pos, 0xf, 900, 9);

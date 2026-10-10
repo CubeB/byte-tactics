@@ -3,9 +3,7 @@
 
 #include "box.h"
 
-struct Rot16 {
-    short x, y, z;
-};
+#include "../util/angles.h"
 
 struct Unit;
 
@@ -20,7 +18,7 @@ struct Unit;
 
 struct FeatureSpot {
     char unknown_0[0x20];
-    Rot16 rot;                         // +0x20
+    Angles16 rot;                         // +0x20
     char unknown_26[0x30 - 0x26];
 };
 
@@ -47,7 +45,7 @@ struct Unit {
     // here, and an int spelling keeps the file's symbol count (docs/c2-regalloc.md).
     int motion;                        // +0x0
     char unknown_4[0x64 - 0x4];
-    Rot16 rot;                         // +0x64
+    Angles16 rot;                         // +0x64
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitDef* type;                     // +0x92
@@ -170,7 +168,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         pos.x = (size.x + cell.x * 2) << 19;
         pos.z = (size.y + cell.y * 2) << 19;
         pos.y = (RandomInt(f->height) + GetGroundHeight(&pos)) << 16;
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->rot.y);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->rot.heading);
         return 1;
     }
     case 2:

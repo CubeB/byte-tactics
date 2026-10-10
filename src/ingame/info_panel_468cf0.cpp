@@ -110,7 +110,7 @@ struct Resources {          // g_game+0x37e3f, 33 bytes
 #pragma pack(push, 1)
 struct Tile_00468cf0 {       // 0xd bytes
   char unknown_0[4];
-  byte field_4;              // +0x04
+  byte height;               // +0x04
   char unknown_5[3];
   ushort feature;            // +0x08, a feature index; 0xfffb and up is none
   char unknown_a[2];
@@ -119,10 +119,10 @@ struct Tile_00468cf0 {       // 0xd bytes
 
 struct Feature_00468cf0 {    // 0x100 bytes
   char unknown_0[0x94];
-  short field_94;            // +0x94
-  short field_96;            // +0x96
+  short footprintX;          // +0x94
+  short footprintZ;          // +0x96
   char unknown_98[0xfa - 0x98];
-  byte field_fa;             // +0xfa
+  byte height;               // +0xfa
   char unknown_fb[4];
   byte flags;                // +0xff
 };
@@ -167,11 +167,11 @@ struct PlayerState_00468cf0 {
 
 struct Unit_00468cf0 {                 // 0x118 bytes
   char unknown_0[0x6c];
-  short field_6c;                     // +0x6c
+  short xWhole;                       // +0x6c
   char unknown_6e[2];
-  short field_70;                     // +0x70
+  short yWhole;                       // +0x70
   char unknown_72[2];
-  short field_74;                     // +0x74
+  short zWhole;                       // +0x74
   char unknown_76[0x96 - 0x76];
   PlayerState_00468cf0* player;       // +0x96
   void* script;                       // +0x9a
@@ -556,7 +556,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     k = 0;
     while (k < g_game->count) {
       Unit_00468cf0 *unit = (Unit_00468cf0 *)(g_game->units + *pIdx * 0x118);
-      int row = ((int)unit->field_74 - g_game->scrollY) / 16 + 0x10;
+      int row = ((int)unit->zWhole - g_game->scrollY) / 16 + 0x10;
       if (row >= 0 && row < mv->rows) {
         Unit_00468cf0 ***pCur = &mv->cursor[row];
         mv->count[row]++;
@@ -582,9 +582,9 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
         tile->flags &= 0xfb;
         if (tile->feature < 0xfffb) {
           Feature_00468cf0 *feat = g_game->features + tile->feature;
-          if (feat->field_fa < 10) {
+          if (feat->height < 10) {
             if ((feat->flags & 8) && ((tile->flags >> 3 & 0xf) != idx)) {
-              if (IsFootprintVisible((int)player, x, y, feat->field_94, feat->field_96, tile->field_4))
+              if (IsFootprintVisible((int)player, x, y, feat->footprintX, feat->footprintZ, tile->height))
                 BlitFeatureGaf((int)&ctx, (int)tile, x, y);
             }
             else
@@ -624,7 +624,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
         if (tile->flags & 4) {
           Feature_00468cf0 *feat = g_game->features + tile->feature;
           if ((feat->flags & 8) && ((tile->flags >> 3 & 0xf) != idx)) {
-            if (IsFootprintVisible((int)player, x, y, (int)feat->field_94, feat->field_96, tile->field_4))
+            if (IsFootprintVisible((int)player, x, y, (int)feat->footprintX, feat->footprintZ, tile->height))
               BlitFeatureGaf((int)&ctx, (int)tile, x, y);
           }
           else
@@ -670,8 +670,8 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
       if ((g_game->visualFlagsByte & 1) || unit->group != 0) {
         char str[2];
         str[1] = 0;
-        x = unit->field_6c - g_game->scrollX + 0x80;
-        y = unit->field_74 - g_game->scrollY - (unit->field_70 >> 1) + 0x20;
+        x = unit->xWhole - g_game->scrollX + 0x80;
+        y = unit->zWhole - g_game->scrollY - (unit->yWhole >> 1) + 0x20;
         if (g_game->visualFlagsByte & 1) {
           // The slot compares as a signed char, as the original does.
           if ((char)unit->player->bSlotIndex == (char)idx)

@@ -53,9 +53,9 @@ struct UnitDef {
     short f170;                        // +0x170
     char unknown_172[2];
     short f174;                        // +0x174
-    int field_176;                     // +0x176
-    int field_17a;                     // +0x17a
-    int field_17e;                     // +0x17e
+    int modelSizeX;                    // +0x176
+    int modelSizeY;                    // +0x17a
+    int modelSizeZ;                    // +0x17e
     char unknown_182[0x245 - 0x182];
     unsigned char flags;               // +0x245
 };
@@ -739,8 +739,8 @@ unsigned short __stdcall PickUnitUnderCursor(void)
             if (u->unitDefIndex != 0) {
                 if (HitTestUnitScreenHull(u, p)) {
                     UnitDef* def = u->def;
-                    int v = FixMul(def->field_17a, 0x8000) + def->field_17e;
-                    v = FixMul(v, def->field_176);
+                    int v = FixMul(def->modelSizeY, 0x8000) + def->modelSizeZ;
+                    v = FixMul(v, def->modelSizeX);
                     if (v < best) {
                         result = u->id;
                         best = v;

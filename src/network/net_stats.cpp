@@ -25,14 +25,16 @@ struct Pair_00419560 {
     int b;
 };
 
+// Declared this early for symbol ids: GetByteRates (0x416150) needs these two
+// counters before everything else, and CountPacket's prototype keeps
+// FormatNetStats at its count.
+void __stdcall CountPacket(int, int, int);
+extern int g_byteRatesLastSent;
+extern int g_byteRatesLastReceived;
+
 #include "bit_writer.h"
 
 #include "bit_reader.h"
-
-class PacketManager {
-public:
-    void NopRet_D();
-};
 
 void __stdcall RegisterOrderTypes(void* table, int id);
 void __stdcall StepGafSequence(void* item);
@@ -67,7 +69,6 @@ extern unsigned int g_packetBytesSentRate;
 extern unsigned int g_packetBytesReceivedRate;
 extern unsigned int g_packetsSentRate;
 extern unsigned int g_packetsReceivedRate;
-extern PacketManager g_packetManager;
 
 // Registers a table with RegisterOrderTypes under a numeric id; one of several
 // small functions doing the same for different tables.
@@ -276,9 +277,32 @@ void __stdcall FormatNetStats(char* text)
             g_packetsSentRate, g_packetBytesSentRate, g_packetsReceivedRate, g_packetBytesReceivedRate, g_compressionPercent);
 }
 
-// 0x416150 (GetByteRates) stays in src/network/net_stats_416150.cpp: it
-// matches only without <ddraw.h>, and FormatNetStats matches only with it, so
-// the two cannot share a translation unit (tools/headers.py).
+extern unsigned int g_byteRatesTick;
+extern unsigned int g_bytesSentPerSecond;
+extern unsigned int g_bytesReceivedPerSecond;
+
+class PacketManager {
+public:
+    void NopRet_D();
+};
+
+extern PacketManager g_packetManager;
+
+// FUNCTION: 0x416150
+void __stdcall GetByteRates(unsigned int* sent, unsigned int* received)
+{
+    unsigned int now = GetTicks();
+    unsigned int elapsed = now - g_byteRatesTick;
+    if (elapsed > 30) {
+        g_byteRatesTick = now;
+        g_bytesSentPerSecond = (g_packetBytesSent * 30 - g_byteRatesLastSent * 30) / elapsed;
+        g_bytesReceivedPerSecond = (g_packetBytesReceived * 30 - g_byteRatesLastReceived * 30) / elapsed;
+        g_byteRatesLastSent = g_packetBytesSent;
+        g_byteRatesLastReceived = g_packetBytesReceived;
+    }
+    *sent = g_bytesSentPerSecond;
+    *received = g_bytesReceivedPerSecond;
+}
 
 // The sums are never used (their consumer was presumably compiled out).
 // As in InitCommands, the second field of the second table is read through a

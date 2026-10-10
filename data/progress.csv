@@ -246,7 +246,7 @@ address,size,file,symbol,status,similarity
 0x415ef0,77,src/network/net_stats.cpp,?CountMessage@@YGXEHH@Z,matched,100.0
 0x415f40,86,src/network/net_stats.cpp,?CountPacket@@YGXHHH@Z,matched,100.0
 0x415fa0,426,src/network/net_stats.cpp,?FormatNetStats@@YGXPAD@Z,matched,100.0
-0x416150,145,src/network/net_stats_416150.cpp,?GetByteRates@@YGXPAI0@Z,matched,100.0
+0x416150,145,src/network/net_stats.cpp,?GetByteRates@@YGXPAI0@Z,matched,100.0
 0x4161f0,75,src/network/net_stats.cpp,?FUN_004161f0@@YGXXZ,matched,100.0
 0x416240,43,src/game/console_commands.cpp,?CmdMemDump@@YGXPAD@Z,matched,100.0
 0x416270,3,src/game/console_commands.cpp,?CmdMem@@YGXH@Z,matched,100.0

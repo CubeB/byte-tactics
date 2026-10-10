@@ -8,9 +8,9 @@
 #define ORDER_H
 
 #include "../util/vec3.h"
+#include "mission_type.h"
 
 struct Unit;
-class MissionType;
 class OrderFx;
 struct File_0043a970;
 class HapiBank;
@@ -27,7 +27,7 @@ struct Vec3_0043a1f0;
 #pragma pack(push, 1)
 struct Order {
     char unknown_0[4];             // +0x00, the vpointer the polymorphic views model
-    unsigned char kind;            // +0x04, index into the order-type table
+    MissionType kind;              // +0x04, index into the order-type table
     unsigned char state;           // +0x05
     union {
         unsigned int flags;        // +0x06

@@ -547,7 +547,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
                     if (!(unit->def->f241 & 0x4000000)) {
                         MissionType kind(s_paralyze_00508d80);
                         Order* e = unit->effect;
-                        if (e && e->kind == kind.index) {
+                        if (e && e->kind == kind) {
                             e->ticks += ticks;
                             return;
                         }
@@ -600,7 +600,7 @@ void __stdcall ParalyzeUnit(Unit* unit, int ticks)
         if (!(unit->def->f241 & 0x4000000)) {
             MissionType kind("paralyze");
             Order* effect = unit->effect;
-            if (effect && effect->kind == kind.index) {
+            if (effect && effect->kind == kind) {
                 effect->ticks += ticks;
                 return;
             }

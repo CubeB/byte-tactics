@@ -42,16 +42,17 @@ struct Unit {
     void ClaimWeapons(int);
     void SetStateBits(int, int);
 };
-struct Order { char pad0[4]; MissionType kind; unsigned char state; unsigned int flags; char pada[12]; Unit* target; char pad1a[8]; Vec3 pos; char pad2e[8]; int angle, parity; char pad3e[4]; unsigned int capabilities; char pad46[4]; int next; void AnnounceStatusIfFlagged(const char*); void SetAttachedFx(int); void AttachApproachRadiusGoal(Vec3*, int); void SetDeadlineTicks(int); Order(MissionType, Unit*, Vec3*, int, int, int); char unknown_4e[0x8];           // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-    void ReattachFxToUnit();
-    void MergeFlagsFromTable(int k);
-    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
-    void OrStatusFlags(unsigned int flags);
-    Unit* Target();
-    void Wait();
-    Vec3* Position();
-    int Advance(int distance);
-};
+#include "order.h"
+
+// Unused here: forward declarations of real functions; their symbol ids keep
+// VtolSeekAttackOrder matching (docs/c2-regalloc.md).
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
+void CenterCameraOnRadarClick();
+void CenterCameraOnStartPosition();
+void RegisterDataArchives();
+void CreateGameObject();
+void InitMissionStatus();
 
 class Class_0044e2d0 { public: char data[0x36]; Class_0044e2d0(Order*, const Vec3&); };
 struct Game { char pad0[0x1422b]; int width, height; char pad14233[0x142b7-0x14233]; int overflowBucket; };
@@ -100,7 +101,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
         order->flags|=0xe0;
-        order->SetAttachedFx((int)move);
+        order->SetAttachedFx((OrderFx*)move);
         return 2;
     }
     unsigned int state=0; state=order->state;
@@ -120,7 +121,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
                     unit->motion->SetFlightMode(unit,2);
                     Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                     ((Class_0044e6c0*)move)->SetAltitude(unit->def->altitude/2);
-                    order->SetAttachedFx((int)move);
+                    order->SetAttachedFx((OrderFx*)move);
                     order->flags|=0xe0;
                 }
             }
@@ -146,7 +147,7 @@ int __stdcall VtolSeekAttackOrder(Unit* unit, Order* order, int flags)
         Vec3 pos=AddVec3(order->pos,Offset((short)order->angle,(unit->weapons[0].def->range+160)<<16));
         Class_0044e2d0* move=new Class_0044e2d0(order,pos);
         ((Class_0044e730*)move)->SetApproachRadius(128);
-        order->SetAttachedFx((int)move);
+        order->SetAttachedFx((OrderFx*)move);
         order->SetDeadlineTicks(RandomInt(30)+30);
         order->flags|=0xe0;
         return 2;

@@ -45,9 +45,9 @@ struct Unit_0049a120 {
     Vec3_0049a120 pos;                 // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitDef_0049a120* def;             // +0x92
-    Holder_0049a120* holder;           // +0x96
+    Holder_0049a120* player;           // +0x96
     char unknown_9a[0xff - 0x9a];
-    unsigned char owner;               // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[0x118 - 0x100];
 };
 
@@ -303,7 +303,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                         scale = 1.0f;
                     }
                     int damage = ApplyWeaponDamage(weapon, unit, scale);
-                    if (weapon->owner == unit->owner)
+                    if (weapon->owner == unit->playerIndex)
                         friendlyDamage += damage;
                     else
                         enemyDamage += damage;
@@ -368,15 +368,15 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                 packet.type = 0xe;
                 packet.aim = other->aim;
                 packet.weaponIndex = other->def->index;
-                BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
+                BroadcastPacket(weapon->attacker->player->playerId, &packet, sizeof(packet));
                 packet.type = 0xe;
                 packet.aim = weapon->aim;
                 packet.weaponIndex = weapon->def->index;
-                BroadcastPacket(weapon->attacker->holder->playerId, &packet, sizeof(packet));
+                BroadcastPacket(weapon->attacker->player->playerId, &packet, sizeof(packet));
             }
         }
     }
 
     if (weapon->attacker)
-        weapon->attacker->holder->object->MarkOwnerNetDirtyFromDamageSplit(weapon, enemyDamage, friendlyDamage);
+        weapon->attacker->player->object->MarkOwnerNetDirtyFromDamageSplit(weapon, enemyDamage, friendlyDamage);
 }

@@ -855,9 +855,9 @@ struct Unit_0049a120 {
     Vec3_0049a120 pos;                 // +0x6a
     char unknown_76[0x92 - 0x76];
     UnitDef_0049a120* def;             // +0x92
-    Holder_0049a120* holder;           // +0x96
+    Holder_0049a120* player;           // +0x96
     char unknown_9a[0xff - 0x9a];
-    unsigned char owner;               // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[0x118 - 0x100];
 };
 

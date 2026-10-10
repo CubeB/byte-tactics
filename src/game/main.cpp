@@ -97,6 +97,7 @@ void OutOfMemoryHandler()
 //     register rotations one step out. tools/headers.py reaches 99.3% on the
 //     93.1% body with <windows.h> <stdio.h> and with <windows.h>
 //     <string.h> <stdio.h>; every other header set scores below that.
+// A view of Sound, not sound/sound.h: with the header GameMain's registers move and the three fillers below cannot restore them.
 class Sound {
 public:
     char pad[0x294];

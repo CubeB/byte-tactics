@@ -5,6 +5,7 @@
 // +0x37f17, then the gamma and both volume levels (same tail as
 // 0x45c630 and 0x45bcc0).
 
+// A view of Sound, not sound/sound.h: with the header the global byte lands in dl instead of bl.
 class Sound {
 public:
     char unknown_0[4];

@@ -15,6 +15,7 @@
 
 #include "../util/tdf.h"
 
+// A view of Sound, not sound/sound.h: the header's symbol ids change DrawHelpPage's registers.
 class Sound {
 public:
     int IsStreamActive();

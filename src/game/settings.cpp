@@ -75,7 +75,7 @@ struct UnitDef_00431740 {
     char unknown_245[0x249 - 0x245];
 };
 
-class Sound;
+#include "../sound/sound.h"
 
 struct Game {
     char unknown_0[0xc];
@@ -160,19 +160,6 @@ void __stdcall SetMissionType(int mode);
 int __cdecl IsOnlineConfigLoaded();
 void __cdecl ProtectBlockReadWrite(void* param_1);
 void __cdecl ProtectBlockReadOnly(void* param_1);
-
-class Sound {
-public:
-    void SetMaxBuffers(int value);
-    void Enable3D();
-    void Disable3D();
-    int Is3DEnabled();
-    int GetMaxBuffers();
-    int QueryWaveVolume();
-    int QueryAuxVolume();
-    int SetWaveVolume(int value);
-    int SetAuxVolume(int value, int flag);
-};
 
 // FUNCTION: 0x42f910
 void __stdcall SaveTrackSettings(unsigned char* tracks)

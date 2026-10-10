@@ -548,7 +548,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
                         MissionType kind(s_paralyze_00508d80);
                         Order* e = unit->effect;
                         if (e && e->kind == kind.index) {
-                            e->field_36 += ticks;
+                            e->ticks += ticks;
                             return;
                         }
                         AppendOrder(unit, new Order(kind, 0, 0, ticks, 0, 0));
@@ -584,7 +584,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
 // flagged as an old (0x4000) unit, and whose owner is an active human or
 // computer player (types 1 and 2) whose unit definition does not refuse
 // effects (0x4000000 at +0x241). A paralyze effect already on the unit
-// (the pointer at +0x5c) has its remaining time (field_36) extended instead
+// (the pointer at +0x5c) has its remaining time (ticks) extended instead
 // of a second effect being queued.
 // FUNCTION: 0x489fa0
 void __stdcall ParalyzeUnit(Unit* unit, int ticks)
@@ -601,7 +601,7 @@ void __stdcall ParalyzeUnit(Unit* unit, int ticks)
             MissionType kind("paralyze");
             Order* effect = unit->effect;
             if (effect && effect->kind == kind.index) {
-                effect->field_36 += ticks;
+                effect->ticks += ticks;
                 return;
             }
             AppendOrder(unit, new Order(kind, 0, 0, ticks, 0, 0));

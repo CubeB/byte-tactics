@@ -79,8 +79,8 @@ struct Order {
     Vec3 pos;
     Point start;                       // +0x2e
     char pad32[0x3e - 0x32]; int range;
-    unsigned int field_42;
-    char pad46[0x4a - 0x46]; int field_4a;
+    unsigned int flags_42;
+    char pad46[0x4a - 0x46]; int next;
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     void SetDeadlineTicks(int);
@@ -164,13 +164,13 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
 {
     if (flags & 0x1000a) {
-        if (!order->field_4a && (unit->flags & 0x300000))
+        if (!order->next && (unit->flags & 0x300000))
             AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", order->target.owner, &order->pos, 0, 0, 0));
         return 5;
     }
     Unit* target = order->target.owner;
-    if (!target && (order->field_42 & 0x200)) {
-        if (!order->field_4a)
+    if (!target && (order->flags_42 & 0x200)) {
+        if (!order->next)
             AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }

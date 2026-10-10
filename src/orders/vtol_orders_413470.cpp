@@ -67,8 +67,8 @@ struct Order {
     short x; short z;
     char pad32[0x36 - 0x32]; int side; int misses;
     int range;
-    unsigned int field_42;
-    char pad46[4]; int field_4a;
+    unsigned int flags_42;
+    char pad46[4]; int next;
     void AnnounceStatusIfFlagged(const char*);
     void SetAttachedFx(int);
     Order(MissionType type, int a, Vec3* b, int c, int d, int e);
@@ -159,12 +159,12 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
 int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 0x10008) {
-        if (order->field_4a == 0 && (unit->flags & 0x300000))
+        if (order->next == 0 && (unit->flags & 0x300000))
             AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", (int)order->target, &order->pos, 0, 0, 0));
         return 5;
     }
-    if (order->target == 0 && (order->field_42 & 0x200)) {
-        if (order->field_4a == 0)
+    if (order->target == 0 && (order->flags_42 & 0x200)) {
+        if (order->next == 0)
             AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
         return 5;
     }

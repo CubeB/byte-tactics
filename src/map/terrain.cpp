@@ -131,6 +131,7 @@ struct Unit {                           // 0x118 bytes
     char unknown_114[0x118 - 0x114];
 };
 
+// Typed cells and no count: grid.h's Grid is 0x10 bytes with a byte pointer.
 struct Grid {
     UnitBucket* cells;                  // +0x0
     unsigned int width;                 // +0x4

@@ -2008,17 +2008,11 @@ void EmptyAtexitHandler(void)
 
 void __cdecl AllocNotifyNop(int);
 
+#include "../map/grid.h"
+
 // Constructor of the per-player record (0x14b bytes, 11 of them inside the
 // game object built by 0x41d920).
 #pragma pack(push, 1)
-struct Grid {
-    void* cells;                       // +0x0
-    int width;                         // +0x4
-    int height;                        // +0x8
-    int count;                         // +0xc
-    Grid() { width = 0; height = 0; count = 0; cells = 0; }
-};
-
 struct Player {
     int active;                        // +0x0
     char unknown_4[0x27 - 0x4];

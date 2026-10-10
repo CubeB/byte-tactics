@@ -73,6 +73,7 @@ struct FogCell {
     };
 };
 
+// Typed cells: grid.h's byte pointer would need a cast at every use.
 struct Grid {
     FogCell* cells;                    // +0x0
     unsigned int width;                // +0x4

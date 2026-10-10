@@ -9,6 +9,7 @@ struct FogEdge {                       // 2 bytes per viewport cell: the fog edg
     unsigned char hi;                  // +0x1, edges of explored cells in no sight
 };
 
+// Typed cells: grid.h's byte pointer would need a cast at every use.
 struct Grid {
     FogEdge* cells;                    // +0x0
     unsigned int width;                // +0x4

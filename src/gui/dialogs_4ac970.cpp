@@ -21,7 +21,7 @@ struct Gadget_004ac970 {               // 0x15b bytes
 #pragma pack(pop)
 
 struct Holder_004ac970 {
-    int unknown_0;
+    int next;                          // +0x0
     Gadget_004ac970* gadgets;          // +0x4
 };
 

@@ -81,12 +81,12 @@ int PopKey(void)
 int __cdecl PeekKey()
 {
     Queue_004c1ab0* q = GetDisplay();
-    int field_16e = q->head;
-    int field_172 = q->tail;
-    if (field_16e == field_172) {
+    int head = q->head;
+    int tail = q->tail;
+    if (head == tail) {
         return 0;
     }
-    return q->entries[field_172];
+    return q->entries[tail];
 }
 
 // Pushes an entry onto the small ring buffer that 0x4c1ab0 pops and 0x4c1b00

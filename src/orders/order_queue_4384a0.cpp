@@ -258,15 +258,15 @@ public:
 
     PathOrderAttach link;              // +0x12
     Vec3_0043a1f0 pos;                 // +0x22
-    int field_2e;                      // +0x2e
-    int field_32;                      // +0x32
-    int field_36;                      // +0x36
-    int field_3a;                      // +0x3a
-    int field_3e;                      // +0x3e
+    int start;                         // +0x2e
+    int cached;                        // +0x32
+    int unitType;                      // +0x36
+    int radius;                        // +0x3a
+    int progress;                      // +0x3e
     unsigned int flags;                // +0x42
     unsigned int created;              // +0x46
     Order* next;                       // +0x4a
-    int field_4e;                      // +0x4e
+    int subFlags;                      // +0x4e
     OrderFx* attached;                 // +0x52
 
     // The real constructor is 0x43a0c0, in order_list.cpp: it needs
@@ -450,7 +450,7 @@ int __fastcall GetTableEntryByTypeByte(unsigned char* param_1)
 // FUNCTION: 0x438870
 void Order::OrStatusFlags(unsigned int param_1)
 {
-    field_4e |= param_1;
+    subFlags |= param_1;
 }
 
 // Clears flag 0x2000 of an order and, if it was set, posts message kind 5
@@ -486,7 +486,7 @@ void Order::SetAttachedFx(OrderFx* obj)
             attached = 0;
         }
         if (obj) {
-            field_4e &= ~0x3e0;
+            subFlags &= ~0x3e0;
             unit->owner->slot->Attach(obj);
             attached = obj;
         }
@@ -508,7 +508,7 @@ void Order::AttachApproachRadiusGoal(int* p, int n)
                 attached = 0;
             }
             if (obj) {
-                field_4e &= ~0x3e0;
+                subFlags &= ~0x3e0;
                 unit->owner->slot->Attach(obj);
                 attached = obj;
             }
@@ -534,7 +534,7 @@ void Order::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2)
                 attached = 0;
             }
             if (obj) {
-                field_4e &= ~0x3e0;
+                subFlags &= ~0x3e0;
                 unit->owner->slot->Attach(obj);
                 attached = obj;
             }
@@ -562,7 +562,7 @@ void Order::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size)
                 attached = 0;
             }
             if (obj) {
-                field_4e &= ~0x3e0;
+                subFlags &= ~0x3e0;
                 unit->owner->slot->Attach(obj);
                 attached = obj;
             }
@@ -745,18 +745,18 @@ Order::Order(Unit* punit, HapiBank* file, char* name)
     flags6 = desc.flags6;
     last_id = desc.last_id;
     pos = desc.pos;
-    field_2e = desc.field_1e;
-    field_32 = desc.field_22;
-    field_36 = desc.field_26;
-    field_3a = desc.field_2a;
-    field_3e = desc.field_2e;
+    start = desc.field_1e;
+    cached = desc.field_22;
+    unitType = desc.field_26;
+    radius = desc.field_2a;
+    progress = desc.field_2e;
     flags = desc.flags;
-    field_4e = desc.field_36;
+    subFlags = desc.field_36;
 
     char* sname = g_missionOrderTableBegin[desc.kind].name;
     if (strcmp(sname, "MobileBuild") == 0 || strcmp(sname, "VTOL_MobileBuild") == 0 ||
         strcmp(sname, "BuildingBuild") == 0) {
-        field_36 = (unsigned short)ResolveUnitTypeKey((HapiBank*)file, (unsigned short)field_36);
+        unitType = (unsigned short)ResolveUnitTypeKey((HapiBank*)file, (unsigned short)unitType);
     }
 
     char buf3[0x20];
@@ -820,13 +820,13 @@ int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
     desc.flags6 = flags6;
     desc.last_id = last_id;
     desc.pos = pos;
-    desc.field_1e = field_2e;
-    desc.field_22 = field_32;
-    desc.field_26 = field_36;
-    desc.field_2a = field_3a;
-    desc.field_2e = field_3e;
+    desc.field_1e = start;
+    desc.field_22 = cached;
+    desc.field_26 = unitType;
+    desc.field_2a = radius;
+    desc.field_2e = progress;
     desc.flags = flags;
-    desc.field_36 = field_4e;
+    desc.field_36 = subFlags;
 
     ((HapiBank*)file)->OpenNamedBox(name);
     ((HapiBank*)file)->SeekBox(0);
@@ -839,7 +839,7 @@ int Order::SerializeToSave(Unit* punit, File_0043a970* file, char* name)
     char* s = g_missionOrderTableBegin[kind].name;
     if (strcmp(s, "MobileBuild") == 0 || strcmp(s, "VTOL_MobileBuild") == 0 ||
         strcmp(s, "BuildingBuild") == 0) {
-        unsigned short id = field_36;
+        unsigned short id = unitType;
         char buf2[0x80];
         sprintf(buf2, "UTYPENAME%4d", id);
         if (!((HapiBank*)file)->HasItem(buf2) && id >= 1 && id < g_game->unitTypeCount)

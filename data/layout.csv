@@ -5728,12 +5728,12 @@ piece,0x501790,4,src/ai/ai_player.cpp,9,0,game data
 piece,0x501788,5,src/ai/ai_player.cpp,8,0,game data
 piece,0x501780,7,src/ai/ai_player.cpp,7,0,game data
 piece,0x501778,5,src/ai/ai_player.cpp,6,0,game data
-piece,0x501744,46,src/orders/unit_orders.cpp,210,0,game data
-piece,0x501734,14,src/orders/unit_orders.cpp,209,0,game data
+piece,0x501744,46,src/orders/unit_orders.cpp,208,0,game data
+piece,0x501734,14,src/orders/unit_orders.cpp,207,0,game data
 piece,0x4fc958,8,src/orders/unit_orders.cpp,2,1800,game data
-piece,0x501714,31,src/orders/unit_orders.cpp,206,0,game data
-piece,0x501704,13,src/orders/unit_orders.cpp,205,0,game data
-piece,0x5016f4,16,src/orders/unit_orders.cpp,204,0,game data
+piece,0x501714,31,src/orders/unit_orders.cpp,204,0,game data
+piece,0x501704,13,src/orders/unit_orders.cpp,203,0,game data
+piece,0x5016f4,16,src/orders/unit_orders.cpp,202,0,game data
 piece,0x4fc920,8,src/orders/unit_orders.cpp,2,0,game data
 piece,0x4fc950,8,src/orders/unit_orders_405980.cpp,5,0,game data
 piece,0x4fc960,4,src/orders/unit_orders_405980.cpp,4,0,game data

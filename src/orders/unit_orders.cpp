@@ -28,33 +28,21 @@ inline void _Construct(Unit** dest, Unit* const& src) { CopyDwordIfNonNull(dest,
 
 #include <vector>
 
-struct Vec3 {
-    union { int x; struct { unsigned short xf; short xh; }; };
-    union { int y; struct { unsigned short yf; short yh; }; };
-    union { int z; struct { unsigned short zf; short zh; }; };
-    Vec3 operator+(const Vec3& other) const {
-        Vec3 r; r.x = x + other.x; r.y = y + other.y; r.z = z + other.z; return r;
-    }
-    Vec3 operator-(const Vec3& other) const {
-        Vec3 r; r.z = z - other.z; r.y = y - other.y; r.x = x - other.x; return r;
-    }
-    int Square() const {
-        __int64 a = x, b = z;
-        return (int)((a*a) >> 32) + (int)((b*b) >> 32);
-    }
-    Vec3() {}
-    Vec3(int a, int b, int c) : x(a), y(b), z(c) {}
-};
+#include "../util/vec3.h"
 
-struct Point16 {
-    short x;
-    short z;
-};
+// The whole part (high 16 bits) of a 16.16 coordinate: the fractional half the
+// file's own Vec3 carried before the shared one.
+static inline short Whole(const int& v) { return ((short*)&v)[1]; }
 
-struct Box {
-    Vec3 lo;
-    Vec3 hi;
-};
+static inline Vec3 Vec3Add(const Vec3& a, const Vec3& b) {
+    Vec3 r; r.x = a.x + b.x; r.y = a.y + b.y; r.z = a.z + b.z; return r;
+}
+
+static inline Vec3 Vec3Sub(const Vec3& a, const Vec3& b) {
+    Vec3 r; r.z = a.z - b.z; r.y = a.y - b.y; r.x = a.x - b.x; return r;
+}
+
+#include "box.h"
 
 struct UnitDef;
 
@@ -75,21 +63,9 @@ class EscortTimer;
 class SquadScoutTimer;
 
 
-class UnitResources {
-public:
-    char unknown_0[0x18];
-    float metal;                       // +0x18
-    char unknown_1c[0x28 - 0x1c];
-    int RequestEnergyAndMetal(float energy, float metal);
-};
+#include "../game/unit_resources.h"
 
-class MissionType {
-public:
-    unsigned char index;
-    MissionType(const char* name);
-    MissionType() : index(0) {}
-    int operator==(MissionType o) const { return index == o.index; }
-};
+#include "mission_type.h"
 
 class PathOrderAttach {
 public:
@@ -224,10 +200,7 @@ struct Target {
     unsigned int flag : 1;             // +0x245, bit 13
 };
 
-// A 3-short rotation (the unit's +0x64).
-struct Rot16 {
-    short x, y, z;
-};
+#include "../util/angles.h"
 
 struct Order {
     char unknown_0[4];
@@ -326,7 +299,7 @@ struct Unit {
             Order* order;              // +0x5c
         };
     };
-    Rot16 rot;                         // +0x64
+    Angles16 rot;                      // +0x64
     Vec3 pos;                          // +0x6a
     Point16 cell;                      // +0x76
     char unknown_7a[0x7e - 0x7a];
@@ -347,9 +320,7 @@ struct Unit {
     char unknown_b4[0xb8 - 0xb4];
     unsigned short experience;         // +0xb8
     char unknown_ba[0xbc - 0xba];
-    UnitResources resources;           // +0xbc
-    char unknown_e4[0xec - 0xe4];
-    Player* player;                    // +0xec
+    UnitResources resources;           // +0xbc, its player pointer is at +0x30
     Unit* attacker;                    // +0xf0
     unsigned char orderPlayer;         // +0xf4
     unsigned char orderKind;           // +0xf5
@@ -439,6 +410,40 @@ void __stdcall ApplyUnfinishedBuildDecay(Unit* unit, int param);
 void __stdcall EnsurePatrolReturnOrder(Unit* unit, Order* order);
 Unit* __stdcall FindBestTargetIfFireAtWill(Unit* unit);
 int __stdcall IssueAttackOrder(Unit* unit, Order* order, int param);
+
+// Unused here: the symbol ids these declarations take keep the allocation of
+// BuildWeaponOrder (0x402b70) and the handlers after it (docs/c2-regalloc.md).
+void EnableAICommands();
+void RegisterAICommands();
+void FUN_00406f40();
+void ResetAIPlayers();
+void RegisterVtolOrders();
+void StepAllGafSequences();
+void ResetNetStats();
+void FUN_004161f0();
+void InitCommands();
+int UpdatePlacementGhostValidity();
+void RefreshSelectionOrders();
+void DispatchOrdersPanelPageFlags();
+void ResetCameraState();
+void FindLocalCommander();
+void __cdecl ClearCameraFollowState();
+void ClampCameraPosition();
+void ClampCameraTarget();
+void UpdateScreenShake();
+void UpdateCameraFollow();
+void BeginMouseScroll();
+void EndMouseScroll();
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
+void CenterCameraOnRadarClick();
+void CenterCameraOnStartPosition();
+void RegisterDataArchives();
+int FUN_0041d8a0();
+int GetCdPathMismatch();
+void CreateGameObject();
+void InitMissionStatus();
+void SetUpEndMissionScreen();
 
 // Handler of the "Stopping" entry in the order table at 0x4fc490: stops the
 // unit and, for a VTOL that is flying, queues a VTOL_LANDIFCAN order.
@@ -676,9 +681,13 @@ static inline Point16 GridCell(Vec3 pos, Point16 size)
 {
     Point16 cell;
     cell.x = (pos.x - (size.x << 19) + 0x80000) >> 20;
-    cell.z = (pos.z - (size.z << 19) + 0x80000) >> 20;
+    cell.y = (pos.z - (size.y << 19) + 0x80000) >> 20;
     return cell;
 }
+
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void StartScreenFade();
+void StepScreenFade();
 
 // Order handler "Nanolathing" of a mobile builder: places the unit to build
 // at the script's build piece, then spends worker time on it. When the order
@@ -691,20 +700,20 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
         if (order->target.owner != 0) {
             float refund = (unsigned int)((1.0f - order->target.owner->progress) * order->target.owner->def->metal);
             // The (double) casts on the full refund stay: they keep refund off the FP stack.
-            if (unit->player->active && unit->player->type == 2) {
+            if (unit->resources.player->active && unit->resources.player->type == 2) {
                 switch (g_game->difficulty) {
                 case 1:
-                    unit->resources.metal += refund * 0.7;
+                    unit->resources.metalMake += refund * 0.7;
                     break;
                 case 0:
-                    unit->resources.metal += refund * 0.5;
+                    unit->resources.metalMake += refund * 0.5;
                     break;
                 default:
-                    unit->resources.metal += (double)refund;
+                    unit->resources.metalMake += (double)refund;
                     break;
                 }
             } else {
-                unit->resources.metal += (double)refund;
+                unit->resources.metalMake += (double)refund;
             }
             FinishConstruction(unit, order->target.owner);
             DamageUnit(unit, order->target.owner, 30000, 9, 0);
@@ -1155,7 +1164,7 @@ int DrawWrappedText(char*, char*, int, int, int, int, int);
 
 struct FeatureSpot {
     char unknown_0[0x20];
-    Rot16 rot;                         // +0x20
+    Angles16 rot;                      // +0x20
     char unknown_26[0x30 - 0x26];
 };
 
@@ -1241,8 +1250,8 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
 {
     int weapon = order->weapon;
     if ((flags & 0x800) || !order->target.owner || (flags & 0x10008)) return 5;
-    if (order->range && (int)_hypot(unit->pos.xh - order->start.x,
-                                    unit->pos.zh - order->start.z) >= order->range)
+    if (order->range && (int)_hypot(Whole(unit->pos.x) - order->start.x,
+                                    Whole(unit->pos.z) - order->start.y) >= order->range)
         return 5;
     unsigned int state = 0;
     state = order->state;
@@ -1280,7 +1289,8 @@ int __stdcall AttackChaseOrder(Unit* unit, Order* order, unsigned int flags)
                 int dx = -FUN_004b70ef(angle, distance);
                 int dz = -FUN_004b7123(angle, distance);
                 Vec3* target = &order->target.owner->pos;
-                Vec3 pos = *target + Vec3(dx, 0, dz);
+                Vec3 offset = { dx, 0, dz };
+                Vec3 pos = Vec3Add(*target, offset);
                 order->AttachApproachRadiusGoal(&pos, weapon / 4);
                 return 1;
             }
@@ -1362,14 +1372,14 @@ static inline Point16 WorldToCell(Vec3 v, Point16 footprint)
 {
     Point16 c;
     c.x = (v.x - (footprint.x << 19) + 0x80000) >> 20;
-    c.z = (v.z - (footprint.z << 19) + 0x80000) >> 20;
+    c.y = (v.z - (footprint.y << 19) + 0x80000) >> 20;
     return c;
 }
 
 static inline void CellToWorld(Point16 footprint, Point16 c, Vec3* v)
 {
     v->x = (footprint.x + c.x * 2) << 19;
-    v->z = (footprint.z + c.z * 2) << 19;
+    v->z = (footprint.y + c.y * 2) << 19;
 }
 
 // The float constants of the handlers that stay in their own files must come
@@ -1424,12 +1434,12 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         Vec3* position = &unit->pos;
         Fixed distance;
         distance.value = (int)_hypot(unit->pos.x - target->pos.x, unit->pos.z - target->pos.z);
-        int gap = distance.whole - (int)(_hypot(unit->footprint.x, unit->footprint.z) * 8.0);
-        gap += (int)(_hypot(order->target.Get()->footprint.x, order->target.Get()->footprint.z) * -8.0);
+        int gap = distance.whole - (int)(_hypot(unit->footprint.x, unit->footprint.y) * 8.0);
+        gap += (int)(_hypot(order->target.Get()->footprint.x, order->target.Get()->footprint.y) * -8.0);
         unsigned int range = 0;
         range = unit->def->buildRange;
         if (gap > (int)range) return 0;
-        StartBuildingScript(unit, order, GetHeadingBetween(position, &order->target.Get()->pos) - unit->rot.y);
+        StartBuildingScript(unit, order, GetHeadingBetween(position, &order->target.Get()->pos) - unit->rot.heading);
         return 1;
     }
     case 2:
@@ -1481,6 +1491,19 @@ float PadConstant_404ad0(float x)
     return x * -0.5f;
 }
 
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void ScheduleFadeTick();
+int IsFadeDone();
+void StepPaletteFade();
+void FillEndGameStatistics();
+int AreStatBarsComplete();
+int ShouldShowNextMission();
+void OpenEndMissionScreen();
+void EnableEndMissionButtons();
+void ShowEndMissionScreen();
+void OpenCdCheckDialog();
+int DrawEndGameFrame();
+
 // FUNCTION: 0x404730
 int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
 {
@@ -1512,7 +1535,7 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         return 2;
     case 2:
         if (flags & 0x40) return 9;
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &target->pos) - unit->rot.y);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &target->pos) - unit->rot.heading);
         return 1;
     case 3:
         return WaitIfNotInBuildStance(unit, order, 0x10008);
@@ -1520,11 +1543,11 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
         QueueUnitSpeech(unit, 11, 0);
         return 1;
     case 5: {
-        Vec3 delta = unit->pos - target->pos;
+        Vec3 delta = Vec3Sub(unit->pos, target->pos);
         int range = 0;
         range = unit->def->buildRange;
         range += target->def->radius184;
-        int square = delta.Square();
+        int square = SquaredDistance(delta.x, delta.z);
         if (square <= range * range && unit->CanReclaim(order->target.Get())) {
             if (order->duration >= 15) {
                 DamageUnit(unit, order->target.Get(), order->elapsed, 5, 0);
@@ -1554,6 +1577,9 @@ int __stdcall ReclaimUnitOrder(Unit* unit, Order* order, unsigned int flags)
     return 7;
 }
 
+// Unused here: the symbol ids this declaration takes keeps the allocation (docs/c2-regalloc.md).
+void RunEndGameState();
+
 // Order handler "Repair" of a builder: walks up to the target unit, then
 // spends worker time on it until its health is full.
 // FUNCTION: 0x405300
@@ -1563,7 +1589,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
         QueueUnitSpeech(unit, 7, "Repairs unsuccessful.");
         return 5;
     }
-    if (order->range && (int)_hypot(unit->pos.xh - order->start.x, unit->pos.zh - order->start.z) >= order->range)
+    if (order->range && (int)_hypot(Whole(unit->pos.x) - order->start.x, Whole(unit->pos.z) - order->start.y) >= order->range)
         return 5;
     if (order->target.owner->bits.mode != 1) {
         QueueUnitSpeech(unit, 7, "Repairs unsuccessful.");
@@ -1581,8 +1607,8 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             return 8;
         Fixed distance;
         distance.value = (int)_hypot(unit->pos.x - order->target.owner->pos.x, unit->pos.z - order->target.owner->pos.z);
-        int gap = distance.whole - (int)(_hypot(unit->footprint.x, unit->footprint.z) * 8.0);
-        gap += (int)(_hypot(order->target.owner->footprint.x, order->target.owner->footprint.z) * -8.0);
+        int gap = distance.whole - (int)(_hypot(unit->footprint.x, unit->footprint.y) * 8.0);
+        gap += (int)(_hypot(order->target.owner->footprint.x, order->target.owner->footprint.y) * -8.0);
         unsigned int range = 0;
         range = unit->def->buildRange;
         if (gap > (int)range) {
@@ -1592,7 +1618,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
             return 2;
         }
         unit->ClaimWeapons(3);
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target.owner->pos) - unit->rot.y);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &order->target.owner->pos) - unit->rot.heading);
         return 1;
     }
     case 2:
@@ -1677,6 +1703,9 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
     return 7;
 }
 
+// Unused here: the symbol ids this declaration takes keeps the allocation (docs/c2-regalloc.md).
+void InitMemoryCache();
+
 // FUNCTION: 0x405d90
 void DamagedAllyCollector::CollectDamagedAlly(Unit* unit)
 {
@@ -1737,9 +1766,9 @@ int __stdcall StandbyMineOrder(Unit* unit, Order* order, int unused)
     }
 }
 
-static inline Point16 MakePoint(int x,int y) { Point16 p; p.x=x; p.z=y; return p; }
-static inline Point16 SubPoint(Point16 a,Point16 b) { Point16 p; p.x=a.x-b.x; p.z=a.z-b.z; return p; }
-static inline Point16 Convert(Vec3 v) { Point16 p; p.x=(unsigned)v.x>>20; p.z=(unsigned)v.z>>20; return p; }
+static inline Point16 MakePoint(int x,int y) { Point16 p; p.x=x; p.y=y; return p; }
+static inline Point16 SubPoint(Point16 a,Point16 b) { Point16 p; p.x=a.x-b.x; p.y=a.y-b.y; return p; }
+static inline Point16 Convert(Vec3 v) { Point16 p; p.x=(unsigned)v.x>>20; p.y=(unsigned)v.z>>20; return p; }
 
 // FUNCTION: 0x4061a0
 int __stdcall ParkOrder(Unit* unit,Order* order,int flags)
@@ -1774,6 +1803,9 @@ int __stdcall ParkOrder(Unit* unit,Order* order,int flags)
 static inline int Contains(unsigned int* bits, unsigned short index) { return bits[index >> 5] & (1 << (index & 31)); }
 
 static inline Vec3 Offset(short angle, int distance) { Vec3 v; v.x=-FUN_004b70ef(angle,distance); v.y=0; v.z=-FUN_004b7123(angle,distance); return v; }
+
+// Unused here: the symbol ids this declaration takes keeps the allocation (docs/c2-regalloc.md).
+void FreeMemoryCache();
 
 // Keep cases 1 and 3 separate: MSVC merges their identical bodies.
 // FUNCTION: 0x406780
@@ -1849,6 +1881,10 @@ int __stdcall GroundUnloadOrder(Unit* unit, Order* order, int flags)
 // take keep the allocation (docs/c2-regalloc.md).
 static inline Vec3 Add(const Vec3& a,const Vec3& b) { Vec3 r; r.x=a.x+b.x; r.y=a.y+b.y; r.z=a.z+b.z; return r; }
 static inline Vec3 Sub(const Vec3& a,const Vec3& b) { Vec3 r; r.x=a.x-b.x; r.y=a.y-b.y; r.z=a.z-b.z; return r; }
+
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+void InitExplosions();
+void FreeExplosions();
 
 // Registers a table with RegisterOrderTypes under a numeric id; one of several
 // small functions doing the same for different tables.

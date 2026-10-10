@@ -13,6 +13,7 @@ struct Game {
 extern Game* g_game;
 int ScrollToNextMessageUnit(void);
 
+// Stays in its own file: the module's ScrollToNextMessageUnit would be inlined here, where the original calls it out of line.
 // FUNCTION: 0x464000
 void CycleMessageUnits(void)
 {

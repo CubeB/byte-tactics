@@ -161,14 +161,6 @@ int ExpireOldestMessage()
     return result;
 }
 
-// CycleMessageUnits (0x464000) stays in net_chat_464000.cpp. Its original
-// translation unit saw only a prototype of ScrollToNextMessageUnit, so the
-// compiler could not inline it; here the definition is in the same file and
-// /Ob2 expands both calls, turning 87 bytes into 316. Putting the definition
-// after the caller does not help (MSVC inlines across the whole file);
-// #pragma auto_inline(off) does, but the guide allows that only in a class's
-// file, so 0x464000 keeps a file of its own.
-
 // FUNCTION: 0x463f60
 int ScrollToNextMessageUnit(void)
 {

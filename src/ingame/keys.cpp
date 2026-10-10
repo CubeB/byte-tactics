@@ -29,7 +29,6 @@ struct Struct_00495860 {
 typedef Struct_00495860 Struct_004958c0;
 
 class Mission;
-class MissionType;
 
 struct Sub_495e90 {
     char unknown_0[0x10];
@@ -73,7 +72,6 @@ union Flags_00495e90_3923b {
 #include "../network/player_info.h"
 
 // Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
-int CheckDirectXVersion(int, int, int, int, int);
 void EnumPlayersCallback(int, int, int, int, int);
 int StepTowards(int, int, int);
 void NopRetC(int, int, int);
@@ -89,9 +87,6 @@ struct FindData_00495930 {
     char unknown_0[0x14];
     char name[260];                    // +0x14
 };
-
-// Unused here: a real function declared to keep the file's symbol count.
-int GetDisplayFieldE4();
 
 struct BmpWriter {
     char unknown_0[0xc];
@@ -212,11 +207,7 @@ struct Game {
 
 #include "../map/mission.h"
 
-class MissionType {
-public:
-    MissionType(const char* name);
-    unsigned char index;                // +0
-};
+#include "../orders/mission_type.h"
 
 extern Game* g_game;
 extern char g_pathSepBackslash[];

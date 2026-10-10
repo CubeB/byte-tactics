@@ -3,6 +3,7 @@
 #include <math.h>
 #include <memory.h>
 struct Point { short x, y; };
+// Kept local, not util/vec3.h: its free operators inline differently from these members and the code size changes.
 struct Vec3 {
     int x, y, z;
     Vec3 operator+(const Vec3& other) const {

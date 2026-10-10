@@ -235,8 +235,8 @@ struct UnitList_00409730 {
 };
 
 // Kept local, not player_ai.h: the header adds about 220 symbol ids here (its
-// vector members instantiate the cut-down <vector> again and again) and
-// 0x409730 holds at 97.6% with it.
+// vector members instantiate the cut-down <vector> again and again), which
+// moves the registers of 0x409730.
 class PlayerAI {
 public:
     Player* owner;                 // +0x00

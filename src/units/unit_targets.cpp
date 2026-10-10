@@ -674,10 +674,9 @@ Unit* __stdcall GetWeaponTargetUnit(Unit* obj, int index)
 int __stdcall GetGroundHeight(Vec3_0048a1e0* pos);
 void __stdcall GetSweetSpot(Unit* def, int pos);
 
-// The intact tail block was the last diff. Writing the three adds in their
-// natural x,y,z order made MSVC sink the first product to its use (products
-// came out y,z,x, 91.5%); writing them z,y,x kept the products but ordered the
-// adds z,y,x (96.2%). Passing the three products through a static helper that
+// The intact tail block: writing the three adds in their natural x,y,z order
+// makes MSVC sink the first product to its use, and z,y,x order orders the
+// adds z,y,x. Passing the three products through a static helper that
 // returns the vector by value makes all three writes land in memory before the
 // adds are read, and the original's x,y,z schedule falls out.
 static Vec3_0048a1e0 offset_0048a1e0(Body_0048a1e0* m, __int64 s)

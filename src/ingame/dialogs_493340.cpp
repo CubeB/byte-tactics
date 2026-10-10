@@ -1034,9 +1034,9 @@ void __stdcall DrawScorePanel(void* surface)
 // the byte once (`mov al,[eax+0x38d75]; test al,1; test al,2`), 4 bytes
 // shorter. The same pair appears in 0x452800 and in 0x453d40 (at 0x4550c2).
 //
-// Notes from Claude Opus 5.5 (#436): the difference is not compiler state.
-// It scores 78.9% for 0 to 400 unused `extern int`s, for 500 to 8000 unused
-// prototypes, for every headers.py set and with <windows.h> plus <string>,
+// Notes (#436): the difference is not compiler state. It persists for any
+// number of unused declarations, for every headers.py set and with
+// <windows.h> plus <string>,
 // <vector> + <map>, <iostream>, <list> or the DirectX headers. In scratch
 // tests MSVC 5 shares the load across the two tests for every non-volatile
 // spelling (bitfields, masks, byte/word/dword union views, inline helpers

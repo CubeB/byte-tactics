@@ -24,4 +24,4 @@ int __stdcall RandomInt(int range)
     g_randomSeed = seed;
     return seed % range;
 }
-// GPT-6.1-sol refinement (issue 3121): rechecked the retained shift form; 91.1% remains the best. The only difference is the quotient correction sequence and the resulting short-branch offset.
+// The shift form is kept; only the quotient correction sequence differs from the original.

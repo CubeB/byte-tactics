@@ -362,7 +362,7 @@ static inline char* SkipSpace(char* p)
 // into `name = value;` entries and `[name] { ... }` sub-sections until the
 // closing '}' (nextblock gets the position after it) or the end of the text.
 //
-// What took it from 70.6% to MATCH (Claude Opus 5.5, #4991): the file was
+// The file is written on the real <vector> instead of a hand-made one:
 // rewritten on the real <vector> instead of a hand-made one.
 //  * Both vectors are constructed by the header's own constructor, which is
 //    the hoisted `mov al, [esp+7]` copy of the allocator temporary, and the
@@ -373,15 +373,15 @@ static inline char* SkipSpace(char* p)
 //    0x4c5c60). The binary search takes the key's char* by value (so it sits
 //    in ebx), and its comparison must be a bool-returning helper,
 //    `if (Less(mid->key.ptr, key))`: a plain `_strcmpi(...) < 0` loses the
-//    `setl dl` (90.6%), and a named bool local puts lo, hi and mid in the
-//    wrong registers (91.3%).
+//    `setl dl`, and a named bool local puts lo, hi and mid in the
+//    wrong registers.
 //  * The lookup is written in the body with InsertNew as a member, as in
 //    0x4c54f0: `e == end || Ne(e->key, key)` puts the found arm first, and
 //    InsertNew's vector::insert(it, x) inlines down to the out-of-line
 //    insert(it, 1, x) with the index arithmetic around it. An inline
-//    operator[] doing the same is one inline level too deep (91.8%).
+//    operator[] doing the same is one inline level too deep.
 //  * `strchr(eq + 1, ';')` rather than `strchr(current, ';')` after
-//    `current = eq + 1` is the original's `lea eax, [esi+1]` (82.0% to 91.3%).
+//    `current = eq + 1` is the original's `lea eax, [esi+1]`.
 
 // FUNCTION: 0x4c3e40
 TdfRecord::TdfRecord(char* name, char* text, char** nextblock, char* filename)

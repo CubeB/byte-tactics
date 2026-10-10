@@ -68,8 +68,8 @@ UnitSyncPlayer::~UnitSyncPlayer()
 // calls it with flag 0: its one caller, 0x46ca60, which deletes the object
 // held at g_game+0x2a30 (UnitSync, constructor 0x46d040).
 //
-// That caller is rebuilt below, unannotated and only approximately (about
-// 63%), to emit this COMDAT. Its sibling 0x46c920 deletes the same object
+// That caller is rebuilt below, unannotated and only approximately, to emit
+// this COMDAT. Its sibling 0x46c920 deletes the same object
 // one inline level shallower and calls ~UnitSyncPlayer instead.
 class SyncChecksumVector {
 public:

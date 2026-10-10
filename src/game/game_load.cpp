@@ -535,7 +535,7 @@ unsigned short __stdcall GetCellFeature(Cell* cell);
 // 3 = joined game, from the host player's record), runs the between-missions
 // summary, spawns each player's commander and opens the MAIN2 GUI.
 //
-// What took this from 82.8% to MATCH (issue 4408):
+// Kept as written, each for the registers it gives:
 // - Cases 1 and 2 are inlined calls of ApplyMissionOptionFlags (matched on its own in
 //   0x496e10.cpp, zero callers in the exe because /Ob2 inlined every call):
 //   it copies the settings block's first int to +0x37ef6 and three int flags
@@ -558,7 +558,7 @@ unsigned short __stdcall GetCellFeature(Cell* cell);
 //   the base and index.
 // - QueryPerformanceCounter's halves: the sum is written straight from the two
 //   fields, `SeedRandom(perfCount.LowPart + perfCount.HighPart)`. Through named
-//   locals the addition lands in the other register (99.7%).
+//   locals the addition lands in the other register.
 // Earlier passes fixed: the network flags at +0x38d75 written as volatile
 // (the field the guide names); the +0x9b bit-6 test as a 1-bit bitfield; the
 // mission-count loop with `i++` before `def += 6`; the ten-player walks with
@@ -820,21 +820,20 @@ tail:
     g_game->flags38d75.value |= 2;
 }
 //
-// What made this match (91.3% before):
+// Kept as written, each for the registers it gives:
 // - Vec3::operator- is the explicit-component form the matched sibling 0x413d80
 //   (same translation unit) uses. That makes the state 3 block byte exact, but
 //   on its own it ties `range` and `order` at priority 130 (c2prio), and range
 //   wins the tie on its +0x40 key, so order and range trade esi and edi.
 // - `int ok = AddBuildProgress(...); if (ok)` adds a candidate to a block that
-//   references order, which raises order to 134 and gives it esi again (97.1%
-//   with <stdlib.h>; only the six bounds adds were left).
+//   references order, which raises order to 134 and gives it esi again.
 // - The operand order of the six bounds adds (pos.x + min.x and so on) follows
 //   the symbol ids, so it moves with the headers and with code-neutral
 //   spellings. What puts all six in place (found by the permuter): <memory.h>
 //   plus <windows.h>, the state 0 test written as two nested ifs, and an empty
 //   `do {} while (0);` in UnitRef::Get(), a debug check that compiles to
-//   nothing. Without the do-while no header set gets past 97.1%; without the
-//   `ok` local the function drops to 73.3%.
+//   nothing. Without the do-while, or without the `ok` local, the registers
+//   come out differently.
 // Reading the record address through a named base (a temp_intro the permuter
 // found) is what keeps g_game in the SIB base and the offset in the index.
 static inline char* PlayerRecordAt(Game* game, int off) { return (char*)game->players + off; }

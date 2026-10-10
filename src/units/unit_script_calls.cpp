@@ -109,11 +109,9 @@ int __stdcall ChebyshevDistance(Point_00480570 a, Point_00480570 b)
 // two absolute coordinate differences) and StepPointTowards (step a point towards
 // a target), and /Ob2 inlines both. They are defined here as in their own
 // matched files, with no FUNCTION line (static inline or not makes no
-// difference). What earlier passes (66.2%) lacked was the combination of
-// ChebyshevDistance's real body, the `Sub` helper returning a Diff struct, with the
-// max written as a ternary, which matches 0x480570 too: Sub plus the if-form
-// (`if (dx > dy) dy = dx; return dy;`) gives 51.3% here, and the ternary
-// without Sub (`abs(a.x - b.x)`) 63.5%.
+// difference). ChebyshevDistance needs its real body: the `Sub` helper
+// returning a Diff struct, with the max written as a ternary (as in 0x480570).
+// Sub with the if-form, or the ternary without Sub, does not match here.
 static inline Diff_00480570 Sub(Point_004805b0 a, Point_004805b0 b)
 {
     Diff_00480570 d;

@@ -70,32 +70,18 @@ void OutOfMemoryHandler()
     _exit(3);
 }
 
-// space-bunny-free retry: MATCH (1365 of 1365 bytes), from 89.2%. Three
-// changes, all in the g_displayContext initialisation block, none of them a new
-// construct: the or chain, the b0 read-modify-write register and the whole
-// eax/ecx/edx rotation fall out of them.
+// The g_displayContext initialisation block is order sensitive:
 //  1. The field stores are in plain program order (startWidth, b0, b1, b8,
 //     b4, b9, b5, b6, b7, startHeight, hInstance, nCmdShow, className,
-//     title, menuId). The previous version interleaved the hInstance and
-//     nCmdShow stores between the single-bit sets to hold the or chain apart;
-//     that is not needed (MSVC 5 keeps the individual `or al/ah` ops anyway)
-//     and it cost 1 byte and the store order. Only the order of the last four
-//     stores matters for the bytes: hInstance BEFORE nCmdShow is the original
-//     (className, hInstance, nCmdShow in that order scores 99.5%, nCmdShow,
-//     className, hInstance 99.3%).
-//  2. The bit-0 write is a bare `video.bits.b0 = ~g_cmdlineDisplaySeed;`. A named
-//     `int notFlags` local compiles to 1367 bytes and a different schedule.
-//     `b0 = b0 ^ notFlags`, `b0 ^= notFlags`, `b0 = (int)(~g_cmdlineDisplaySeed) & 1`
-//     and an explicit `video.value ^ ((video.value ^ ~g_cmdlineDisplaySeed) & 1)` all
-//     give the same 1365 bytes, so the lowering (byte load of the old b0, xor
-//     into DL, and 1, xor into the word) is the only one available and the
-//     delta register is not a source-level choice.
+//     title, menuId). Only the order of the last four stores matters for the
+//     bytes: hInstance before nCmdShow is the original.
+//  2. The bit-0 write is a bare `video.bits.b0 = ~g_cmdlineDisplaySeed;`. A
+//     named `int notFlags` local, or an explicit xor form, changes the
+//     schedule.
 //  3. `#include <stdio.h>` is load bearing, and nothing in this file uses it,
-//     exactly as docs/agent-guide.md warns: without it the function compiles
-//     to 93.1% with the b0 delta in CL instead of DL, the single-bit sets in
-//     the order b1, b4, b8, b5, b9, b6, b7, and the g_game and inlined-strcpy
-//     register rotations one step out. tools/headers.py reaches 99.3% on the
-//     93.1% body with <windows.h> <stdio.h> and with <windows.h>
+//     as docs/agent-guide.md warns: without it the b0 delta register, the
+//     order of the single-bit sets and the g_game and inlined-strcpy
+//     registers all change.
 //     <string.h> <stdio.h>; every other header set scores below that.
 // A view of Sound, not sound/sound.h: with the header GameMain's registers move and the three fillers below cannot restore them.
 class Sound {

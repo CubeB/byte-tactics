@@ -2231,7 +2231,7 @@ static inline int SamePos_0049d270(Vec3& a, Vec3& b)
 // callers in the exe. Written with the positive `if (ev->flag) { ... } return 0;`
 // test, which also matches 0x49d1e0 on its own; the `if (!ev->flag) return 0;`
 // spelling above compiles to the same standalone bytes but, inlined here,
-// gives the cursor a register and spills `unit` (73.4%).
+// gives the cursor a register and spills `unit`.
 Proj_0049d270* __stdcall FindRemoteProjectile_0049d270(WeaponFirePacket* ev)
 {
     if (ev->flag) {

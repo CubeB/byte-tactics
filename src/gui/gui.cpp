@@ -4152,7 +4152,6 @@ void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw
         s++;
     }
 }
-// Started by Space Bunny Free (partial, 80.1%); finished by deepseek-v4.1-flash.
 
 // Unused here: real functions declared to keep the file's symbol count.
 int __stdcall CloakOnOrder(char* param1, int unused1, int unused2);

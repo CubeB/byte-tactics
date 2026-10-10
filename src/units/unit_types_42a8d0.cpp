@@ -57,11 +57,11 @@ void StartScreenShake(int, int, int);
 void AccumulateScreenShake(int, int, int);
 int RegisterUnitOrders();
 
-// Keeps its own view of the parser classes: TdfFile's inline getters call
-// FindFieldValue, which the header does not declare.
+// Keeps its own view of the parser classes: the shared tdf.h has no
+// TdfFile::LoadBuffer, which this file calls, so it cannot take the header.
 class TdfRecord {
 public:
-    char* FindFieldValue(char* key);
+    int FindFieldValue(char* key);
     int GetFieldInt(char* key, int def);
     double GetFieldDouble(char* key, double def);
     int GetFieldString(char* dst, char* key, int size, char* def);
@@ -82,7 +82,7 @@ public:
     }
     int GetInt(char* key, int def) { return ((TdfRecord*)current)->GetFieldInt(key, def); }
     double GetDouble(char* key, double def) { return ((TdfRecord*)current)->GetFieldDouble(key, def); }
-    char* GetValue(char* key) { return ((TdfRecord*)current)->FindFieldValue(key); }
+    char* GetValue(char* key) { return (char*)((TdfRecord*)current)->FindFieldValue(key); }
     int LoadFile(char* path);
     void LoadBuffer(char* data, int size, int flag, char* name);
     int SelectRecord(char* name);

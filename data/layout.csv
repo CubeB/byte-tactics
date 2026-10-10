@@ -4842,42 +4842,42 @@ piece,0x50544c,9,src/units/movement_class.cpp,20,0,game data
 piece,0x505440,9,src/units/movement_class.cpp,19,0,game data
 piece,0x505430,14,src/units/movement_class.cpp,18,0,game data
 piece,0x505420,14,src/units/movement_class.cpp,17,0,game data
-piece,0x505414,9,src/orders/order_dispatch_43f0e0.cpp,43,0,game data
-piece,0x505408,10,src/orders/order_dispatch_43f0e0.cpp,42,0,game data
-piece,0x5053fc,9,src/orders/order_dispatch_43f0e0.cpp,41,0,game data
-piece,0x5053f0,12,src/orders/order_dispatch_43f0e0.cpp,40,0,game data
-piece,0x5053dc,17,src/orders/order_dispatch_43f0e0.cpp,39,0,game data
-piece,0x5053cc,13,src/orders/order_dispatch_43f0e0.cpp,38,0,game data
-piece,0x5053bc,14,src/orders/order_dispatch_43f0e0.cpp,37,0,game data
-piece,0x5053ac,16,src/orders/order_dispatch_43f0e0.cpp,36,0,game data
-piece,0x5053a4,8,src/orders/order_dispatch_43f0e0.cpp,35,0,game data
-piece,0x505390,18,src/orders/order_dispatch_43f0e0.cpp,34,0,game data
-piece,0x505380,13,src/orders/order_dispatch_43f0e0.cpp,33,0,game data
-piece,0x505374,12,src/orders/order_dispatch_43f0e0.cpp,32,0,game data
-piece,0x5026dc,7,src/orders/order_dispatch_43f0e0.cpp,31,0,game data
-piece,0x501b2c,15,src/orders/order_dispatch_43f0e0.cpp,30,0,game data
-piece,0x501b78,16,src/orders/order_dispatch_43f0e0.cpp,29,0,game data
-piece,0x505368,12,src/orders/order_dispatch_43f0e0.cpp,28,0,game data
-piece,0x501b68,13,src/orders/order_dispatch_43f0e0.cpp,27,0,game data
-piece,0x501b48,17,src/orders/order_dispatch_43f0e0.cpp,26,0,game data
-piece,0x50535c,12,src/orders/order_dispatch_43f0e0.cpp,25,0,game data
-piece,0x505350,12,src/orders/order_dispatch_43f0e0.cpp,24,0,game data
-piece,0x505340,14,src/orders/order_dispatch_43f0e0.cpp,23,0,game data
-piece,0x502640,17,src/orders/order_dispatch_43f0e0.cpp,22,0,game data
-piece,0x505330,14,src/orders/order_dispatch_43f0e0.cpp,20,0,game data
-piece,0x505324,9,src/orders/order_dispatch_43f0e0.cpp,19,0,game data
-piece,0x50531c,6,src/orders/order_dispatch_43f0e0.cpp,17,0,game data
-piece,0x5016cc,10,src/orders/order_dispatch_43f0e0.cpp,16,0,game data
-piece,0x5026d4,8,src/orders/order_dispatch_43f0e0.cpp,15,0,game data
-piece,0x501b5c,12,src/orders/order_dispatch_43f0e0.cpp,14,0,game data
-piece,0x501b3c,10,src/orders/order_dispatch_43f0e0.cpp,13,0,game data
-piece,0x501b88,11,src/orders/order_dispatch_43f0e0.cpp,12,0,game data
-piece,0x501b94,13,src/orders/order_dispatch_43f0e0.cpp,11,0,game data
-piece,0x50530c,14,src/orders/order_dispatch_43f0e0.cpp,10,0,game data
-piece,0x5052fc,14,src/orders/order_dispatch_43f0e0.cpp,9,0,game data
-piece,0x5052f0,10,src/orders/order_dispatch_43f0e0.cpp,8,0,game data
-piece,0x5016c4,8,src/orders/order_dispatch_43f0e0.cpp,7,0,game data
-piece,0x5052e4,12,src/orders/order_dispatch_43f0e0.cpp,6,0,game data
+piece,0x505414,9,src/orders/order_dispatch.cpp,43,0,game data
+piece,0x505408,10,src/orders/order_dispatch.cpp,42,0,game data
+piece,0x5053fc,9,src/orders/order_dispatch.cpp,41,0,game data
+piece,0x5053f0,12,src/orders/order_dispatch.cpp,40,0,game data
+piece,0x5053dc,17,src/orders/order_dispatch.cpp,39,0,game data
+piece,0x5053cc,13,src/orders/order_dispatch.cpp,38,0,game data
+piece,0x5053bc,14,src/orders/order_dispatch.cpp,37,0,game data
+piece,0x5053ac,16,src/orders/order_dispatch.cpp,36,0,game data
+piece,0x5053a4,8,src/orders/order_dispatch.cpp,35,0,game data
+piece,0x505390,18,src/orders/order_dispatch.cpp,34,0,game data
+piece,0x505380,13,src/orders/order_dispatch.cpp,33,0,game data
+piece,0x505374,12,src/orders/order_dispatch.cpp,32,0,game data
+piece,0x5026dc,7,src/orders/order_dispatch.cpp,31,0,game data
+piece,0x501b2c,15,src/orders/order_dispatch.cpp,30,0,game data
+piece,0x501b78,16,src/orders/order_dispatch.cpp,29,0,game data
+piece,0x505368,12,src/orders/order_dispatch.cpp,28,0,game data
+piece,0x501b68,13,src/orders/order_dispatch.cpp,27,0,game data
+piece,0x501b48,17,src/orders/order_dispatch.cpp,26,0,game data
+piece,0x50535c,12,src/orders/order_dispatch.cpp,25,0,game data
+piece,0x505350,12,src/orders/order_dispatch.cpp,24,0,game data
+piece,0x505340,14,src/orders/order_dispatch.cpp,23,0,game data
+piece,0x502640,17,src/orders/order_dispatch.cpp,22,0,game data
+piece,0x505330,14,src/orders/order_dispatch.cpp,20,0,game data
+piece,0x505324,9,src/orders/order_dispatch.cpp,19,0,game data
+piece,0x50531c,6,src/orders/order_dispatch.cpp,17,0,game data
+piece,0x5016cc,10,src/orders/order_dispatch.cpp,16,0,game data
+piece,0x5026d4,8,src/orders/order_dispatch.cpp,15,0,game data
+piece,0x501b5c,12,src/orders/order_dispatch.cpp,14,0,game data
+piece,0x501b3c,10,src/orders/order_dispatch.cpp,13,0,game data
+piece,0x501b88,11,src/orders/order_dispatch.cpp,12,0,game data
+piece,0x501b94,13,src/orders/order_dispatch.cpp,11,0,game data
+piece,0x50530c,14,src/orders/order_dispatch.cpp,10,0,game data
+piece,0x5052fc,14,src/orders/order_dispatch.cpp,9,0,game data
+piece,0x5052f0,10,src/orders/order_dispatch.cpp,8,0,game data
+piece,0x5016c4,8,src/orders/order_dispatch.cpp,7,0,game data
+piece,0x5052e4,12,src/orders/order_dispatch.cpp,6,0,game data
 piece,0x5052d4,15,src/units/unit_scripts.cpp,29,0,game data
 piece,0x5052c8,10,src/units/unit_scripts.cpp,26,0,game data
 piece,0x5052b8,15,src/units/unit_scripts.cpp,23,0,game data
@@ -11987,7 +11987,7 @@ same,0x504ea0,7,src/map/map_list.cpp,150,0,
 same,0x504e98,5,src/map/map_list.cpp,149,0,
 same,0x512340,16,src/orders/order_list.cpp,72,0,
 same,0x4fd2e8,4,src/units/unit_scripts.cpp,34,0,
-same,0x4fd2e8,4,src/orders/order_dispatch_43f0e0.cpp,3,0,
+same,0x4fd2e8,4,src/orders/order_dispatch.cpp,3,0,
 same,0x512758,1,src/units/movement_class.cpp,3,1024,
 same,0x502ae8,3,src/frontend/multi.cpp,8,0,
 same,0x504ab8,8,src/frontend/multi_441460.cpp,24,0,

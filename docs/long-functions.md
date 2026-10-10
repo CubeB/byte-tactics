@@ -96,7 +96,7 @@ unitdef->flags1 = (value & 1) << N | unitdef->flags1 & MASK;
 Queued as #6272, with the xor forms (`standingmoveorder`,
 `mobilestandorders`) and the `value2` sites called out as the ones to keep.
 
-**`0x43f0e0 GetOrderType`** (4420, `src/orders/order_dispatch_43f0e0.cpp:542-749`).
+**`0x43f0e0 GetOrderType`** (4420, `src/orders/order_dispatch.cpp:542-749`).
 A switch on the order mode. `Pick`, `FEATURE_CHECK`, `Lookup` and `Visible`
 are already helpers (lines 504-540). The two arms of case 1 (lines 707-746)
 write out near-duplicate tails, but the comment at line 709 records that a

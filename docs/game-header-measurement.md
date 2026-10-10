@@ -352,7 +352,7 @@ forward-declared, and `type clash` the numbered view against the header's type.
 | `src/network/unit_sync_46d2e0.cpp` | does not compile | incomplete `UnitDef` |
 | `src/network/unit_sync_46dad0.cpp` | does not compile | incomplete `UnitDef` |
 | `src/network/unit_sync_player.cpp` | does not compile | member `sync` |
-| `src/orders/order_dispatch_43f0e0.cpp` | does not compile | member `flag37efa`, `localPlayerBit`, `multiplayer`, `threshold` +1; incomplete `Feature` |
+| `src/orders/order_dispatch.cpp` | does not compile | member `flag37efa`, `localPlayerBit`, `multiplayer`, `threshold` +1; incomplete `Feature` |
 | `src/orders/order_list.cpp` | does not compile | member `count2`, `field_38a47`, `frame`, `unitTypeCount` +1 |
 | `src/orders/order_queue_4384a0.cpp` | does not compile | member `unitTypeCount`, `unitTypes` |
 | `src/orders/order_targets.cpp` | does not compile | incomplete `PathMap` |

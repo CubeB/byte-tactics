@@ -26,12 +26,12 @@ struct PlayerView {
     char padac[0x146 - 0xac]; unsigned char index;
 };
 struct Unit {
-    UnitMotion* type;
+    UnitMotion* motion;
     char pad4[0x6a - 4]; Vec3 pos;
     char pad76[0x86 - 0x76]; int carrier;
     char pad8a[8]; UnitDef* def;
-    PlayerView* owner;
-    char pad9a[0x104 - 0x9a]; float progress;
+    PlayerView* player;
+    char pad9a[0x104 - 0x9a]; float buildLeft;
     short health;
     void ClaimWeapons(int);
     void SetStateBits(int, int);
@@ -72,8 +72,8 @@ inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->flags & 3) == 1) {
-        unit->type->SetFlightMode(unit, 2);
+    if ((unit->motion->flags & 3) == 1) {
+        unit->motion->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
         obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((OrderFx*)obj);
@@ -85,7 +85,7 @@ static inline int Land(Unit* unit, Order* order)
 {
     if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
         LandingPadList pads;
-        GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
+        GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
             order->SetAttachedFx(0);
             Unit* pad = pads[RandomInt(pads.size())];
@@ -119,7 +119,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
     for (;;) {
         switch (order->state) {
         case 0:
-            if (unit->type && (unit->def->flags1 & 0x800) && (unit->def->flags2 & 0x200)) {
+            if (unit->motion && (unit->def->flags1 & 0x800) && (unit->def->flags2 & 0x200)) {
                 if (order->target != 0)
                     order->pos = order->target->pos;
                 EnsurePatrolReturnOrder(unit, order);
@@ -138,18 +138,18 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             order->flags |= 0xe0;
             if (Land(unit, order))
                 return 0;
-            if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
+            if (unit->player->energy >= unit->player->energyCapacity * 0.2) {
                 std::vector<Unit*> units;
                 int range = unit->def->range << 16;
-                VisitObjectsInRange(&unit->pos, range, RepairableUnitVisitor(unit->owner, &units, unit));
+                VisitObjectsInRange(&unit->pos, range, RepairableUnitVisitor(unit->player, &units, unit));
                 if (!units.empty()) {
                     Unit* target = units[RandomInt(units.size())];
-                    if (unit->CanRepair(target) && target->progress == 0.0f) {
+                    if (unit->CanRepair(target) && target->buildLeft == 0.0f) {
                         if (IssueRepairOrder(unit, target, 0))
                             return 6;
                         return 3;
                     }
-                    if (unit->CanRepair(target) && target->progress != 0.0f) {
+                    if (unit->CanRepair(target) && target->buildLeft != 0.0f) {
                         order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("VTOL_HELPBUILD", target, 0, 0, 0, 0));
                         order->flags = 0;
@@ -165,25 +165,25 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             range.v = 0xf00000;
             if (PickRandomReclaimableResourcesInRadius(&unit->pos, range, &energy, &energyAmount, &metal, &metalAmount)) {
                 // Amounts read through GetEnergy/GetMetal and Total: gives the x87 load order.
-                if (unit->owner->GetMetal() < unit->owner->metalCapacity * 0.2 && metal) {
+                if (unit->player->GetMetal() < unit->player->metalCapacity * 0.2 && metal) {
                     order->SetAttachedFx(0);
                     AppendOrder(unit, new Order("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
-                if (unit->owner->GetEnergy() < unit->owner->energyCapacity * 0.2 && energy) {
+                if (unit->player->GetEnergy() < unit->player->energyCapacity * 0.2 && energy) {
                     order->SetAttachedFx(0);
                     AppendOrder(unit, new Order("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
-                if (metal && Total(unit->owner->GetMetal(), metalAmount) <= unit->owner->metalCapacity) {
+                if (metal && Total(unit->player->GetMetal(), metalAmount) <= unit->player->metalCapacity) {
                     order->SetAttachedFx(0);
                     AppendOrder(unit, new Order("VTOL_RECLAIM", 0, metal, 0, 0, 0));
                     order->flags = 0;
                     return 3;
                 }
-                if (energy && Total(unit->owner->GetEnergy(), energyAmount) <= unit->owner->energyCapacity) {
+                if (energy && Total(unit->player->GetEnergy(), energyAmount) <= unit->player->energyCapacity) {
                     order->SetAttachedFx(0);
                     AppendOrder(unit, new Order("VTOL_RECLAIM", 0, energy, 0, 0, 0));
                     order->flags = 0;

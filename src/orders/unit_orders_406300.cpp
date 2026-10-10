@@ -18,7 +18,7 @@ struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 struct Unit {
     char pad0[8]; Weapon weapons[3]; Order* list;
-    char pad60[10]; Vec3 pos; char pad76[8]; short width; char pad80[6]; int spatialBucket;
+    char pad60[10]; Vec3 pos; char pad76[8]; short width; char pad80[6]; int carrier;
     char pad8a[8]; UnitDef* def; Owner* player; char pad9a[12]; unsigned short unitDefIndex;
     char pada8[0xf0-0xa8]; Unit* attacker; char padf4[0x108-0xf4]; short health;
     char pad10a[6]; unsigned int flags;
@@ -52,7 +52,7 @@ struct Feature;
 int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
 {
     if (!order->target) return 5;
-    if (unit->spatialBucket) return 7;
+    if (unit->carrier) return 7;
     if ((unsigned char)(order->target->def->flags1 >> 11) & 1) return 8;
     unsigned int state=0; state=order->state;
     switch(state) {

@@ -20,7 +20,7 @@ void UpdateEdgeScroll();
 #include "../units/unit_def.h"
 
 struct Unit {
-    UnitMotion* type;                  // +0x0
+    UnitMotion* motion;                  // +0x0
     char unknown_4[0x6a - 0x4];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x86 - 0x76];
@@ -95,8 +95,8 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->flags & 3) == 1) {
-        unit->type->SetFlightMode(unit, 2);
+    if ((unit->motion->flags & 3) == 1) {
+        unit->motion->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
@@ -122,7 +122,7 @@ int __stdcall VtolReclaimOrder(Unit* unit, Order* order, int flags)
         return 8;
     switch (order->state) {
     case 0:
-        if (unit->type && (unit->def->flags1 & 0x800) && (unit->def->flags2 & 0x400)) {
+        if (unit->motion && (unit->def->flags1 & 0x800) && (unit->def->flags2 & 0x400)) {
             order->AnnounceStatusIfFlagged("Reclaiming");
             PrepVtolClimb(unit, order, 0);
             return 1;

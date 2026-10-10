@@ -316,7 +316,7 @@ struct Order {
 };
 
 struct Unit {
-    UnitMotion* type;                  // +0x0
+    UnitMotion* motion;                // +0x0
     char unknown_4[4];
     union {
         Weapon weapons[3];             // +0x8
@@ -325,7 +325,7 @@ struct Unit {
             WeaponDef* weapon;         // +0x10, weapons[0].def
         };
     };
-    Order* order;                      // +0x5c
+    Order* list;                       // +0x5c
     char unknown_60[0x66 - 0x60];
     short heading;                     // +0x66
     char unknown_68[2];
@@ -337,20 +337,20 @@ struct Unit {
     Unit* cargo;                       // +0x8a
     char unknown_8e[4];
     UnitDef* def;                      // +0x92
-    PlayerView* owner;                 // +0x96
+    PlayerView* player;                // +0x96
     CobScript* script;                 // +0x9a
     char unknown_9e[0xa6 - 0x9e];
-    unsigned short category;           // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     char unknown_a8[0xb0 - 0xa8];
     int workTime;                      // +0xb0
     char unknown_b4[0xf0 - 0xb4];
     Unit* attacker;                    // +0xf0
-    unsigned char orderPlayer;         // +0xf4
-    unsigned char orderKind;           // +0xf5
+    unsigned char lastAttackerSlot;    // +0xf4
+    unsigned char lastDamageType;      // +0xf5
     char unknown_f6[0xff - 0xf6];
-    unsigned char player;              // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[0x104 - 0x100];
-    float progress;                    // +0x104
+    float buildLeft;                   // +0x104
     short health;                      // +0x108
     char unknown_10a[0x110 - 0x10a];
     union {
@@ -627,8 +627,8 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->flags & 3) == 1) {
-        unit->type->SetFlightMode(unit, 2);
+    if ((unit->motion->flags & 3) == 1) {
+        unit->motion->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
@@ -664,7 +664,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             if (order->pos.x == 0 && order->pos.z == 0 && order->pos.y == 0)
                 order->pos = unit->pos;
             int a = RandomInt(0x10000);
@@ -716,7 +716,7 @@ int __stdcall VtolLandIfCanOrder(Unit* unit, Order* order, int flags)
     }
     case 2:
         if (flags & 0x20) {
-            unit->type->SetFlightMode(unit, 1);
+            unit->motion->SetFlightMode(unit, 1);
             return 5;
         }
         return 8;
@@ -740,7 +740,7 @@ int __stdcall VtolStandbyOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             unit->ClaimWeapons(3);
             order->flags |= 0x10000;
             order->SetDeadlineTicks(1);
@@ -796,7 +796,7 @@ int __stdcall VtolMoveOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             PrepVtolClimb(unit, order, 0);
             return 1;
         }
@@ -860,7 +860,7 @@ class UnitList : public std::vector<Unit*> {};
 
 static inline void FindPads(Unit* u, std::vector<Unit*>* pads)
 {
-    GetFactoriesInRadius(u->owner->index,&u->pos,0xf00,pads);
+    GetFactoriesInRadius(u->player->index,&u->pos,0xf00,pads);
 }
 
 static inline int SearchRange(Unit* u)
@@ -883,7 +883,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     }
     UnitList units;
     int range=SearchRange(unit);
-    GroundAllyVisitor visitor(unit->owner,&units,unit);
+    GroundAllyVisitor visitor(unit->player,&units,unit);
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
         order->SetAttachedFx(0);
@@ -940,7 +940,7 @@ int __stdcall VtolUnloadOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             order->AnnounceStatusIfFlagged("Unloading");
             ((PathOrderAttach*)&order->target)->SetUnit(unit->cargo);
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
@@ -1067,7 +1067,7 @@ int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
     unsigned int state=0; state=order->state;
     switch(state) {
     case 0:
-        if (unit->type && (unit->def->flags&0x800)) {
+        if (unit->motion && (unit->def->flags&0x800)) {
             order->side=RandomInt(2);
             Vec3 pos;
         if (order->side) pos=unit->pos+Offset(unit->heading-0x4000,range<<16);
@@ -1104,13 +1104,13 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
     unsigned int state=0; state=order->state;
     switch(state) {
     case 0:
-        if (unit->type && (unit->def->flags&0x800)) {
+        if (unit->motion && (unit->def->flags&0x800)) {
             order->AnnounceStatusIfFlagged("Building");
             unit->ClaimWeapons(3);
             if (unit->carrier) AttachUnitToPiece(unit,0,-1,2);
             unit->SetStateBits(1,1);
-            if ((unit->type->flags&3)==1) {
-                unit->type->SetFlightMode(unit,2);
+            if ((unit->motion->flags&3)==1) {
+                unit->motion->SetFlightMode(unit,2);
                 Class_0044e2d0* move=new Class_0044e2d0(order,unit->pos);
                 ((Class_0044e6c0*)move)->SetAltitude(unit->def->altitude/2);
                 order->SetAttachedFx((int)move);
@@ -1142,7 +1142,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             return 2;
         }
         SnapWorldPosToFootprint(def,&order->pos);
-        ((PathOrderAttach*)&order->target)->SetUnit(CreateUnit(unit->player,(short)order->type,order->pos,0,1,0));
+        ((PathOrderAttach*)&order->target)->SetUnit(CreateUnit(unit->playerIndex,(short)order->type,order->pos,0,1,0));
         if (!order->targetUnit) { QueueUnitSpeech(unit,7,"Unable to create any more units"); return 8; }
         QueueUnitSpeech(unit,9,"Starting construction");
         AddOrder("GETBUILT",1,order->targetUnit,unit,0,0,0);
@@ -1171,7 +1171,7 @@ int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
             bounds[1]=order->targetUnit->pos+order->targetUnit->def->max;
             EmitNanoParticles(&start,(Box*)bounds,6);
         }
-        if (order->targetUnit->progress!=0.0f) {
+        if (order->targetUnit->buildLeft!=0.0f) {
             order->SetDeadlineTicks(1);
             order->flags|=0xa;
             return 2;
@@ -1234,7 +1234,7 @@ int __stdcall VtolRepairUnitOrder(Unit* unit, Order* order, int flags)
     *dst = order->targetUnit->pos;
     switch (order->state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             if (!unit->CanRepair(order->targetUnit)) {
                 QueueUnitSpeech(unit, 7, "Repair mission failed");
                 return 8;
@@ -1314,7 +1314,7 @@ static inline int Land(Unit* unit, Order* order)
 {
     if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
         std::vector<Unit*> pads;
-        GetFactoriesInRadius(unit->owner->index, &unit->pos, 0xf00, &pads);
+        GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &pads);
         if (!pads.empty()) {
             order->SetAttachedFx(0);
             Unit* pad = pads[RandomInt(pads.size())];
@@ -1350,11 +1350,11 @@ void RepairableUnitVisitor::CollectRepairableUnit(Unit* unit)
 {
     if (unit == self) return;
     unsigned int index = 0;
-    index = unit->owner->index;
+    index = unit->player->index;
     if (!owner->allied[index]) return;
     unsigned int kind = unit->flags & 3;
     if ((unsigned char)kind != 1) return;
-    if (unit->health >= unit->def->maxHealth && unit->progress == 0.0f) return;
-    if (unit->orderPlayer == owner->index && unit->orderKind == 5) return;
+    if (unit->health >= unit->def->maxHealth && unit->buildLeft == 0.0f) return;
+    if (unit->lastAttackerSlot == owner->index && unit->lastDamageType == 5) return;
     units->push_back(unit);
 }

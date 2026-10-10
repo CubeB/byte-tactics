@@ -39,10 +39,10 @@ struct Unit {
     UnitMotion* motion; char pad4[0x66-4]; short heading;
     char pad68[2]; Vec3 pos;
     char pad76[8]; Point footprint;
-    char pad82[4]; int busy; char pad8a[8]; UnitDef* def;
-    char pad96[0xb0-0x96]; int timeout;
-    char padb4[0xff-0xb4]; unsigned char player;
-    char pad100[4]; float progress;
+    char pad82[4]; int carrier; char pad8a[8]; UnitDef* def;
+    char pad96[0xb0-0x96]; int workTime;
+    char padb4[0xff-0xb4]; unsigned char playerIndex;
+    char pad100[4]; float buildLeft;
     void SetStateBits(int,int);
     void ClaimWeapons(int);
 };
@@ -144,7 +144,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
                 if (!unit->def->canBuild) return 7;
                 order->AnnounceStatusIfFlagged("Building");
                 unit->ClaimWeapons(3);
-                if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
+                if (unit->carrier) AttachUnitToPiece(unit,0,-1,2);
                 unit->SetStateBits(1,1);
                 if ((unit->motion->flags&3)==1) {
                     unit->motion->SetFlightMode(unit,2);
@@ -167,7 +167,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
     }
     case 2:
         if (flags&0x40) return 8;
-        if (order->target.Get()->progress==0.0f) return 5;
+        if (order->target.Get()->buildLeft==0.0f) return 5;
         StartBuildingScript(unit,order,(short)GetHeadingBetween(&unit->pos,&order->target.Get()->pos));
         MarkSelectionOrdersDirty(unit);
         return 1;
@@ -192,7 +192,7 @@ int __stdcall VtolHelpBuildOrder(Unit* unit,Order* order,int flags)
             bounds[1]=order->target.Get()->pos+order->target.Get()->def->max;
             EmitNanoParticles(&start,bounds,6);
         }
-        if (order->target.Get()->progress!=0.0f) {
+        if (order->target.Get()->buildLeft!=0.0f) {
             order->SetDeadlineTicks(1);
             order->flags|=0xa;
             return 2;

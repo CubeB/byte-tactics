@@ -35,7 +35,7 @@ void UpdateMouseScroll();
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
 struct Unit {
-    UnitMotion* type;
+    UnitMotion* motion;
     char pad4[0x6a - 4]; Vec3 pos;
     char pad76[0x7e - 0x76]; short size;
     char pad80[0x86 - 0x80]; int carrier; int cargo;
@@ -100,8 +100,8 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->flags & 3) == 1) {
-        unit->type->SetFlightMode(unit, 2);
+    if ((unit->motion->flags & 3) == 1) {
+        unit->motion->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
@@ -132,7 +132,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             return 8;
         switch (order->state) {
         case 0:
-            if (unit->type && (unit->def->flags1 & 0x800)) {
+            if (unit->motion && (unit->def->flags1 & 0x800)) {
                 if (target->size > (short)unit->def->capacity) {
                     QueueUnitSpeech(unit, 7, "Unit is too heavy to transport");
                     return 8;

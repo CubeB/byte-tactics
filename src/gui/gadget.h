@@ -52,11 +52,11 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
         struct {                        // type 2
             int sortKey;                // +0xb6
             short field_ba;             // +0xba, the selected line
-            short top;                  // +0xbc, the first line shown
-            short maxTop;               // +0xbe, the largest value of top
-            short count;                // +0xc0, the number of lines or items
+            short firstRow;             // +0xbc, the first line shown
+            short maxFirstRow;          // +0xbe, the largest value of firstRow
+            short rowCount;             // +0xc0, the number of lines or items
             char* field_c2;             // +0xc2, the text lines
-            void* items;                // +0xc6, the cell or item array
+            void* rows;                 // +0xc6, the cell or item array
             GafEntry* gaf;              // +0xca
             void (__stdcall* callback)(Gui*, Gadget*);  // +0xce
             void* records;              // +0xd2, the record the entry is bound to
@@ -129,7 +129,7 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
         };
         struct {
             char unknown_13a_d[0x147 - 0x13a];
-            unsigned char labelKey;     // +0x147, the quick key of a type 5 label
+            unsigned char hotkey;       // +0x147, the quick key of a type 5 label
             unsigned int flag_148;      // +0x148, bit 0 set by type 5
         };
     };

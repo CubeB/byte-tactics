@@ -81,7 +81,7 @@ struct UnitType {
     Pos lo;                           // +0x15e
     Pos hi;                           // +0x16a
     char unknown_176[0x178 - 0x176];
-    short modelSizeXWhole;            // +0x178, the whole half of modelSizeX (+0x176)
+    short field_178;                  // +0x178
     char unknown_17a[0x202 - 0x17a];
     short sight;                      // +0x202
     short radar;                      // +0x204
@@ -608,7 +608,7 @@ void __stdcall DrawOrderRangeRing(void* surface, View* view, Order* order,
     int height;
     if (order->target != 0) {
         p = order->target->pos;
-        height = order->target->def->modelSizeXWhole;
+        height = order->target->def->field_178;
     } else {
         p = order->pos;
         height = 0x20;

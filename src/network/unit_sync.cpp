@@ -392,13 +392,13 @@ struct Target_0046d530 {
 };
 
 struct Source_0046d630 {
-    int field_0;                       // +0x0
+    int key;                           // +0x0
     char unknown_4[4];
-    unsigned char field_8;             // +0x8
+    unsigned char enabled;             // +0x8
     char unknown_9;
-    unsigned char field_a;             // +0xa
+    unsigned char match;               // +0xa
     char unknown_b;
-    short field_c;                     // +0xc
+    short limit;                       // +0xc
 };
 
 #pragma pack(pop)
@@ -941,10 +941,10 @@ void UnitSync::SendEntryTo(Target_0046d530* target, unsigned char arg, Source_00
         UnitSyncPacket packet;
         packet.type = 0x1a;
         packet.arg = arg;
-        packet.key = src->field_0;
-        packet.enabled = src->field_8;
-        packet.match = src->field_a;
-        packet.limit = src->field_c;
+        packet.key = src->key;
+        packet.enabled = src->enabled;
+        packet.match = src->match;
+        packet.limit = src->limit;
         if (direct != 0) {
             SendPacket(target->id, &packet);
         } else {

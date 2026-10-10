@@ -114,27 +114,7 @@ struct SrcHolder_00495a30 {
     Src_004b8ae0* frame;                    // +0xbc
 };
 
-struct Rect_00495a30 {
-    int left;                               // +0x0
-    int top;                                // +0x4
-    int right;                              // +0x8
-    int bottom;                             // +0xc
-};
-
-struct Surface {
-    int width;                              // +0x0
-    int height;                             // +0x4
-    int pitch;                              // +0x8
-    unsigned char* bits;                    // +0xc
-    int zPriority;                          // +0x10
-    int colorKey;                           // +0x14
-    unsigned short x;                       // +0x18
-    unsigned short y;                       // +0x1a
-    char unknown_1c[0x10];
-    unsigned int flag0 : 1;                 // +0x2c
-    unsigned int flag1 : 1;
-    void SetClipRect(Rect_00495a30 r);
-};
+#include "../graphics/surface.h"
 
 struct Game {
     char unknown_0[0x519];
@@ -339,7 +319,7 @@ void __stdcall BuildScreenshotPath(char* out, const char* dir, const char* name,
 void UpdateBuildMenuIfFocusUnit(void*);
 void ActivatePlayerGadgets(char*);
 // Unused here: real zero-argument functions whose symbol ids keep
-// WriteScreenshot's allocation after Surface_00495a30 and Surface became one
+// WriteScreenshot's allocation after the Surface view became surface.h
 // (docs/c2-regalloc.md).
 void ResetCameraState(void);
 void ClampCameraPosition(void);
@@ -347,9 +327,6 @@ void ClampCameraTarget(void);
 void UpdateScreenShake(void);
 void UpdateCameraFollow(void);
 void BeginMouseScroll(void);
-void EndMouseScroll(void);
-void UpdateMouseScroll(void);
-void UpdateEdgeScroll(void);
 // FUNCTION: 0x495a30
 void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h)
 {
@@ -419,7 +396,7 @@ void __stdcall WriteScreenshot(char* dir, char* name, int x, int y, int w, int h
                     col = 0;
                     if (col < w) do {
                         int right;
-                        Rect_00495a30 box;
+                        Rect box;
                         box.left = col;
                         SetCameraPosition(x + col, y + row, 0);
                         CollectVisibleUnitIds();

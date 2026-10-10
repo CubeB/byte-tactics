@@ -1367,7 +1367,7 @@ address,size,file,symbol,status,similarity
 0x468310,108,src/ingame/info_panel.cpp,?DrawPercentBar@@YGXPAXPAURect_004b0510@@H@Z,matched,100.0
 0x468380,539,src/ingame/info_panel.cpp,?DrawNetworkStats@@YGXPAX@Z,matched,100.0
 0x4685a0,1045,src/ingame/info_panel.cpp,?DrawUnitBuilderProbe@@YGHPAX@Z,matched,100.0
-0x4689c0,803,src/ingame/info_panel.cpp,?DrawStatusPanel@@YGXPAVSurface@@@Z,matched,100.0
+0x4689c0,803,src/ingame/info_panel.cpp,?DrawStatusPanel@@YGXPAUSurface@@@Z,matched,100.0
 0x468cf0,5904,src/ingame/info_panel_468cf0.cpp,?DrawBattleFrame@@YGXHH@Z,matched,100.0
 0x46a400,36,src/ingame/info_panel.cpp,?AccumulateProfileTime@FrameTimers@@QAEXH@Z,matched,100.0
 0x46a430,256,src/ingame/info_panel.cpp,?DrawHitPointBar@@YGXPAXPAUUnit@@HH@Z,matched,100.0

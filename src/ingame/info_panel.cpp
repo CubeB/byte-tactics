@@ -444,19 +444,7 @@ struct Rect_004685a0 {
     int bottom;                        // +0xc
 };
 
-struct Rect_004689c0 {
-    int left;
-    int top;
-    int right;
-    int bottom;
-};
-
-class Surface {
-public:
-    char unknown_0[0x1c];
-    Rect_004689c0 clip;                // +0x1c
-    Rect_004689c0* GetClipRect(Rect_004689c0* out);
-};
+#include "../graphics/surface.h"
 
 // The frame-time profile at g_game+0x38d85: last tick at +0, one accumulator
 // per phase at +0x2c.
@@ -1111,7 +1099,7 @@ void __stdcall DrawStatusPanel(Surface* win)
     if (v == 0)
         return;
     g_game->field_52d = g_game->field_525;
-    Rect_004689c0 bounds;
+    Rect bounds;
     win->GetClipRect(&bounds);
     int left = bounds.left;
     int bottom = bounds.bottom + v;
@@ -1283,6 +1271,13 @@ void __stdcall DrawClosedPolygon(void* surface, Point* points, int count, int co
     }
     DrawLine(surface, points->x, points->y, p->x, p->y, color);
 }
+
+// Unused here: real zero-argument functions whose symbol ids keep
+// DrawModel3doProjected's allocation after the Surface view became surface.h
+// (docs/c2-regalloc.md).
+void ResetCameraState(void);
+void ClampCameraPosition(void);
+void ClampCameraTarget(void);
 
 // Draws a piece of a 3D model: projects obj->count vertices through
 // RotateByAngles (the same rotate/project idiom as the matched 0x467a50) into

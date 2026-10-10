@@ -2,14 +2,14 @@
 #include <string.h>
 
 void __cdecl WalkFrameChain(int* frame, int* stack, int eip, int skip, int* out, int max, int* count,
-                          int* field_3c, int size, int* field_40);
+                          int* copy, int copyMax, int* copied);
 
 // A stack trace of up to 14 return addresses (0x4d9c60.cpp has a bigger one).
 struct Trace_004d8870 {
     int entries[14];                    // +0x0
     int count;                          // +0x38
-    int field_3c;                       // +0x3c
-    int field_40;                       // +0x40
+    int stackCopy;                      // +0x3c
+    int copied;                         // +0x40
     int* stack;                         // +0x44, the stack pointer it was taken at
 
     // Walks the stack from here, `skip` frames up. Inlined into each caller,
@@ -27,7 +27,7 @@ struct Trace_004d8870 {
             mov eip, eax
         }
         stack = top;
-        WalkFrameChain(frame, top, eip, skip, entries, 14, &count, &field_3c, 1, &field_40);
+        WalkFrameChain(frame, top, eip, skip, entries, 14, &count, &stackCopy, 1, &copied);
     }
 };
 

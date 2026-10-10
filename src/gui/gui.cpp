@@ -95,8 +95,8 @@ struct Holder_0049f8c0 {
     char unknown_0[4];
     Entry_0049f8c0* entries;       // +0x04
     char unknown_8[0x14 - 0x8];
-    int field_14;                  // +0x14
-    int field_18;                  // +0x18
+    int dirty;                     // +0x14
+    int keyboardInput;             // +0x18
     char unknown_1c[0x20 - 0x1c];
     int selected;                  // +0x20
 };
@@ -232,14 +232,14 @@ void __stdcall ClearChanged(void* param_1)
 void __stdcall MarkLayerChanged(Dialog* obj)
 {
     if (obj->holder != 0) {
-        obj->holder->field_14 = 1;
+        obj->holder->dirty = 1;
     }
 }
 
 // FUNCTION: 0x49faf0
 void __stdcall ClearLayerChanged(Dialog* param)
 {
-    param->holder->field_14 = 0;
+    param->holder->dirty = 0;
 }
 
 // FUNCTION: 0x49fb10
@@ -255,7 +255,7 @@ void __stdcall SetKeyboardInput(int param_1, int param_2)
 int __stdcall GetKeyboardInput(Dialog* obj)
 {
     if (obj->holder != 0) {
-        return obj->holder->field_18;
+        return obj->holder->keyboardInput;
     }
     return 0;
 }
@@ -467,7 +467,7 @@ void __stdcall ClearPeerStatus(Dialog* param_1, int index)
                 e->field_138 = 0;
                 DrawButton(param_1, i);
                 if (param_1->holder != 0) {
-                    param_1->holder->field_14 = 1;
+                    param_1->holder->dirty = 1;
                 }
             }
         }
@@ -2784,10 +2784,10 @@ struct Object_004a3780 {
     char unknown_1c[0x3c - 0x1c];
     Point_004a3780 point;              // +0x3c
     char unknown_54[0x60 - 0x54];
-    int field_60;                      // +0x60
+    int hotGadgetIndex;                // +0x60
     int focus;                         // +0x64
     char unknown_68[0xcca - 0x68];
-    int field_cca;                     // +0xcca
+    int changed;                       // +0xcca
 };
 #pragma pack(pop)
 
@@ -2831,7 +2831,7 @@ static inline int LineHeight_004a3780()
 // FUNCTION: 0x4a3780
 int __stdcall HandleListBoxInput(Object_004a3780* obj, int index, int param_3)
 {
-    if (obj->field_60 != -1)
+    if (obj->hotGadgetIndex != -1)
         return 0;
     Gadget* entries = obj->holder->entries;
     Gadget* me = &entries[index];
@@ -2976,7 +2976,7 @@ above:
 ret1:
             return 1;
         }
-        obj->field_cca = 1;
+        obj->changed = 1;
     } else if (point.y < r.y0) {
         if (me->u.list.field_bc > 0 && me->u.list.sortKey < (int)GetTicks()) {
             me->u.list.sortKey = GetTicks() + 2;
@@ -3013,7 +3013,7 @@ finish:
         }
     }
 end:
-    return obj->field_60 != -1;
+    return obj->hotGadgetIndex != -1;
 }
 // Clears three fields of GUI entry i (0x15b-byte entries). The stores sit in
 // an inline helper taking the entry pointer; a local pointer to the entry
@@ -3102,9 +3102,9 @@ struct Object_004a4170 {
     char unknown_54[0x64 - 0x54];
     int focus;                         // +0x64, -1 when nothing has the focus
     char unknown_68[0x78 - 0x68];
-    int field_78;                      // +0x78, non-zero while dragging
+    int knobDragging;                  // +0x78, non-zero while dragging
     Point_004a4170 saved;              // +0x7c, the mouse when the drag began
-    short field_94;                    // +0x94, off when the drag began
+    short dragKnobPos;                 // +0x94, off when the drag began
 };
 
 void __stdcall TrySetFocus(Object_004a4170* obj, int index);
@@ -3151,15 +3151,15 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
     if (obj->focus == index) {
         if (!HasMouseKeyFlags(obj, 3)) {
             obj->focus = -1;
-            obj->field_78 = 0;
+            obj->knobDragging = 0;
         }
         // Inline OffsetChanged ends both arms: the duplicated zero uses keep 0 in EDX.
-        if (obj->field_78) {
+        if (obj->knobDragging) {
             int old = e->knobPos;
             if (e->attribs & 1)
-                e->knobPos = obj->field_94 - obj->saved.x + p.x;
+                e->knobPos = obj->dragKnobPos - obj->saved.x + p.x;
             else
-                e->knobPos = obj->field_94 - obj->saved.y + p.y;
+                e->knobPos = obj->dragKnobPos - obj->saved.y + p.y;
             OffsetChanged_004a4170(obj, index, e, old);
         } else {
             // Per-path stores to e->knobPos (not one after the if/else): keeps the 16-bit loads.
@@ -3180,10 +3180,10 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         return;
     }
 
-    if (obj->field_78)
+    if (obj->knobDragging)
         return;
     if (IsMouseButtonMessage(obj, 1)) {
-        obj->field_78 = 0;
+        obj->knobDragging = 0;
         if (p.x < r1[0] || p.x > r1[2] || p.y < r1[1] || p.y > r1[3])
             return;
         TrySetFocus(obj, index);
@@ -3191,12 +3191,12 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         if (p.x < r2[0] || p.x > r2[2] || p.y < r2[1] || p.y > r2[3])
             return;
         obj->saved = p;
-        obj->field_78 = 1;
-        obj->field_94 = e->knobPos;
+        obj->knobDragging = 1;
+        obj->dragKnobPos = e->knobPos;
         return;
     }
     if (IsMouseButtonMessage(obj, 2)) {
-        obj->field_78 = 0;
+        obj->knobDragging = 0;
         if (p.x < r1[0] || p.x > r1[2] || p.y < r1[1] || p.y > r1[3])
             return;
         TrySetFocus(obj, index);
@@ -3204,8 +3204,8 @@ void __stdcall HandleSliderInput(Object_004a4170* obj, int index)
         if (p.x < r2[0] || p.x > r2[2] || p.y < r2[1] || p.y > r2[3])
             return;
         obj->saved = p;
-        obj->field_78 = 1;
-        obj->field_94 = e->knobPos;
+        obj->knobDragging = 1;
+        obj->dragKnobPos = e->knobPos;
     }
 }
 int __cdecl tolower(int);

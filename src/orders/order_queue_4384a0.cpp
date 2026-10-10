@@ -96,13 +96,13 @@ struct SaveDesc_0043a1f0 {             // the 0x3a-byte snapshot, read and writt
     unsigned int flags6;               // +0x0a
     int last_id;                       // +0x0e
     Vec3_0043a1f0 pos;                 // +0x12
-    int field_1e;                      // +0x1e
-    int field_22;                      // +0x22
-    int field_26;                      // +0x26
-    int field_2a;                      // +0x2a
-    int field_2e;                      // +0x2e
+    int start;                         // +0x1e
+    int cached;                        // +0x22
+    int field_26;                      // +0x26, the order's unitType (+0x36); +0x00 has the name
+    int radius;                        // +0x2a
+    int progress;                      // +0x2e
     unsigned int flags;                // +0x32
-    int field_36;                      // +0x36
+    int subFlags;                      // +0x36
 };
 #pragma pack(pop)
 
@@ -739,13 +739,13 @@ Order::Order(Unit* punit, HapiBank* file, char* name)
     flags6 = desc.flags6;
     last_id = desc.last_id;
     pos = desc.pos;
-    start = desc.field_1e;
-    cached = desc.field_22;
+    start = desc.start;
+    cached = desc.cached;
     unitType = desc.field_26;
-    radius = desc.field_2a;
-    progress = desc.field_2e;
+    radius = desc.radius;
+    progress = desc.progress;
     flags = desc.flags;
-    subFlags = desc.field_36;
+    subFlags = desc.subFlags;
 
     char* sname = g_missionOrderTableBegin[desc.kind].name;
     if (strcmp(sname, "MobileBuild") == 0 || strcmp(sname, "VTOL_MobileBuild") == 0 ||
@@ -814,13 +814,13 @@ int Order::SerializeToSave(Unit* punit, HapiBank* file, char* name)
     desc.flags6 = flags6;
     desc.last_id = last_id;
     desc.pos = pos;
-    desc.field_1e = start;
-    desc.field_22 = cached;
+    desc.start = start;
+    desc.cached = cached;
     desc.field_26 = unitType;
-    desc.field_2a = radius;
-    desc.field_2e = progress;
+    desc.radius = radius;
+    desc.progress = progress;
     desc.flags = flags;
-    desc.field_36 = subFlags;
+    desc.subFlags = subFlags;
 
     file->OpenNamedBox(name);
     file->SeekBox(0);

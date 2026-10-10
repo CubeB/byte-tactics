@@ -41,13 +41,13 @@ struct Elem_0044ce90 {
 class OrderFx {
 public:
     void* vtable;                      // +0x0
-    int field_4;                       // +0x4
+    int source;                        // +0x4
 
     OrderFx() {}
     OrderFx(int param_1)
     {
         vtable = g_orderFxVtable;
-        field_4 = param_1;
+        source = param_1;
     }
 
     OrderFx(int arg1, int arg2, int arg3);
@@ -469,10 +469,10 @@ public:
             unsigned short : 11;
         };
     };
-    short field_a;                     // +0xa
-    short field_c;                     // +0xc
-    short field_e;                     // +0xe
-    short field_10;                    // +0x10
+    short approachRadius;              // +0xa
+    short altitude;                    // +0xc
+    short heading;                     // +0xe
+    short piece;                       // +0x10
     union {
         Unit* unit;                    // +0x12
         Owner_0044e080* owner;         // +0x12, the bit-stream loader's view
@@ -486,7 +486,7 @@ public:
             int pos_z;                 // +0x2e
         };
     };
-    int field_32;                      // +0x32
+    int followOffset;                  // +0x32
 
     PathOrder(int owner, HapiBank* file, char* name);
     PathOrder(Owner_0044e080* owner_, BitReader* reader);
@@ -902,7 +902,7 @@ class AiSearchGoal;
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
 class PathGoal {
 public:
-    Base_00490a10* field_4;            // +0x4
+    Base_00490a10* target;             // +0x4
     Struct_004907e0* owner;            // +0x8
 
     PathGoal(Struct_004907e0* p);
@@ -930,7 +930,7 @@ class AiSearchGoal : public PathGoal {
 public:
     Point_0044f080 points[20];         // +0xc
     int count;                         // +0x5c
-    unsigned int field_60;             // +0x60
+    unsigned int repathClaimTick;      // +0x60
     union {
         struct {
             unsigned char active : 1;  // +0x64 bit 0
@@ -939,7 +939,7 @@ public:
             unsigned char flag_2 : 1;  // bit 2
             unsigned char flag_3 : 1;  // bit 3, the path changed
         };
-        unsigned char field_64;
+        unsigned char flags;
     };
 
     AiSearchGoal(Struct_004907e0* p);
@@ -1157,7 +1157,7 @@ int OrderFx::ApproxDist(int, int)
 // FUNCTION: 0x44ced0
 void OrderFx::AddFlags(int param_1)
 {
-    int val = field_4;
+    int val = source;
     if (val != 0) {
         int* target = (int*)(val + 0x4e);
         *target |= param_1;
@@ -1314,7 +1314,7 @@ static inline void ToWorld(int* out, Point_0044eec0 a, Point_0044d2c0 b)
 // FUNCTION: 0x44d2c0
 int ApproachRadius::FillWorldPos(int* out)
 {
-    ToWorld(out, pos, ((Owner_0044d2c0*)field_4)->inner->pos);
+    ToWorld(out, pos, ((Owner_0044d2c0*)source)->inner->pos);
     return 1;
 }
 
@@ -1470,7 +1470,7 @@ static inline int MeanRadius(RingApproach* c)
 // FUNCTION: 0x44d720
 int RingApproach::FillWorldPos(Vec3_0044d720* out)
 {
-    Inner_0044d720* inner = ((Owner_0044d720*)field_4)->inner;
+    Inner_0044d720* inner = ((Owner_0044d720*)source)->inner;
     ToWorld(out, pos, inner->cell);
     short angle = GetHeadingBetween(&inner->pos, out);
     Vec3_0044d720 d = Direction(angle, MeanRadius(this) << 16);
@@ -1597,7 +1597,7 @@ int PointMarker::FillWorldPos(int* out)
     short avg = (short)MidX_44dc60(this);
     short z = (short)y2;
     // The named view's mapPtr (+4) is the base class's owner field.
-    MapInfo_44dc60* info = *(MapInfo_44dc60**)((char*)field_4 + 0xe);
+    MapInfo_44dc60* info = *(MapInfo_44dc60**)((char*)source + 0xe);
     Pos16_44dc60 pos = info->pos;
     out[0] = (pos.x + avg * 2) << 0x13;
     out[2] = (pos.z + z * 2) << 0x13;
@@ -1667,17 +1667,17 @@ void PathOrder::SerializeToBits(BitWriter* stream)
 {
     stream->WriteBits(flags, 8);
     if ((flags & 1) != 0) {
-        stream->WriteBits(field_10, 0x10);
+        stream->WriteBits(piece, 0x10);
         stream->WriteBits((int)(unsigned short)(ref.owner == 0 ? 0 : (unsigned short)ref.owner->id), 0x10);
     }
     if ((flags & 0x10) != 0) {
-        stream->WriteBits(field_a, 0x10);
+        stream->WriteBits(approachRadius, 0x10);
     }
     if ((flags & 8) != 0) {
-        stream->WriteBits(field_c, 0x10);
+        stream->WriteBits(altitude, 0x10);
     }
     if ((flags & 0x40) != 0) {
-        stream->WriteBits(field_e, 0x10);
+        stream->WriteBits(heading, 0x10);
     }
     if ((flags & 0x20) != 0) {
         stream->WriteBits(pos.x, 0x20);
@@ -1703,12 +1703,12 @@ PathOrder::PathOrder(int owner, HapiBank* file, char* name)
         unit = LoadUnit(rec.id1, file);
         ref.SetUnit((Unit*)LoadUnit(rec.id2, file));
         field_8 = rec.f1;
-        field_a = rec.f2;
-        field_c = rec.f3;
-        field_e = rec.f4;
-        field_10 = rec.f5;
+        approachRadius = rec.f2;
+        altitude = rec.f3;
+        heading = rec.f4;
+        piece = rec.f5;
         pos = *(Vec3_0044e3c0*)&rec.pos;
-        field_32 = rec.i4;
+        followOffset = rec.i4;
     }
     ((UnitRef*)&rec.ref_vt)->Unlink();
 }
@@ -1780,12 +1780,12 @@ int PathOrder::SerializeToSave(int unused, HapiBank* file, char* name)
     else
         rec.id2 = this->ref.owner->id;
     rec.f1 = flags;
-    rec.f2 = field_a;
-    rec.f3 = field_c;
-    rec.f4 = field_e;
-    rec.f5 = field_10;
+    rec.f2 = approachRadius;
+    rec.f3 = altitude;
+    rec.f4 = heading;
+    rec.f5 = piece;
     rec.pos = pos;
-    rec.i4 = field_32;
+    rec.i4 = followOffset;
     file->OpenNamedBox(name);
     file->SeekBox(0);
     file->WriteBox(&rec, 0x36);
@@ -1800,22 +1800,22 @@ PathOrder::PathOrder(Owner_0044e080* owner_, BitReader* reader)
     vtable = g_pathOrderVtable;
     flags = reader->ReadBits(8);
     if (flags & 1) {
-        field_10 = reader->ReadBits(0x10);
+        piece = reader->ReadBits(0x10);
         unsigned short index = reader->ReadBits(0x10);
         ref.SetUnit(index == 0 ? 0 : (Unit*)&g_game->units[index]);
     }
     if (flags & 0x10)
-        field_a = reader->ReadBits(0x10);
+        approachRadius = reader->ReadBits(0x10);
     else
-        field_a = 0;
+        approachRadius = 0;
     if (flags & 8)
-        field_c = reader->ReadBits(0x10);
+        altitude = reader->ReadBits(0x10);
     else
-        field_c = 0;
+        altitude = 0;
     if (flags & 0x40)
-        field_e = reader->ReadBits(0x10);
+        heading = reader->ReadBits(0x10);
     else
-        field_e = 0;
+        heading = 0;
     if (flags & 0x20) {
         pos_x = reader->ReadBits(0x20);
         pos_y = reader->ReadBits(0x20);
@@ -1832,18 +1832,18 @@ PathOrder::PathOrder(Order* order, Unit* unit)
 {
     vtable = g_pathOrderVtable;
     ref.SetUnit((Unit*)unit);
-    field_a = 0;
-    field_c = 0;
+    approachRadius = 0;
+    altitude = 0;
     this->unit = order->unit;
     pos = this->unit->pos;
-    field_10 = -1;
+    piece = -1;
     if ((unsigned char)(ref.owner->def->flags >> 11) & 1) {
         field_8 = 7;
         int t = this->unit->weapon->range;
         if (t != 0)
-            field_32 = t << 16;
+            followOffset = t << 16;
         else
-            field_32 = 0x640000;
+            followOffset = 0x640000;
     } else {
         field_8 = 1;
     }
@@ -1853,11 +1853,11 @@ PathOrder::PathOrder(Order* order, Unit* unit)
 // g_pathOrderVtable): it takes its position from the source's unit instead.
 // FUNCTION: 0x44e250 ??0PathOrder@@QAE@PAUSource_0044e250@@HF@Z
 PathOrder::PathOrder(Source_0044e250* source, int unit, short value)
-    : OrderFx((int)source), field_10(value), ref(0, 0)
+    : OrderFx((int)source), piece(value), ref(0, 0)
 {
     vtable = g_pathOrderVtable;
-    field_a = 0;
-    field_c = 0;
+    approachRadius = 0;
+    altitude = 0;
     field_8 = 5;
     this->unit = source->unit;
     pos = this->unit->pos;
@@ -1871,9 +1871,9 @@ PathOrder::PathOrder(Source_0044e2d0* source, const Vec3_0044e2d0& p)
     : OrderFx((int)source), ref(0, 0), pos(*(const Vec3_0044e3c0*)&p)
 {
     vtable = g_pathOrderVtable;
-    field_a = 0;
-    field_c = 0;
-    field_10 = -1;
+    approachRadius = 0;
+    altitude = 0;
+    piece = -1;
     field_8 = 0x20;
     unit = (Unit*)source->unit;
 }
@@ -1885,9 +1885,9 @@ PathOrder::PathOrder(Source_0044e330* source, int unit, const Vec3_0044e330& p)
     vtable = g_pathOrderVtable;
     ref.SetUnit((Unit*)unit);
     pos = *(const Vec3_0044e3c0*)&p;
-    field_a = 0;
-    field_c = 0;
-    field_10 = -1;
+    approachRadius = 0;
+    altitude = 0;
+    piece = -1;
     this->unit = (Unit*)source->unit;
     field_8 = 0xa3;
 }
@@ -1923,17 +1923,17 @@ int PathOrder::FillWorldPos(Vec3_0044e3c0* out)
             return 0;
         // Through a local pointer: keeps the struct-assignment destination in edi.
         Vec3_0044e3c0* p = &pos;
-        *p = GetPiecePosition(ref.owner, field_10);
+        *p = GetPiecePosition(ref.owner, piece);
         if (flags & 2) {
             short angle = ref.owner->heading;
             if (flags & 0x40)
-                angle += field_e;
-            Vec3_0044e3c0 d = Direction_0044e3c0(angle, field_32);
+                angle += heading;
+            Vec3_0044e3c0 d = Direction_0044e3c0(angle, followOffset);
             p->x -= d.x;
             p->y -= d.y;
             p->z -= d.z;
         }
-        pos.y += field_c << 16;
+        pos.y += altitude << 16;
     } else {
         if ((f & 8) == 0) {
             UnitDef* def = unit->def;
@@ -1959,14 +1959,14 @@ int PathOrder::GetDesiredHeading(unsigned short* out)
             return 1;
         }
         if (f & 0x40) {
-            *out = field_e;
+            *out = heading;
             return 1;
         }
         *out = ref.owner->heading;
         return 1;
     }
     if (f & 0x40) {
-        *out = field_e;
+        *out = heading;
         return 1;
     }
     return 0;
@@ -2012,7 +2012,7 @@ int PathOrder::IsFxStyle()
 void PathOrder::SetAltitude(int param_1)
 {
     field_8 |= 8;
-    field_c = param_1;
+    altitude = param_1;
     if ((unsigned char)field_8 & 0x20) {
         pos.y = (max(GetGroundHeight((Pos_0044e6c0*)&pos), g_game->seaLevel) + param_1) << 16;
         if (pos.y > 0x1ff0000)
@@ -2026,7 +2026,7 @@ void PathOrder::SetAltitude(int param_1)
 void PathOrder::SetHeading(short v)
 {
     headingFlag = 1;
-    field_e = v;
+    heading = v;
 }
 
 // Sets a flag bit in the word at +0x8 (a 1-bit unsigned short bitfield, which
@@ -2035,7 +2035,7 @@ void PathOrder::SetHeading(short v)
 void PathOrder::SetApproachRadius(short v)
 {
     radiusFlag = 1;
-    field_a = v;
+    approachRadius = v;
 }
 
 // The constructor.
@@ -2072,7 +2072,7 @@ void* AirManeuverOrder::Destroy(int param_1)
 // FUNCTION: 0x44e7d0 ??0AirManeuverOrder@@QAE@HPAVHapiBank@@PAD@Z
 AirManeuverOrder::AirManeuverOrder(int owner, HapiBank* file, char* name)
 {
-    field_4 = owner;
+    source = owner;
     vtable = g_airManeuverOrderVtable;
     file->OpenNamedBox(name);
     file->SeekBox(0);
@@ -2136,7 +2136,7 @@ void AirManeuverOrder::SerializeToBits(BitWriter* stream)
 // FUNCTION: 0x44e9c0 ??0AirManeuverOrder@@QAE@PAUOwner_0044e9c0@@PAVBitReader@@@Z
 AirManeuverOrder::AirManeuverOrder(Owner_0044e9c0* owner, BitReader* reader)
 {
-    field_4 = 0;
+    source = 0;
     self = (Object_0044e740*)owner;
     vtable = g_airManeuverOrderVtable;
     flags = reader->ReadBits(1);
@@ -2290,7 +2290,7 @@ Point_0044eef0* __stdcall CopyDwordRangeUnchecked(Point_0044eef0* first, Point_0
 PathGoal::PathGoal(Struct_004907e0* p)
 {
     owner = p;
-    field_4 = 0;
+    target = 0;
 }
 
 // Slot 3: does nothing.
@@ -2309,17 +2309,17 @@ void PathGoal::DrawOnSurface(void*)
 // FUNCTION: 0x44ef80
 int PathGoal::HasReadyWaypoints()
 {
-    return field_4 != 0;
+    return target != 0;
 }
 
 // Slot 1: sets the object at +0x4, first telling the one it replaces 0x80.
 // FUNCTION: 0x44ef90
 void PathGoal::SetPathOrder(void* param)
 {
-    if (field_4 != 0) {
-        ((OrderFx*)field_4)->AddFlags(0x80);
+    if (target != 0) {
+        ((OrderFx*)target)->AddFlags(0x80);
     }
-    field_4 = (Base_00490a10*)param;
+    target = (Base_00490a10*)param;
 }
 
 // Slot 2: does nothing.
@@ -2369,7 +2369,7 @@ AiSearchGoal::AiSearchGoal(Struct_004907e0* p)
     active = 0;
     flag_1 = 0;
     flag_3 = 1;
-    field_60 = 0;
+    repathClaimTick = 0;
 }
 
 // Sets the path points (at most 20) and marks it active, or with no
@@ -2379,8 +2379,8 @@ AiSearchGoal::AiSearchGoal(Struct_004907e0* p)
 void AiSearchGoal::SetWaypoints(Point_0044f080* src, int n)
 {
     if (n == 0) {
-        if (field_4 && field_4->ContainsUnit(owner) == 0)
-            ((OrderFx*)field_4)->AddFlags(0x40);
+        if (target && target->ContainsUnit(owner) == 0)
+            ((OrderFx*)target)->AddFlags(0x40);
         active = 0;
     } else {
         if (n >= 20)
@@ -2426,10 +2426,10 @@ void AiSearchGoal::FillWaypointWorldPos(Vec3_004907e0* out, int unused, int n)
 // FUNCTION: 0x44f1a0
 void AiSearchGoal::TickTowardGoal()
 {
-    if (field_4) {
-        if (field_4->ContainsUnit(owner)) {
-            ((OrderFx*)field_4)->AddFlags(0x20);
-            if (!field_4->KeepAfterComplete())
+    if (target) {
+        if (target->ContainsUnit(owner)) {
+            ((OrderFx*)target)->AddFlags(0x20);
+            if (!target->KeepAfterComplete())
                 SetPathOrder(0);
         }
     }
@@ -2445,21 +2445,21 @@ void AiSearchGoal::TickTowardGoal()
             flag_3 = 1;
         }
     }
-    if (field_4 && (owner->target->occupyFlags & 4 || count < 2))
+    if (target && (owner->target->occupyFlags & 4 || count < 2))
         flag_1 = 1;
 }
 
 // Slot 6: returns this object when its flag bit 1 is set and the counter at
-// g_game+0x38a47 has reached field_60 + 0x3c (storing the counter in
-// field_60), or null. The path search scheduler (0x40eb70) calls it through
+// g_game+0x38a47 has reached repathClaimTick + 0x3c (storing the counter in
+// repathClaimTick), or null. The path search scheduler (0x40eb70) calls it through
 // slot 6 to pick the path to search for next.
 // FUNCTION: 0x44f260
 AiSearchGoal* AiSearchGoal::TryClaimRepath()
 {
-    if (field_64 & 2) {
+    if (flags & 2) {
         unsigned int limit = g_game->gameTick;
-        if (limit >= field_60 + 0x3c) {
-            field_60 = limit;
+        if (limit >= repathClaimTick + 0x3c) {
+            repathClaimTick = limit;
             return this;
         }
     }
@@ -2470,7 +2470,7 @@ AiSearchGoal* AiSearchGoal::TryClaimRepath()
 // FUNCTION: 0x44f290
 int AiSearchGoal::HasReadyWaypoints()
 {
-    return field_64 & 1;
+    return flags & 1;
 }
 
 // Slot 1: hands the object at +0x4 over to the
@@ -2483,23 +2483,23 @@ int AiSearchGoal::HasReadyWaypoints()
 void AiSearchGoal::SetPathOrder(void* param)
 {
     g_game->pathfinder->AbortIfGoalMatch(this);
-    if (field_4)
-        ((OrderFx*)field_4)->AddFlags(0x80);
+    if (target)
+        ((OrderFx*)target)->AddFlags(0x80);
     active = 0;
-    field_4 = (Base_00490a10*)param;
+    target = (Base_00490a10*)param;
     if (param == 0) {
         flag_1 = 0;
     } else {
         flag_1 = 1;
         if (count >= 3) {
-            if (field_4->ContainsCell(points[count - 1].x >> 4, points[count - 1].y >> 4)) {
+            if (target->ContainsCell(points[count - 1].x >> 4, points[count - 1].y >> 4)) {
                 active = 1;
                 flag_1 = 0;
             }
         }
         if (!active) {
             Vec3_004907e0 p;
-            if (field_4->FillWorldPos(&p)) {
+            if (target->FillWorldPos(&p)) {
                 if (count >= 3) {
                     int sx = points[count - 1].x << 16;
                     int sz = points[count - 1].y << 16;
@@ -2524,8 +2524,8 @@ void AiSearchGoal::SetPathOrder(void* param)
             }
         }
     }
-    if (field_60 <= g_game->gameTick - 10)
-        field_60 = 0;
+    if (repathClaimTick <= g_game->gameTick - 10)
+        repathClaimTick = 0;
     flag_3 = 1;
 }
 
@@ -2544,7 +2544,7 @@ AiSearchGoal::~AiSearchGoal()
 // FUNCTION: 0x44f480
 int AiSearchGoal::HasNetUnitState()
 {
-    return (field_64 & 8) || ((owner->target->occupyFlags ^ field_64) & 4);
+    return (flags & 8) || ((owner->target->occupyFlags ^ flags) & 4);
 }
 
 // Slot 8, the write counterpart of the reader 0x44f5c0. It sets the stream's next bit when the

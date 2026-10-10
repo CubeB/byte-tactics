@@ -22,8 +22,9 @@ public:
     void SetFlightMode(Unit* unit, int state);
 };
 
-class Class_0044e6c0 { public: void SetAltitude(int); };
-class Class_0044e730 { public: void SetApproachRadius(short); };
+// Unused here: forward declarations of real functions; their symbol ids keep the
+// allocation of the functions after the merged views (docs/c2-regalloc.md).
+void UpdateMouseScroll();
 #include "../units/cob_script.h"
 
 // Unused here: this header takes the symbol ids that keep
@@ -68,6 +69,8 @@ class Class_0044e2d0 {
 public:
     char unknown_0[0x36];
     Class_0044e2d0(Order* order, const Vec3& pos);
+    void SetAltitude(int);
+    void SetApproachRadius(short);
 };
 class Class_0044e190 {
 public:
@@ -100,7 +103,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
+        obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -141,8 +144,9 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             break;
         case 1: {
             Class_0044e190* obj = new Class_0044e190(order, order->target);
-            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
-            ((Class_0044e730*)obj)->SetApproachRadius(0x30);
+            // The setters live in Class_0044e2d0; obj is another constructor view of the same object.
+            ((Class_0044e2d0*)obj)->SetAltitude(unit->def->altitude);
+            ((Class_0044e2d0*)obj)->SetApproachRadius(0x30);
             order->SetAttachedFx((int)obj);
             order->flags = 0x100e8;
             return 1;
@@ -159,7 +163,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             SendScriptCallByName(unit, "BeginTransport", 1, height, 0, 0, 0);
             Vec3 offset = GetPieceOffset(unit, order->piece);
             Class_0044e250* obj = new Class_0044e250(order, order->target, -1);
-            ((Class_0044e6c0*)obj)->SetAltitude(-offset.yw);
+            ((Class_0044e2d0*)obj)->SetAltitude(-offset.yw);
             order->SetAttachedFx((int)obj);
             order->flags = 0x100ea;
             return 1;
@@ -174,7 +178,7 @@ int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
             AttachUnitToPiece(target, unit, order->piece, 0);
             QueueUnitSpeech(unit, 12, 0);
             Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
+            obj->SetAltitude(unit->def->altitude);
             order->flags |= 0xe0;
             return 1;
         }

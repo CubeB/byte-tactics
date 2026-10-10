@@ -45,8 +45,12 @@ public:
 #include "path_order_attach.h"
 class MissionType { public: unsigned char index; MissionType(const char*); };
 
-class Class_0044e6c0 { public: void SetAltitude(int); };
-class Class_0044e730 { public: void SetApproachRadius(short); };
+// Unused here: forward declarations of real functions; their symbol ids keep the
+// allocation of the functions after the merged views (docs/c2-regalloc.md).
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
+void CenterCameraOnRadarClick();
+void CenterCameraOnStartPosition();
 #pragma pack(push, 1)
 struct UnitDef {
     char pad0[0x1fa]; unsigned int maxHealth;
@@ -109,6 +113,8 @@ class Class_0044e2d0 {
 public:
     char unknown_0[0x36];
     Class_0044e2d0(Order* order, const Vec3& pos);
+    void SetAltitude(int);
+    void SetApproachRadius(short);
 };
 class Class_0044e190 {
 public:
@@ -154,7 +160,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
+        obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -241,7 +247,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
             obj = (Class_0044e2d0*)new Class_0044e190(order, order->target.owner);
         else
             obj = new Class_0044e2d0(order, order->pos);
-        ((Class_0044e730*)obj)->SetApproachRadius(time);
+        obj->SetApproachRadius(time);
         order->SetAttachedFx((int)obj);
         order->SetDeadlineTicks(1);
         order->flags |= 0x100e8;
@@ -283,6 +289,6 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
 static inline void AttachMove(Order* order, const Vec3& dest, short radius)
 {
     Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-    ((Class_0044e730*)obj)->SetApproachRadius(radius);
+    obj->SetApproachRadius(radius);
     ((Order*)order)->SetAttachedFx((int)obj);
 }

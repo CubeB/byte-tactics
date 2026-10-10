@@ -20,7 +20,6 @@ struct Unit;
 
 #include "unit_motion.h"
 
-class Class_0044e6c0 { public: void SetAltitude(int); };
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -84,6 +83,7 @@ class Class_0044e2d0 {
 public:
     char unknown_0[0x36];
     Class_0044e2d0(Order* order, const Vec3& pos);
+    void SetAltitude(int);
 };
 #pragma pack(pop)
 
@@ -113,7 +113,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
+        obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }

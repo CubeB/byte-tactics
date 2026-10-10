@@ -36,8 +36,6 @@ static inline Vec3 Diff(const Vec3& a, const Vec3& b)
 struct Unit;
 #include "unit_motion.h"
 
-class Class_0044e6c0 { public: void SetAltitude(int); };
-class Class_0044e730 { public: void SetApproachRadius(short); };
 
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
@@ -93,6 +91,8 @@ class Class_0044e2d0 {
 public:
     char unknown_0[0x36];
     Class_0044e2d0(Order* order, const Vec3& pos);
+    void SetAltitude(int);
+    void SetApproachRadius(short);
 };
 class Class_0044e330 {
 public:
@@ -148,7 +148,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
+        obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -175,7 +175,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         short angle = GetHeadingBetween(&unit->pos, &centre);
         Vec3 dest = AddVec3(unit->pos, Offset(angle, 0x3200000));
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
+        obj->SetApproachRadius(0x80);
         order->flags |= 0xe0;
         order->SetAttachedFx((int)obj);
         return 2;
@@ -203,7 +203,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
         Vec3 p = Sum(unit->pos, off);
         Class_0044e2d0* obj = new Class_0044e2d0(order, p);
-        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
+        obj->SetApproachRadius(0x80);
         order->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         return 1;
@@ -212,7 +212,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         unit->ClaimWeapons(0);
         SetWeaponTargetUnit(unit, order->target, 0);
         Class_0044e2d0* obj = new Class_0044e2d0(order, order->target->pos);
-        ((Class_0044e730*)obj)->SetApproachRadius(range);
+        obj->SetApproachRadius(range);
         order->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         order->side = 0;
@@ -228,7 +228,7 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
             Vec3 p = Add(order->target->pos, off);
             // The new waypoint is never given to the order (see the header).
             Class_0044e2d0* obj = new Class_0044e2d0(order, p);
-            ((Class_0044e730*)obj)->SetApproachRadius(0x80);
+            obj->SetApproachRadius(0x80);
             order->flags |= 0x110e8;
             return 2;
         }
@@ -244,8 +244,9 @@ int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
         Vec3 off = Offset(angle, range * 2 / 3 << 16);
         Vec3 p = Diff(order->target->pos, off);
         Class_0044e330* obj = new Class_0044e330(order, order->target, p);
-        ((Class_0044e730*)obj)->SetApproachRadius(0x10);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
+        // The setters live in Class_0044e2d0; obj is another constructor view of the same object.
+        ((Class_0044e2d0*)obj)->SetApproachRadius(0x10);
+        ((Class_0044e2d0*)obj)->SetAltitude(unit->def->altitude);
         order->SetAttachedFx((int)obj);
         order->flags = 0x100e8;
         if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {

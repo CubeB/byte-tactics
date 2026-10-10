@@ -15,7 +15,6 @@ class LandingPadList : public std::vector<Unit*> {};
 
 #include "unit_motion.h"
 
-class Class_0044e6c0 { public: void SetAltitude(int); };
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
 struct PlayerView {
@@ -43,6 +42,7 @@ class Class_0044e2d0 {
 public:
     char unknown_0[0x36];
     Class_0044e2d0(Order* order, const Vec3& pos);
+    void SetAltitude(int);
 };
 #pragma pack(pop)
 
@@ -75,7 +75,7 @@ inline void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags
     if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0((Order*)order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
+        obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((OrderFx*)obj);
         order->flags |= flags | 0xe0;
     }
@@ -132,7 +132,7 @@ int __stdcall VtolRepairPatrolOrder(Unit* unit, Order* order, unsigned int flags
             if (flags & 0xe0)
                 return 6;
             Class_0044e2d0* obj = new Class_0044e2d0(order, order->pos);
-            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
+            obj->SetAltitude(unit->def->altitude);
             order->SetAttachedFx((OrderFx*)obj);
             order->SetDeadlineTicks(0x2d);
             order->flags |= 0xe0;

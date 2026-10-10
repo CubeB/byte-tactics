@@ -17,8 +17,11 @@ struct Unit;
 #include "path_order_attach.h"
 class MissionType { public: unsigned char index; MissionType(const char*); };
 
-class Class_0044e6c0 { public: void SetAltitude(int); };
-class Class_0044e730 { public: void SetApproachRadius(short); };
+// Unused here: forward declarations of real functions; their symbol ids keep the
+// allocation of the functions after the merged views (docs/c2-regalloc.md).
+void UpdateMouseScroll();
+void UpdateEdgeScroll();
+void CenterCameraOnRadarClick();
 #include "../units/cob_script.h"
 
 // Unused here: these headers and forward declarations take the symbol ids that keep
@@ -86,6 +89,8 @@ class Class_0044e2d0 {
 public:
     char unknown_0[0x36];
     Class_0044e2d0(Order* order, const Vec3& pos);
+    void SetAltitude(int);
+    void SetApproachRadius(short);
 };
 class Class_0044e250 {
 public:
@@ -131,7 +136,7 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if ((unit->type->flags & 3) == 1) {
         unit->type->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
-        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
+        obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
         order->flags |= flags | 0xe0;
     }
@@ -186,7 +191,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         Vec3 dest = Add(order->target.owner->pos, Offset(order->angle, radius << 16));
         order->angle += 0x4000;
         Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
-        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
+        obj->SetApproachRadius(0x80);
         order->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         order->state = 1;
@@ -194,7 +199,8 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     }
     case 2: {
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, -1);
-        ((Class_0044e730*)obj)->SetApproachRadius(0xa0);
+        // The setters live in Class_0044e2d0; obj is another constructor view of the same object.
+        ((Class_0044e2d0*)obj)->SetApproachRadius(0xa0);
         order->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
@@ -207,7 +213,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
             return 0;
         }
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, order->angle);
-        ((Class_0044e730*)obj)->SetApproachRadius(0x30);
+        ((Class_0044e2d0*)obj)->SetApproachRadius(0x30);
         order->SetAttachedFx((int)obj);
         order->flags = 0xe8;
         return 1;
@@ -225,9 +231,9 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
         }
         Class_0044e250* obj = new Class_0044e250(order, order->target.owner, order->angle);
         if (unit->cargo)
-            ((Class_0044e6c0*)obj)->SetAltitude(unit->cargo->def->field_170);
+            ((Class_0044e2d0*)obj)->SetAltitude(unit->cargo->def->field_170);
         else
-            ((Class_0044e6c0*)obj)->SetAltitude(0);
+            ((Class_0044e2d0*)obj)->SetAltitude(0);
         unit->script->StartScript("EndTransport", 0, 1);
         order->SetAttachedFx((int)obj);
         order->SetDeadlineTicks(0xf);

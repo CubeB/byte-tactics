@@ -7,7 +7,7 @@ struct Unit;
 #pragma pack(push, 1)
 #include "../units/unit_def.h"
 #include "../network/player.h"
-struct Unit { char pad0[0x6a]; Vec3 pos; char pad76[0x92-0x76]; UnitDef* def; Player* owner; };
+struct Unit { char pad0[0x6a]; Vec3 pos; char pad76[0x92-0x76]; UnitDef* def; Player* player; };
 #include "order.h"
 #pragma pack(pop)
 class DamagedAllyCollector {
@@ -41,13 +41,13 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
             order->AttachApproachRadiusGoal(&order->pos, 16);
             order->SetDeadlineTicks(60);
             order->flags |= 0xe0;
-            if (unit->owner->energy >= unit->owner->energyCapacity * 0.2) {
+            if (unit->player->energy >= unit->player->energyCapacity * 0.2) {
                 std::vector<Unit*> units;
                 int range = unit->def->range << 16;
-                VisitObjectsInRange(&unit->pos, range, DamagedAllyCollector(unit->owner, &units, unit));
+                VisitObjectsInRange(&unit->pos, range, DamagedAllyCollector(unit->player, &units, unit));
                 if (!units.empty()) {
                     Unit* target = units[RandomInt(units.size())];
-                    if (unit->owner->allied[target->owner->index]) {
+                    if (unit->player->allied[target->player->index]) {
                         MissionType kind = GetOrderType(8, unit, target, 0);
                         if (kind.index) {
                             if (IssueRepairOrder(unit, target, 0)) return 6;
@@ -57,9 +57,9 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 }
             }
             // Player* local with `energy < 0.2 * capacity` in this operand order and `<`.
-            Player* owner = unit->owner;
-            if (unit->owner->energy < 0.2 * owner->energyCapacity ||
-                unit->owner->metal < unit->owner->metalCapacity * 0.2) {
+            Player* owner = unit->player;
+            if (unit->player->energy < 0.2 * owner->energyCapacity ||
+                unit->player->metal < unit->player->metalCapacity * 0.2) {
                 Vec3 energyPos, metalPos;
                 Vec3* energy = &energyPos;
                 Vec3* metal = &metalPos;
@@ -68,26 +68,26 @@ int __stdcall RepairPatrolOrder(Unit* unit, Order* order, int flags)
                 do {} while (0); // emits no code; keeps range2 out of the call (see top)
                 float energyAmount, metalAmount;
                 if (PickRandomReclaimableResourcesInRadius(&unit->pos, range2, &energy, &energyAmount, &metal, &metalAmount)) {
-                    if (metal && unit->owner->metal < unit->owner->metalCapacity * 0.2) {
+                    if (metal && unit->player->metal < unit->player->metalCapacity * 0.2) {
                         order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("RECLAIM", 0, metal, 0, 0, 0));
                         order->SetAttachedFx(0);
                         order->flags = 0;
                         return 3;
                     }
-                    if (energy && unit->owner->energy < unit->owner->energyCapacity * 0.2) {
+                    if (energy && unit->player->energy < unit->player->energyCapacity * 0.2) {
                         order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
-                    if (metal && unit->owner->metal + metalAmount <= unit->owner->metalCapacity) {
+                    if (metal && unit->player->metal + metalAmount <= unit->player->metalCapacity) {
                         order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("RECLAIM", 0, metal, 0, 0, 0));
                         order->flags = 0;
                         return 3;
                     }
-                    if (energy && unit->owner->energy + energyAmount <= unit->owner->energyCapacity) {
+                    if (energy && unit->player->energy + energyAmount <= unit->player->energyCapacity) {
                         order->SetAttachedFx(0);
                         AppendOrder(unit, new Order("RECLAIM", 0, energy, 0, 0, 0));
                         order->flags = 0;

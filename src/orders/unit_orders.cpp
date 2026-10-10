@@ -285,8 +285,8 @@ struct Unit {
         UnitWeaponSlot weapons[3];     // +0x4, stride 0x1c
         struct {
             char unknown_4[0x5c - 0x4];
-            Order* order;              // +0x5c
-            Order* backgroundOrder;    // +0x60, not read here
+            Order* list;               // +0x5c
+            Order* list2;              // +0x60, not read here
         };
     };
     Angles16 angles;                   // +0x64
@@ -295,32 +295,32 @@ struct Unit {
     char unknown_7a[0x7e - 0x7a];
     Point16 footprint;                 // +0x7e
     char unknown_82[0x86 - 0x82];
-    Unit* transport;                   // +0x86
+    Unit* carrier;                     // +0x86
     Unit* cargo;                       // +0x8a
     char unknown_8e[0x92 - 0x8e];
     UnitDef* def;                      // +0x92
-    Player* owner;                     // +0x96
+    Player* player;                    // +0x96
     CobScript* script;                 // +0x9a
     char unknown_9e[0xa6 - 0x9e];
-    unsigned short category;           // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     unsigned short id;                 // +0xa8
     char unknown_aa[0xac - 0xaa];
-    int value;                         // +0xac
+    int group;                         // +0xac
     int workTime;                      // +0xb0
     char unknown_b4[0xb8 - 0xb4];
-    unsigned short experience;         // +0xb8
+    unsigned short killCount;          // +0xb8
     char unknown_ba[0xbc - 0xba];
-    UnitResources resources;           // +0xbc, its player pointer is at +0x30
+    UnitResources resourceSlot;        // +0xbc, its player pointer is at +0x30
     Unit* attacker;                    // +0xf0
-    unsigned char orderPlayer;         // +0xf4
-    unsigned char orderKind;           // +0xf5
+    unsigned char lastAttackerSlot;    // +0xf4
+    unsigned char lastDamageType;      // +0xf5
     char unknown_f6[0xff - 0xf6];
     unsigned char playerIndex;         // +0xff
     char unknown_100[0x104 - 0x100];
-    float progress;                    // +0x104
+    float buildLeft;                   // +0x104
     short health;                      // +0x108
     char unknown_10a[0x10e - 0x10a];
-    unsigned char flags10e;            // +0x10e
+    unsigned char activateFlags;       // +0x10e
     char unknown_10f[0x110 - 0x10f];
     // The unit's state flags: the handlers name their own bits.
     union {
@@ -632,7 +632,7 @@ int __stdcall SelfRepairOrder(Unit* unit, Order* order, int unused)
     case 0:
         if (!(order->target.owner->def->flags241 & 0x40))
             return 7;
-        if (order->target.owner->progress == 0.0f && (unit->flags10e & 1)) {
+        if (order->target.owner->buildLeft == 0.0f && (unit->activateFlags & 1)) {
             unit->ClaimWeapons(3);
             return 1;
         }
@@ -688,22 +688,22 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
 {
     if (flags & 2) {
         if (order->target.owner != 0) {
-            float refund = (unsigned int)((1.0f - order->target.owner->progress) * order->target.owner->def->metal);
+            float refund = (unsigned int)((1.0f - order->target.owner->buildLeft) * order->target.owner->def->metal);
             // The (double) casts on the full refund stay: they keep refund off the FP stack.
-            if (unit->resources.player->active && unit->resources.player->type == 2) {
+            if (unit->resourceSlot.player->active && unit->resourceSlot.player->type == 2) {
                 switch (g_game->difficulty) {
                 case 1:
-                    unit->resources.metalMake += refund * 0.7;
+                    unit->resourceSlot.metalMake += refund * 0.7;
                     break;
                 case 0:
-                    unit->resources.metalMake += refund * 0.5;
+                    unit->resourceSlot.metalMake += refund * 0.5;
                     break;
                 default:
-                    unit->resources.metalMake += (double)refund;
+                    unit->resourceSlot.metalMake += (double)refund;
                     break;
                 }
             } else {
-                unit->resources.metalMake += (double)refund;
+                unit->resourceSlot.metalMake += (double)refund;
             }
             FinishConstruction(unit, order->target.owner);
             DamageUnit(unit, order->target.owner, 30000, 9, 0);
@@ -774,7 +774,7 @@ int __stdcall BuildingBuildOrder(Unit* unit, Order* order, int flags)
                 box.hi.y += order->target.owner->def->bounds.hi.y;
                 EmitNanoParticles(&nano, &box, 6);
             }
-            if (order->target.owner->progress != 0.0f) {
+            if (order->target.owner->buildLeft != 0.0f) {
                 order->SetDeadlineTicks(1);
                 order->flags |= 0xa;
                 return 2;
@@ -828,7 +828,7 @@ int __stdcall BuildWeaponOrder(Unit* unit, Order* order, int unused)
         fprev = prev;
         int metalCharge = (int)(fnext * t->metalCost / ftotal) - (int)(fprev * t->metalCost / ftotal);
         energyCharge = (int)(fnext * t->energyCost / ftotal) - (int)(fprev * t->energyCost / ftotal);
-        if (unit->resources.RequestEnergyAndMetal(energyCharge, metalCharge)) {
+        if (unit->resourceSlot.RequestEnergyAndMetal(energyCharge, metalCharge)) {
             order->progress = next;
             if (next >= t->buildTime)
                 return 1;
@@ -877,14 +877,14 @@ int __stdcall ParalyzeOrder(Unit* unit, Order* order, int unused)
 // FUNCTION: 0x402da0
 int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
 {
-    if (unit->progress == 0.0f) {
+    if (unit->buildLeft == 0.0f) {
         MarkSelectionOrdersDirty(unit);
         if (unit->motion) {
             int queued = 0;
             if (order->target.owner) {
                 MissionType move("QMove");
                 MissionType patrol("QPatrol");
-                for (Order* node = order->target.owner->order; node; node = node->next) {
+                for (Order* node = order->target.owner->list; node; node = node->next) {
                     MissionType kind;
                     if (node->kind == move)
                         kind = GetOrderType(2, unit, 0, node->Position());
@@ -898,8 +898,8 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
                 if (unit->Ready() && order->Target()->Ready()) {
                     unit->fire = order->Target()->fire;
                     unit->move = order->Target()->move;
-                    if (unit->owner->active && unit->owner->type == 1)
-                        unit->value = order->Target()->value;
+                    if (unit->player->active && unit->player->type == 1)
+                        unit->group = order->Target()->group;
                 }
             }
             if (!queued)
@@ -938,7 +938,7 @@ int __stdcall GetBuiltOrder(Unit* unit, Order* order, unsigned int flags)
 // FUNCTION: 0x402fc0
 int __stdcall BeCarriedOrder(Unit* unit, Order* order, int unused)
 {
-    if (unit->transport == 0) {
+    if (unit->carrier == 0) {
         return 5;
     }
     switch (order->state) {
@@ -1050,7 +1050,7 @@ int __stdcall MoveGroundOrder(Unit* unit, Order* order, int flags)
 {
     switch (order->state) {
     case 0:
-        if (unit->transport != 0)
+        if (unit->carrier != 0)
             return 7;
         order->AnnounceStatusIfFlagged(0);
         order->AttachApproachRadiusGoal(&order->pos, order->approachRadius + 4);
@@ -1075,7 +1075,7 @@ int __stdcall AttackKamikazeOrder(Unit* unit, Order* order, unsigned flags)
     unsigned state=0; state=order->state;
     switch(state) {
     case 0:
-        if(unit->transport) return 7;
+        if(unit->carrier) return 7;
         order->AnnounceStatusIfFlagged(0);
         order->AttachApproachRadiusGoal(&order->pos,unit->def->radius<16?16:unit->def->radius);
         order->SetDeadlineTicks(60);
@@ -1399,7 +1399,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
             QueueUnitSpeech(unit, 7, "That unit cannot be captured");
             return 8;
         }
-        if (target->progress != Zero_004fc920) {
+        if (target->buildLeft != Zero_004fc920) {
             QueueUnitSpeech(unit, 7, "That unit is a cloud of vapor and cannot be captured");
             return 8;
         }
@@ -1408,7 +1408,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         order->duration = order->duration < 1800 ? order->duration : 1800;
         order->duration = (order->target.Get()->health + order->target.Get()->def->MaxHealth()) * order->duration / (order->target.Get()->def->maxHealth * 2);
         int experience = 0;
-        experience = order->target.Get()->experience;
+        experience = order->target.Get()->killCount;
         order->duration = ((experience / 5 + 10) * order->duration * 10) / 100;
         unit->ClaimWeapons(3);
         order->AttachBuildFootprintMarker(order->target.Get()->cell, order->target.Get()->footprint);
@@ -1457,7 +1457,7 @@ int __stdcall CaptureOrder(Unit* unit, Order* order, unsigned int flags)
         return 2;
     }
     case 5:
-        GiveUnitToPlayer(target, unit->owner, 0);
+        GiveUnitToPlayer(target, unit->player, 0);
         QueueUnitSpeech(unit, 16, 0);
         return 5;
     }
@@ -1583,7 +1583,7 @@ int __stdcall RepairUnitOrder(Unit* unit, Order* order, int flags)
     }
     switch (order->state) {
     case 0:
-        if (unit->motion && (unit->def->flags241 & 0x40) && order->target.owner->progress == Zero_004fc920) {
+        if (unit->motion && (unit->def->flags241 & 0x40) && order->target.owner->buildLeft == Zero_004fc920) {
             order->AnnounceStatusIfFlagged("Repairing");
             return 1;
         }
@@ -1654,7 +1654,7 @@ int __stdcall RepairUnitNoMoveOrder(Unit* unit, Order* order, int unused)
     switch (state) {
     case 0:
         if (!(unit->def->flags241 & 0x40)) return 7;
-        if (target->progress == Zero_004fc920 && (unit->flags10e & 1)) {
+        if (target->buildLeft == Zero_004fc920 && (unit->activateFlags & 1)) {
             unit->ClaimWeapons(3);
             return 1;
         }
@@ -1694,12 +1694,12 @@ void DamagedAllyCollector::CollectDamagedAlly(Unit* unit)
 {
     if (unit == self) return;
     unsigned int index = 0;
-    index = unit->owner->index;
+    index = unit->player->index;
     if (!owner->allied[index]) return;
     unsigned int kind = unit->flags & 3;
     if ((unsigned char)kind != 1) return;
-    if ((unsigned int)unit->health >= unit->def->maxHealth && unit->progress == Zero_004fc920) return;
-    if (unit->orderPlayer == owner->index && unit->orderKind == 5) return;
+    if ((unsigned int)unit->health >= unit->def->maxHealth && unit->buildLeft == Zero_004fc920) return;
+    if (unit->lastAttackerSlot == owner->index && unit->lastDamageType == 5) return;
     units->push_back(unit);
 }
 
@@ -1815,7 +1815,7 @@ int __stdcall GroundPickupOrder(Unit* unit, Order* order, unsigned char flags)
             }
         case 3: return WaitIfCobBusy(unit, order, 8);
         case 4:
-            if (target->transport) return 5;
+            if (target->carrier) return 5;
             if (order->attempts >= 3) return 9;
             order->AttachApproachRadiusGoal(&target->pos, 0);
             order->flags = 0xe8; return 1;
@@ -1848,7 +1848,7 @@ int __stdcall GroundUnloadOrder(Unit* unit, Order* order, int flags)
         return 1;
     case 1: return WaitIfCobBusy(unit,order,8);
     case 2:
-        if (order->target.owner->transport!=unit) { QueueUnitSpeech(unit,13,0); return 5; }
+        if (order->target.owner->carrier!=unit) { QueueUnitSpeech(unit,13,0); return 5; }
         if (order->attempts>=3) return 9;
         if ((unsigned char)(unit->def->flags>>12)&1)
             order->AttachApproachRadiusGoal(&order->pos,(int)(unit->def->height180*1.5));

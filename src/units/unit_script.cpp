@@ -30,9 +30,9 @@ struct Unit {
     Vec3 pos;                           // +0x6a
     int cell;                       // +0x76
     char unknown_7a[0x86 - 0x7a];
-    Unit* transporter;                  // +0x86
-    Unit* carried;                      // +0x8a, the first unit it carries
-    Unit* nextCarried;                  // +0x8e
+    Unit* carrier;                      // +0x86
+    Unit* cargo;                        // +0x8a, the first unit it carries
+    Unit* cargoNext;                    // +0x8e
     UnitDef* def;                       // +0x92
     char unknown_96[0xa8 - 0x96];
     unsigned short id;                  // +0xa8
@@ -551,7 +551,7 @@ void UnitScript::AttachUnit(unsigned short id, int a, int b)
 {
     Unit* u = GetUnit(id);
     if (u != 0 && (u->flags & 0x10000000)
-        && (u->transporter == 0 || u->transporter == state->unit)) {
+        && (u->carrier == 0 || u->carrier == state->unit)) {
         AttachUnitToPiece(u, state->unit, a, b);
     }
 }
@@ -562,7 +562,7 @@ void UnitScript::AttachUnit(unsigned short id, int a, int b)
 void UnitScript::DropUnit(unsigned short id)
 {
     Unit* u = GetUnit(id);
-    if (u != 0 && (u->flags & 0x10000000) && u->transporter == state->unit) {
+    if (u != 0 && (u->flags & 0x10000000) && u->carrier == state->unit) {
         if (CanPlaceUnitFootprint(u->def, u->id, u->cell, 1)) {
             AttachUnitToPiece(u, 0, -1, 1);
         }
@@ -576,11 +576,11 @@ void UnitScript::DropUnit(unsigned short id)
 // FUNCTION: 0x481430
 int UnitScript::IsCarryingUnit(int id)
 {
-    Unit* p = state->unit->carried;
+    Unit* p = state->unit->cargo;
     while (p) {
         if (p->id == id)
             return 1;
-        p = p->nextCarried;
+        p = p->cargoNext;
     }
     return 0;
 }
@@ -590,6 +590,6 @@ int UnitScript::IsCarryingUnit(int id)
 // FUNCTION: 0x481470
 int UnitScript::GetTransporterId()
 {
-    Unit* t = state->unit->transporter;
+    Unit* t = state->unit->carrier;
     return t ? t->id : 0;
 }

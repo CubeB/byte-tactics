@@ -78,7 +78,7 @@ struct Unit {
     char unknown_96[0xa8 - 0x96];
     unsigned short id;           // +0xa8
     char unknown_aa[0xff - 0xaa];
-    unsigned char owner;               // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[0x110 - 0x100];
     unsigned int flags;                // +0x110
 };
@@ -587,7 +587,7 @@ void StopAllSounds()
 // FUNCTION: 0x47f780
 void __stdcall QueueUnitSpeech(Unit* unit, int kind, char* text)
 {
-    if (unit->owner == g_game->playerIndex && (unit->flags & 0x10000000) && !(unit->flags & 0x4000)) {
+    if (unit->playerIndex == g_game->playerIndex && (unit->flags & 0x10000000) && !(unit->flags & 0x4000)) {
         if (text == 0) {
             text = g_speechTypes[kind].text;
         }

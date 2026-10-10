@@ -31,9 +31,9 @@ struct Unit {
     int z;                             // +0x72
     char unknown_76[0x92 - 0x76];
     UnitDef_00401e00* def;             // +0x92
-    Player_00401e00* owner;            // +0x96
+    Player_00401e00* player;           // +0x96
     char unknown_9a[0xa6 - 0x9a];
-    unsigned short id;                 // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     char unknown_a8[0x118 - 0xa8];
 };
 
@@ -73,7 +73,7 @@ int __stdcall AttackUTypeOrder(Unit* unit, Order_00401e00* order, int unused)
         Unit* best = 0;
         int bestDist = 0x7fffffff;
         for (Unit* u = g_game->units + 1; u <= g_game->unitsEnd; u++) {
-            if (u->id == order->id && unit->owner->allied[u->owner->index] == 0) {
+            if (u->unitDefIndex == order->id && unit->player->allied[u->player->index] == 0) {
                 int dz = u->z - unit->z;
                 int dx = u->x - unit->x;
                 int d = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);

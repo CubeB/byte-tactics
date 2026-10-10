@@ -64,7 +64,7 @@ struct Unit {
     char unknown_0[0x70];
     short yWhole;                      // +0x70, the whole part of pos.y
     char unknown_72[0x92 - 0x72];
-    UnitDef_0043db50* type;            // +0x92
+    UnitDef_0043db50* def;             // +0x92
     char unknown_96[0x9a - 0x96];
     CobScript* script;                 // +0x9a
     char unknown_9e[0x10a - 0x9e];
@@ -97,9 +97,9 @@ void Class_0043db50::UpdateSfxOccupy(Unit* unit)
         } else {
             if (y - seaLevel > -5)
                 newState = 1;
-            if (unit->type->draft + y == seaLevel)
+            if (unit->def->draft + y == seaLevel)
                 newState = 2;
-            if (unit->type->field_170 + y < seaLevel)
+            if (unit->def->field_170 + y < seaLevel)
                 newState = 3;
         }
     } else {
@@ -467,26 +467,26 @@ struct Limits_0043e490 {
 };
 
 struct Unit_0043e490 {
-    int moving; // +0x0
+    int motion; // +0x0
     char unknown_4[0x10 - 0x4];
     Node_0043e490* f10; // +0x10
     char unknown_14[0x48 - 0x14];
     Limits_0043e490* f48; // +0x48
     char unknown_4c[0x6a - 0x4c];
     char f6a[0x86 - 0x6a]; // +0x6a
-    Unit_0043e490* f86; // +0x86
+    Unit_0043e490* carrier; // +0x86
     char unknown_8a[0x92 - 0x8a];
     UnitDef* def;            // +0x92
     Player* player; // +0x96
     char unknown_9a[0xec - 0x9a];
     Stats_0043e490* fec; // +0xec
     char unknown_f0[0xfb - 0xf0];
-    int ffb;             // +0xfb
-    unsigned char owner; // +0xff
+    int postTransferHoldoff; // +0xfb
+    unsigned char playerIndex; // +0xff
     char unknown_100[0x104 - 0x100];
-    float f104; // +0x104
+    float buildLeft; // +0x104
     char unknown_108[0x110 - 0x108];
-    unsigned int f110; // +0x110
+    unsigned int flags; // +0x110
 };
 
 struct Pos_0043e490 {
@@ -557,8 +557,8 @@ static inline Feature_0043e490* GetFeature(Cell* cell) {
     } while (0)
 
 static inline int Selectable(Unit_0043e490* t) {
-    return t && t->owner == g_game->localPlayer && (t->f110 & 0x20) && t->f104 == 0.0f && t->ffb == 0 &&
-           (t->f86 == 0 || (t->f86->f110 & 0x40000000));
+    return t && t->playerIndex == g_game->localPlayer && (t->flags & 0x20) && t->buildLeft == 0.0f && t->postTransferHoldoff == 0 &&
+           (t->carrier == 0 || (t->carrier->flags & 0x40000000));
 }
 
 // Returns the cursor/action code for an order of type
@@ -588,7 +588,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 2;
         if (def->f245b.b4) {
             node = unit->f10;
-            if (unit->moving)
+            if (unit->motion)
                 return 1;
             if (target)
                 return WeaponCanReachUnit(unit, target, 0) ? 1 : 3;
@@ -624,7 +624,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
     case 5:
         return def->f245b.b8 ? 0xd : 0x13;
     case 14:
-        if (def->f156 == 0 || unit->moving == 0)
+        if (def->f156 == 0 || unit->motion == 0)
             break;
         return 0x10;
     case 4:
@@ -643,13 +643,13 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
         if (!(def->f245 & 0x80))
             break;
         RECLAIM_CHECK(def, unit, pos, 0x800, 0xa);
-        if (!target || !unit->moving)
+        if (!target || !unit->motion)
             return 0xe;
         if ((def->f245 & 0x1000) && enemy)
             return 4;
         if (enemy && ((Unit*)unit)->CanReclaim(target))
             return 0xb;
-        if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
+        if (friendly && ((Unit*)unit)->CanRepair(target) && target->buildLeft != 0.0f)
             return 6;
         if (friendly && ((Unit*)unit)->CanRepair(target))
             return 6;
@@ -677,7 +677,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return GetOrderCursor(3, unit, target, pos);
         if ((def->f245 & 0x400) && enemy)
             return GetOrderCursor(0xc, unit, target, pos);
-        if (target && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
+        if (target && ((Unit*)unit)->CanRepair(target) && target->buildLeft != 0.0f)
             return 6;
         if (Selectable(target))
             return 0xf;

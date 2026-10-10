@@ -94,13 +94,13 @@ struct Player_0048b090 {
 
 class Unit {
 public:
-    Body_0048a1e0* body;               // +0x0
-    Entry_004898b0 entries[3];         // +0x4
+    Body_0048a1e0* motion;             // +0x0
+    Entry_004898b0 weapons[3];         // +0x4
     char unknown_58[0x5c - 0x58];
-    Order* effect;                     // +0x5c
+    Order* list;                       // +0x5c
     char unknown_60[0x64 - 0x60];
-    unsigned short hdg;                // +0x64
-    unsigned short aim;                // +0x66
+    unsigned short bank;               // +0x64
+    unsigned short heading;            // +0x66
     unsigned short pitch;              // +0x68
     struct {
         int x;                         // +0x6a
@@ -122,21 +122,21 @@ public:
         UnitRef* head;                 // +0xa2, the links of this unit's list
         PathOrderAttach* link;
     };
-    unsigned short map;                // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     unsigned short id;                 // +0xa8
-    unsigned short fix_lo;             // +0xaa
+    unsigned short hoverBobPhase;      // +0xaa
     char unknown_ac[0xb8 - 0xac];
     unsigned short killCount;           // +0xb8, armour: divided by 5, capped at 5
     char unknown_ba[0xf0 - 0xba];
-    void* last;                        // +0xf0
+    void* attacker;                    // +0xf0
     char unknown_f4;
-    unsigned char kind;                // +0xf5
+    unsigned char lastDamageType;      // +0xf5
     char unknown_f6[0xff - 0xf6];
-    unsigned char teamId;              // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[0x108 - 0x100];
-    short hp;                          // +0x108
+    short health;                      // +0x108
     char unknown_10a[0x10e - 0x10a];
-    unsigned char state;               // +0x10e
+    unsigned char activateFlags;       // +0x10e
     char unknown_10f;
     union {
         unsigned int flags;            // +0x110
@@ -247,7 +247,7 @@ int __stdcall UnitCanBuild(Unit* unit, short id)
 // FUNCTION: 0x489540
 void UnitRef::LinkToUnit(Unit* o)
 {
-    if (o != 0 && o->map != 0) {
+    if (o != 0 && o->unitDefIndex != 0) {
         owner = o;
         next = o->head;
         o->head = this;
@@ -300,7 +300,7 @@ public:
 PathOrderAttach::PathOrderAttach(Unit* o, int v)
     : value((Listener_004896f0*)v)
 {
-    if (o != 0 && o->map != 0) {
+    if (o != 0 && o->unitDefIndex != 0) {
         owner = o;
         next = o->link;
         o->link = this;
@@ -340,7 +340,7 @@ void PathOrderAttach::SetUnit(Unit* o)
         owner = 0;
         next = 0;
     }
-    if (o != 0 && o->map != 0) {
+    if (o != 0 && o->unitDefIndex != 0) {
         owner = o;
         next = o->link;
         o->link = this;
@@ -404,12 +404,12 @@ void __stdcall NotifyUnitRefs(Unit* obj, int event)
 unsigned char Unit::ChooseWeapon()
 {
     unsigned char result;
-    if (entries[0].flags & 2)
+    if (weapons[0].flags & 2)
         result = 0;
-    else if (entries[1].flags & 2)
+    else if (weapons[1].flags & 2)
         result = 1;
     else
-        result = entries[2].flags & 2;
+        result = weapons[2].flags & 2;
     return result;
 }
 
@@ -442,7 +442,7 @@ void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type, unsi
 {
     int dmg;
     if (type != 10) {
-        if ((target->state & 2) && amount < 0x7530)
+        if ((target->activateFlags & 2) && amount < 0x7530)
             amount = (int)(((__int64)target->def->f1aa * amount) >> 0x10);
         int armour = target->killCount / 5;
         if (armour > 5)
@@ -500,9 +500,9 @@ int __cdecl FUN_004b70ef(short idx, int scale);
 // and the event kind at +8) to the unit named by the first id.
 //
 // The heal branch repeats the sum inside the clamp ternary. With a separate
-// `int v = ...` local MSVC puts the second addend in the accumulator (hp in
-// edx, amount in eax); giving the ternary its own copy of `unit->hp +
-// ev->amount` makes the original put hp in eax and the amount in edx.
+// `int v = ...` local MSVC puts the second addend in the accumulator (health in
+// edx, amount in eax); giving the ternary its own copy of `unit->health +
+// ev->amount` makes the original put health in eax and the amount in edx.
 //
 // FUNCTION: 0x489ce0
 void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
@@ -518,8 +518,8 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
         return;
 
     if (ev->kind == 10) {
-        unit->hp = (short)((unsigned int)(unit->hp + ev->amount) < unit->def->maxhp
-                           ? unit->hp + ev->amount : unit->def->maxhp);
+        unit->health = (short)((unsigned int)(unit->health + ev->amount) < unit->def->maxhp
+                           ? unit->health + ev->amount : unit->def->maxhp);
         return;
     }
 
@@ -528,13 +528,13 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
     if (ev->kind != 11)
         ReactToAttack(target, unit, ev->amount);
 
-    unit->kind = ev->kind;
+    unit->lastDamageType = ev->kind;
 
     if (target) {
-        unsigned char c = target->teamId;
+        unsigned char c = target->playerIndex;
         unit->unknown_f4 = c;
-        unit->last = target;
-        if (target->teamId == g_game->localPlayer || unit->teamId == g_game->localPlayer)
+        unit->attacker = target;
+        if (target->playerIndex == g_game->localPlayer || unit->playerIndex == g_game->localPlayer)
             AddCdActivitySample(1);
     }
 
@@ -546,7 +546,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
                 if (owner->active && (owner->type == 1 || owner->type == 2)) {
                     if (!(unit->def->f241 & 0x4000000)) {
                         MissionType kind(s_paralyze_00508d80);
-                        Order* e = unit->effect;
+                        Order* e = unit->list;
                         if (e && e->kind == kind) {
                             e->ticks += ticks;
                             return;
@@ -558,19 +558,19 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
             }
         }
     } else {
-        unit->hp -= ev->amount;
-        if (unit->hp <= 0) {
+        unit->health -= ev->amount;
+        if (unit->health <= 0) {
             if (unit->player->active && (unit->player->type == 1 || unit->player->type == 2)) {
                 unit->flags |= 0x4000;
                 return;
             }
-            unit->hp = 0;
+            unit->health = 0;
         }
         if (ev->kind == 1) {
             int a = FUN_004b7123(ev->param_7 << 8, 400);
             int b = FUN_004b70ef(ev->param_7 << 8, 400);
             unit->script->StartScriptWithArgs(s_HitByWeapon_00508d74, 0, 0, 2, a, b, 0, 0);
-            int pct = unit->hp * 100 / unit->def->maxhp;
+            int pct = unit->health * 100 / unit->def->maxhp;
             if (pct < 0)
                 pct = 0;
             if (pct > 100)
@@ -599,7 +599,7 @@ void __stdcall ParalyzeUnit(Unit* unit, int ticks)
     if (owner->type == 1 || owner->type == 2) {
         if (!(unit->def->f241 & 0x4000000)) {
             MissionType kind("paralyze");
-            Order* effect = unit->effect;
+            Order* effect = unit->list;
             if (effect && effect->kind == kind) {
                 effect->ticks += ticks;
                 return;
@@ -639,7 +639,7 @@ void __stdcall SetWeaponTargetPos(char* param_1, int* param_2, int param_3)
 // FUNCTION: 0x48a0f0
 void __stdcall ClearWeaponTarget(Unit* unit, int index)
 {
-    Point_004898b0* p = &unit->entries[index].point;
+    Point_004898b0* p = &unit->weapons[index].point;
     if (p->a != 0 || p->b != (short)0x8000) {
         p->a = 0;
         p->b = (short)0x8000;
@@ -651,7 +651,7 @@ void __stdcall ClearWeaponTarget(Unit* unit, int index)
 // FUNCTION: 0x48a160
 void __stdcall ResetWeaponTarget(Unit* obj, int index)
 {
-    Point_004898b0* p = &obj->entries[index].point;
+    Point_004898b0* p = &obj->weapons[index].point;
     p->a = 0;
     p->b = (short)0x8000;
 }
@@ -661,7 +661,7 @@ void __stdcall ResetWeaponTarget(Unit* obj, int index)
 // FUNCTION: 0x48a190
 Unit* __stdcall GetWeaponTargetUnit(Unit* obj, int index)
 {
-    Point_004898b0* p = &obj->entries[index].point;
+    Point_004898b0* p = &obj->weapons[index].point;
     if (p->b != (short)0x8000) {
         return 0;
     }
@@ -691,7 +691,7 @@ static Vec3_0048a1e0 offset_0048a1e0(Body_0048a1e0* m, __int64 s)
 // FUNCTION: 0x48a1e0
 int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0048a1e0* pos, int index)
 {
-    Entry_004898b0* e = &unit->entries[index];
+    Entry_004898b0* e = &unit->weapons[index];
     if (e->point.b != (short)0x8000) {
         pos->x = e->point.a << 16;
         pos->z = e->point.b << 16;
@@ -702,8 +702,8 @@ int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0048a1e0* pos, int index)
         return 0;
     }
     Unit* def = &g_game->units[e->point.a];
-    if (def->map == 0) {
-        Entry_004898b0* f = &unit->entries[index];
+    if (def->unitDefIndex == 0) {
+        Entry_004898b0* f = &unit->weapons[index];
         if (f->point.a != 0 || f->point.b != (short)0x8000) {
             e->point.a = 0;
             e->point.b = (short)0x8000;
@@ -713,7 +713,7 @@ int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0048a1e0* pos, int index)
         return 0;
     }
     GetSweetSpot(def, (int)pos);
-    if ((e->flags & 2) && !(e->target->field_111 & 0x2000000) && def->body != 0
+    if ((e->flags & 2) && !(e->target->field_111 & 0x2000000) && def->motion != 0
         && unit->killCount > 5 && e->target->radius != 0) {
         Vec3_0048a1e0 d;
         d.x = unit->pos.x - pos->x;
@@ -723,7 +723,7 @@ int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0048a1e0* pos, int index)
         int scale = (int)(((__int64)dist << 16) / e->target->radius);
         scale = (int)((scale * (__int64)0xcccc) >> 16);
         __int64 s = scale;
-        d = offset_0048a1e0(def->body, s);
+        d = offset_0048a1e0(def->motion, s);
         pos->x = pos->x + d.x;
         pos->y = pos->y + d.y;
         pos->z = pos->z + d.z;
@@ -735,7 +735,7 @@ int __stdcall GetWeaponTargetPos(Unit* unit, Vec3_0048a1e0* pos, int index)
 int __stdcall IsTargetingUnit(Unit* list, Unit* obj)
 {
     for (int i = 0; i < 3; i++) {
-        if (list->entries[i].point.b == -0x8000 && list->entries[i].point.a == obj->id) {
+        if (list->weapons[i].point.b == -0x8000 && list->weapons[i].point.a == obj->id) {
             return 1;
         }
     }
@@ -788,7 +788,7 @@ void __cdecl FUN_004b7173(unsigned short deg, Pos2_0048a490* p);
 // FUNCTION: 0x48a490
 void __stdcall AlignUnitToGround(Unit* u)
 {
-    MapInfo_0048a490* m = g_game->unitModels[u->map];
+    MapInfo_0048a490* m = g_game->unitModels[u->unitDefIndex];
     MapRow_0048a490* row = m->rows + m->count;
     if (m->count < 0)
         return;
@@ -808,7 +808,7 @@ void __stdcall AlignUnitToGround(Unit* u)
             int vz = v->z;
             t.z = vz;
             pts[k].z = vz;
-            FUN_004b7173(u->aim, &t);
+            FUN_004b7173(u->heading, &t);
             // wx before hz, fx before fz, and gz declared before fz.
             int wx = (short)((t.x + u->pos.x) >> 16);
             int hz = (short)((u->pos.z - t.z) >> 16);
@@ -839,10 +839,10 @@ void __stdcall AlignUnitToGround(Unit* u)
                 int sea = g_game->seaLevel;
                 hs[k].h = max(H, sea);
                 // short p and `* 2048`, not `<< 11`: keeps the 0x1f mask and 16-bit add.
-                short p = (short)(((GetTicks() & 0x1f) + k * 8) * 2048 + u->fix_lo);
+                short p = (short)(((GetTicks() & 0x1f) + k * 8) * 2048 + u->hoverBobPhase);
                 int s = u->def->sight / 2;
                 // Owner kept in a local across the 64-bit helper calls.
-                Body_0048a1e0* o = u->body;
+                Body_0048a1e0* o = u->motion;
                 int q = o->sight;
                 if (q >= s)
                     q = s;
@@ -867,6 +867,6 @@ void __stdcall AlignUnitToGround(Unit* u)
         int b = (h2 + h3) / 2;
         u->pos.roll = (a + b) / 2;
         u->pitch = FUN_004b715a(b - a, (short)(abs(pts[0].z - pts[3].z) >> 16));
-        u->hdg = FUN_004b715a(h0 - h1, (short)(abs(pts[0].x - pts[1].x) >> 16));
+        u->bank = FUN_004b715a(h0 - h1, (short)(abs(pts[0].x - pts[1].x) >> 16));
     }
 }

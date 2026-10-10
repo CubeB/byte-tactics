@@ -41,18 +41,18 @@ struct UnitType {                      // 0x249 bytes
 };
 
 struct Unit {                          // 0x118 bytes
-    Owner_0043a1f0* owner;             // +0x0
+    Owner_0043a1f0* motion;            // +0x0
     char unknown_4[0x5c - 0x4];
-    Order* first;                      // +0x5c
-    Order* firstTop;                   // +0x60, for children with flag 0x40000
+    Order* list;                       // +0x5c
+    Order* list2;                      // +0x60, for children with flag 0x40000
     char unknown_64[0x86 - 0x64];
     int carrier;                      // +0x86
     char unknown_8a[0x92 - 0x8a];
-    UnitType* type;                    // +0x92
+    UnitType* def;                     // +0x92
     char unknown_96[0x9a - 0x96];
-    CobScript* names;                  // +0x9a
+    CobScript* script;                 // +0x9a
     char unknown_9e[0xa8 - 0x9e];
-    unsigned short typeId;             // +0xa8
+    unsigned short id;                 // +0xa8
     char unknown_aa[0xb8 - 0xaa];
     unsigned short killCount;           // +0xb8
     char unknown_ba[0x110 - 0xba];
@@ -285,7 +285,7 @@ public:
 // Links `child` into the owner's list in front of `before`.
 static inline void InsertBefore(Unit* p, Order* child, Order* before)
 {
-    Order** link = (child->flags & 0x40000) ? &p->firstTop : &p->first;
+    Order** link = (child->flags & 0x40000) ? &p->list2 : &p->list;
     while (*link != before) {
         link = &(*link)->next;
     }
@@ -305,8 +305,8 @@ static inline void InsertBefore(Unit* p, Order* child, Order* before)
 void __stdcall AddBeCarriedOrder(Unit* p)
 {
     if (p->carrier) {
-        Order* first = p->first;
-        Order** pp = &p->first;
+        Order* first = p->list;
+        Order** pp = &p->list;
         Order* node;
         while ((node = *pp) != 0) {
             if (node->flags & 4) {
@@ -321,15 +321,15 @@ void __stdcall AddBeCarriedOrder(Unit* p)
         }
         Order* child =
             new Order("BECARRIED", p->carrier, 0, 0, 0, 0);
-        InsertBefore(p, child, (child->flags & 0x40000) ? p->firstTop : p->first);
+        InsertBefore(p, child, (child->flags & 0x40000) ? p->list2 : p->list);
     }
 }
 
 // FUNCTION: 0x438590
 void __stdcall StartBuildingScript(Unit* obj, Order* target, unsigned short param_3)
 {
-    int index = obj->names->FindScript("StartBuilding");
-    obj->names->StartScriptWithArgsByIndex(index, 0, 0, 1, param_3, 0, 0, 0);
+    int index = obj->script->FindScript("StartBuilding");
+    obj->script->StartScriptWithArgsByIndex(index, 0, 0, 1, param_3, 0, 0, 0);
     SendScriptCall(obj, index, 1, param_3, 0, 0, 0);
     target->flags |= 0x400000;
 }
@@ -338,8 +338,8 @@ void __stdcall StartBuildingScript(Unit* obj, Order* target, unsigned short para
 void __stdcall StopBuildingScript(Unit* obj, Order* target)
 {
     if (target->flags & 0x400000) {
-        int index = obj->names->FindScript("StopBuilding");
-        obj->names->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
+        int index = obj->script->FindScript("StopBuilding");
+        obj->script->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
         SendScriptCallNoArgs(obj, index);
         target->flags &= ~0x400000;
     }
@@ -348,7 +348,7 @@ void __stdcall StopBuildingScript(Unit* obj, Order* target)
 // FUNCTION: 0x438650
 int __stdcall ComputeReclaimDamagePulse(Unit* a, Unit* b, int n)
 {
-    UnitType* bt = b->type;
+    UnitType* bt = b->def;
     float v = bt->metalCost > 10.0f ? bt->metalCost : 10.0f;
     // The 64-bit numerator is built by hand (signed 32-bit chain in lo, zero hi):
     // keeps the multiply order and the unsigned fild qword.
@@ -359,7 +359,7 @@ int __stdcall ComputeReclaimDamagePulse(Unit* a, Unit* b, int n)
             int hi;
         } w;
     } p;
-    p.w.lo = a->type->field_1fe * ((a->killCount + 5) / 5) * (int)bt->maxHealth * n;
+    p.w.lo = a->def->field_1fe * ((a->killCount + 5) / 5) * (int)bt->maxHealth * n;
     p.w.hi = 0;
     int r = (int)((double)p.q / (v * 300.0f));
     if (r <= 1) {
@@ -473,15 +473,15 @@ void Order::ReattachFxToUnit()
 // FUNCTION: 0x4388d0
 void Order::SetAttachedFx(OrderFx* obj)
 {
-    if (unit->owner) {
+    if (unit->motion) {
         if (attached) {
-            unit->owner->slot->Attach(0);
+            unit->motion->slot->Attach(0);
             delete attached;
             attached = 0;
         }
         if (obj) {
             subFlags &= ~0x3e0;
-            unit->owner->slot->Attach(obj);
+            unit->motion->slot->Attach(obj);
             attached = obj;
         }
     }
@@ -493,23 +493,23 @@ void Order::SetAttachedFx(OrderFx* obj)
 // FUNCTION: 0x438930
 void Order::AttachApproachRadiusGoal(int* p, int n)
 {
-    if ((unit->type->flags32 & 0x800) == 0) {
+    if ((unit->def->flags32 & 0x800) == 0) {
         ApproachRadius* obj = new ApproachRadius((Source_0044cf60*)this, p[0], p[2], n);
-        if (unit->owner) {
+        if (unit->motion) {
             if (attached) {
-                unit->owner->slot->Attach(0);
+                unit->motion->slot->Attach(0);
                 delete attached;
                 attached = 0;
             }
             if (obj) {
                 subFlags &= ~0x3e0;
-                unit->owner->slot->Attach(obj);
+                unit->motion->slot->Attach(obj);
                 attached = obj;
             }
         }
     } else {
-        if (unit->owner && attached) {
-            unit->owner->slot->Attach(0);
+        if (unit->motion && attached) {
+            unit->motion->slot->Attach(0);
             delete attached;
             attached = 0;
         }
@@ -519,24 +519,24 @@ void Order::AttachApproachRadiusGoal(int* p, int n)
 // FUNCTION: 0x438a00
 void Order::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2)
 {
-    if (!(unit->type->flags32 & 0x800)) {
+    if (!(unit->def->flags32 & 0x800)) {
         RingApproach* obj = new RingApproach(this, pos->x, pos->z, radius1, radius2);
-        if (unit->owner) {
+        if (unit->motion) {
             if (attached) {
-                unit->owner->slot->Attach(0);
+                unit->motion->slot->Attach(0);
                 delete attached;
                 attached = 0;
             }
             if (obj) {
                 subFlags &= ~0x3e0;
-                unit->owner->slot->Attach(obj);
+                unit->motion->slot->Attach(obj);
                 attached = obj;
             }
         }
     } else {
-        if (unit->owner) {
+        if (unit->motion) {
             if (attached) {
-                unit->owner->slot->Attach(0);
+                unit->motion->slot->Attach(0);
                 delete attached;
                 attached = 0;
             }
@@ -547,24 +547,24 @@ void Order::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2)
 // FUNCTION: 0x438ad0
 void Order::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size)
 {
-    if (!(unit->type->flags32 & 0x800)) {
+    if (!(unit->def->flags32 & 0x800)) {
         PointMarker* obj = new PointMarker(this, cell, size);
-        if (unit->owner) {
+        if (unit->motion) {
             if (attached) {
-                unit->owner->slot->Attach(0);
+                unit->motion->slot->Attach(0);
                 delete attached;
                 attached = 0;
             }
             if (obj) {
                 subFlags &= ~0x3e0;
-                unit->owner->slot->Attach(obj);
+                unit->motion->slot->Attach(obj);
                 attached = obj;
             }
         }
     } else {
-        if (unit->owner) {
+        if (unit->motion) {
             if (attached) {
-                unit->owner->slot->Attach(0);
+                unit->motion->slot->Attach(0);
                 delete attached;
                 attached = 0;
             }
@@ -608,13 +608,13 @@ Order::~Order()
     }
     if (flags & 0x400000) {
         Unit* obj = unit;
-        int index = obj->names->FindScript("StopBuilding");
-        obj->names->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
+        int index = obj->script->FindScript("StopBuilding");
+        obj->script->StartScriptWithArgsByIndex(index, 0, 0, 0, 0, 0, 0, 0);
         SendScriptCallNoArgs(obj, index);
         flags &= ~0x400000;
     }
-    if (unit->owner != 0) {
-        Slot_0043a1f0* slot = unit->owner->slot;
+    if (unit->motion != 0) {
+        Slot_0043a1f0* slot = unit->motion->slot;
         if (slot->current != 0 && slot->current == attached) {
             if (attached != 0) {
                 slot->Attach(0);
@@ -790,7 +790,7 @@ Order::Order(Unit* punit, HapiBank* file, char* name)
 // FUNCTION: 0x43a970
 int Order::SerializeToSave(Unit* punit, HapiBank* file, char* name)
 {
-    if (unit->typeId != punit->typeId || !file || !name)
+    if (unit->id != punit->id || !file || !name)
         return 0;
     if (strlen(name) > 0x1f)
         return 0;
@@ -803,11 +803,11 @@ int Order::SerializeToSave(Unit* punit, HapiBank* file, char* name)
     if (u == 0)
         desc.unitType = 0;
     else
-        desc.unitType = u->typeId;
+        desc.unitType = u->id;
     // The owner is tested for null twice on purpose: mixing the copy with a
     // fresh read of link.owner keeps the compiler from dropping the third test.
     Unit* o = link.owner;
-    desc.ownerType = (o != 0 && (link.owner->flags & 0x10000000) != 0 && link.owner != 0) ? o->typeId : 0;
+    desc.ownerType = (o != 0 && (link.owner->flags & 0x10000000) != 0 && link.owner != 0) ? o->id : 0;
     desc.field_4 = attached ? attached->GetType() : 0;
     desc.kind = kind;
     desc.flag5 = flag5;

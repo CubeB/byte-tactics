@@ -21,7 +21,7 @@ struct Unit {
     char unknown_68[0x6a - 0x68];
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitDef* type;                     // +0x92
+    UnitDef* def;                      // +0x92
     char unknown_96[0xb0 - 0x96];
     int workTime;                      // +0xb0
 };
@@ -68,7 +68,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
         return 8;
     switch (order->state) {
     case 0:
-        if (unit->motion && (unit->type->flags2 & 0x400)) {
+        if (unit->motion && (unit->def->flags2 & 0x400)) {
             order->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;

@@ -90,8 +90,8 @@ struct Unit {
     char unknown_3c[0x57 - 0x3c];
     unsigned char f_57;                // +0x57
     char unknown_58[0x5c - 0x58];
-    void* f_5c;                        // +0x5c, the mission queue
-    void* f_60;                        // +0x60, the background mission queue
+    void* list;                        // +0x5c, the mission queue
+    void* list2;                       // +0x60, the background mission queue
     Angles16 angles;                   // +0x64
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
@@ -111,13 +111,13 @@ struct Unit {
     SpotState* state;                  // +0x9e
     char unknown_a2[0xa6 - 0xa2];
     unsigned short unitDefIndex;           // +0xa6
-    unsigned short f_a8;               // +0xa8
+    unsigned short id;                 // +0xa8
     char unknown_aa[0xb0 - 0xaa];
     int workTime;                      // +0xb0
     char unknown_b4[0xff - 0xb4];
     unsigned char playerIndex;            // +0xff
     char unknown_100[0x104 - 0x100];
-    float f_104;                       // +0x104
+    float buildLeft;                   // +0x104
     union {
         short health;                  // +0x108
         short f_108;
@@ -800,7 +800,7 @@ int __stdcall DrawUnitStateProbe(void* surface)
     y += lineH;
     DrawString(surface, "================", 0x86, y, -1);
     y += lineH;
-    sprintf(buf, "uid: %03d/%04x '%s'\n", unit->f_a8, unit->f_a8, unit->f_92);
+    sprintf(buf, "uid: %03d/%04x '%s'\n", unit->id, unit->id, unit->f_92);
     DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
     sprintf(buf, "playerno: %d '%s' %s - %s\n",
@@ -816,7 +816,7 @@ int __stdcall DrawUnitStateProbe(void* surface)
     sprintf(buf, "controller: %d\n", *(unsigned char*)((char*)unit->f_96 + 0x73));
     DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
-    sprintf(buf, "buildtimeleft: %1.3f\n", unit->f_104);
+    sprintf(buf, "buildtimeleft: %1.3f\n", unit->buildLeft);
     DrawString(surface, buf, 0x86, y, -1);
     y += lineH;
     sprintf(buf, "damage: %d\n", unit->f_108);
@@ -837,10 +837,10 @@ int __stdcall DrawUnitStateProbe(void* surface)
                 (unit->f_57 & 0x10) ? 'X' : '-');
         DrawString(surface, buf, 0x86, y, -1);
         y += lineH;
-        if (unit->f_5c != 0) {
+        if (unit->list != 0) {
             DrawString(surface, "Mission Q:", 0x86, y, -1);
             y += lineH;
-            for (m = (Mission_00467e50*)unit->f_5c; m != 0;
+            for (m = (Mission_00467e50*)unit->list; m != 0;
                  m = (Mission_00467e50*)m->next) {
                 if (m->target != 0)
                     sprintf(buf, "    '%s' state: %d  tgt: '%s'\n",
@@ -854,10 +854,10 @@ int __stdcall DrawUnitStateProbe(void* surface)
                 y += lineH;
             }
         }
-        if (unit->f_60 != 0) {
+        if (unit->list2 != 0) {
             DrawString(surface, "Background Mission Q:", 0x86, y, -1);
             y += lineH;
-            for (m = (Mission_00467e50*)unit->f_60; m != 0;
+            for (m = (Mission_00467e50*)unit->list2; m != 0;
                  m = (Mission_00467e50*)m->next) {
                 if (m->target != 0)
                     sprintf(buf, "    '%s' state: %d  tgt: '%s'\n",
@@ -986,7 +986,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
     y += lineHeight;
     DrawString(surface, "==================", 0x86, y, -1);
     y += lineHeight;
-    sprintf(buf, "uid: %03d '%s'\n", unit->f_a8, (char*)unit->type);
+    sprintf(buf, "uid: %03d '%s'\n", unit->id, (char*)unit->type);
     DrawString(surface, buf, 0x86, y, -1);
     y += lineHeight;
     char* mobile = unit->type->mobile ? "MOBILE" : "BUILDING";

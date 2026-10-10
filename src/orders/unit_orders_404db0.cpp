@@ -45,10 +45,10 @@ struct Unit {
     // here, and an int spelling keeps the file's symbol count (docs/c2-regalloc.md).
     int motion;                        // +0x0
     char unknown_4[0x64 - 0x4];
-    Angles16 rot;                         // +0x64
+    Angles16 angles;                      // +0x64
     Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitDef* type;                     // +0x92
+    UnitDef* def;                      // +0x92
     Player* player;                    // +0x96
     char unknown_9a[0xb0 - 0x9a];
     int workTime;                      // +0xb0
@@ -155,7 +155,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
     }
     switch (order->state) {
     case 0:
-        if (unit->motion && (unit->type->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             order->AttachBuildFootprintMarker(cell, size);
             order->flags = 0xe0;
             return 1;
@@ -168,7 +168,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         pos.x = (size.x + cell.x * 2) << 19;
         pos.z = (size.y + cell.y * 2) << 19;
         pos.y = (RandomInt(f->height) + GetGroundHeight(&pos)) << 16;
-        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->rot.heading);
+        StartBuildingScript(unit, order, GetHeadingBetween(&unit->pos, &pos) - unit->angles.heading);
         return 1;
     }
     case 2:
@@ -187,7 +187,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             QueueUnitSpeech(unit, 7, "Ressurection failed");
             return 8;
         }
-        order->time = (int)(g_game->unitDefs[order->unitType].buildTime * 0.3 / (unit->type->workerTime / 30));
+        order->time = (int)(g_game->unitDefs[order->unitType].buildTime * 0.3 / (unit->def->workerTime / 30));
         QueueUnitSpeech(unit, 11, 0);
         return 1;
     }
@@ -221,7 +221,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             return 8;
         FeatureSpot* spot = &g_game->spots[c->spot];
         if (spot)
-            order->target.owner->rot = spot->rot;
+            order->target.owner->angles = spot->rot;
         RemoveFeature(GetMapCellAtPosition(&order->pos), 0);
         if (g_game->net->GetGameType() == 3) {
             FeatureDamagePacket packet;

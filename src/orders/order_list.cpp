@@ -300,11 +300,11 @@ struct Unit {                          // 0x118 bytes
     Vec3 pos;                          // +0x6a, 16.16
     Point cell;                        // +0x76
     char unknown_7a[0x7e - 0x7a];
-    Point draft;                       // +0x7e
+    Point footprint;                   // +0x7e
     int spatialBucket;                      // +0x82
-    Path_0043d6d0* obj;                // +0x86
+    Path_0043d6d0* carrier;            // +0x86
     char unknown_8a[0x92 - 0x8a];
-    UnitType_0043cd20* type;           // +0x92
+    UnitType_0043cd20* def;            // +0x92
     union {
         Target_0043d6d0* target;       // +0x96
         Player_0043b7c0* player;       // +0x96
@@ -315,7 +315,7 @@ struct Unit {                          // 0x118 bytes
     char unknown_aa[0xba - 0xaa];
     unsigned short netDirtyFlags;           // +0xba, the unit's pending mask
     char unknown_bc[0xf9 - 0xbc];
-    signed char index;                 // +0xf9
+    signed char transportPiece;        // +0xf9
     char unknown_fa[0x110 - 0xfa];
     union {
         unsigned int flags;            // +0x110
@@ -1170,7 +1170,7 @@ int __stdcall IssueAttackOrder(Unit* unit, Unit* target, int param_3)
         MissionType kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->field_214);
+        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->def->field_214);
         cmd2->start.x = PosXWhole(unit);
         cmd2->start.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
@@ -1200,7 +1200,7 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
         MissionType kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->range);
+        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->def->range);
         cmd2->start.x = PosXWhole(unit);
         cmd2->start.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
@@ -1210,7 +1210,7 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
         MissionType kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->type->field_214);
+        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->def->field_214);
         cmd2->start.x = PosXWhole(unit);
         cmd2->start.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
@@ -1351,9 +1351,9 @@ void __stdcall RunOrders(Unit* unit)
     char state = unit->player->state;
     if (state != 1 && state != 2)
         return;
-    if (unit->type->field_230 == 0)
+    if (unit->def->field_230 == 0)
         return;
-    InsertCommand(unit, unit->type->field_230);
+    InsertCommand(unit, unit->def->field_230);
 }
 
 // Takes the node out of the parent's list and frees it. The search can fail,
@@ -1627,7 +1627,7 @@ Elem_0043c390* __stdcall LowerBoundOrderTypes(Elem_0043c390* first, Elem_0043c39
 void UnitMotion::ApplyClampedTurnDelta(Unit* unit, short amount)
 {
     if (amount != 0) {
-        unsigned short max = unit->type->max_turn;
+        unsigned short max = unit->def->max_turn;
         if (amount >= max)
             turn = max;
         else if (amount <= -max)
@@ -1693,9 +1693,9 @@ void UnitMotion::UpdateVelocityFromHeading(Unit* unit, int amount)
         idx = 5;
 
     // 16.16 range from the table entry, halved below sea level.
-    int range = (int)(((__int64)(g_slopeSpeedFactor[idx] << 16) * unit->type->maxvelocity) >> 16);
+    int range = (int)(((__int64)(g_slopeSpeedFactor[idx] << 16) * unit->def->maxvelocity) >> 16);
     range = (int)(((__int64)range << 16) / 0x640000);
-    if (unit->pos.yWhole < g_game->seaLevel && !(unit->type->flags1 & 0x81000))
+    if (unit->pos.yWhole < g_game->seaLevel && !(unit->def->flags1 & 0x81000))
         range = (int)(((__int64)range * 0x8000) >> 16);
     if (speed > range)
         speed = range;
@@ -1715,7 +1715,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     if (obj->v5() == 0) {
         turn = 0;
         // Bound temporary: loads unit before the turn store and keeps the rate in eax.
-        const int& amount = -unit->type->field_19a;
+        const int& amount = -unit->def->field_19a;
         UpdateVelocityFromHeading(unit, amount);
         return;
     }
@@ -1757,7 +1757,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     int d2 = (int)(((__int64)bx * bx) >> 32) + (int)(((__int64)bz * bz) >> 32);
 
     if (diff != 0) {
-        unsigned short max = unit->type->max_turn;
+        unsigned short max = unit->def->max_turn;
         if (sdiff >= max)
             turn = max;
         else if (sdiff <= -max)
@@ -1773,8 +1773,8 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     // speed is copied to spd below so its sign extension is not shared with this
     // multiply; otherwise it becomes _allmul instead of a one-operand imul.
     int turned = (int)((((__int64)(adiff & 0xffff) * (__int64)speed)
-                        / unit->type->max_turn));
-    int rate = unit->type->field_19a;
+                        / unit->def->max_turn));
+    int rate = unit->def->field_19a;
     int spd = speed;
     int t = (int)(((__int64)spd * spd) >> 16);
     int q = (int)(((__int64)t << 16) / (2 * rate));
@@ -1783,7 +1783,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
 
     // UpdateVelocityFromHeading stays defined above this function so the two calls cross-jump.
     if (d1 > lim && d2 > r)
-        UpdateVelocityFromHeading(unit, unit->type->field_19e);
+        UpdateVelocityFromHeading(unit, unit->def->field_19e);
     else
         UpdateVelocityFromHeading(unit, -rate);
 }
@@ -1810,8 +1810,8 @@ void UnitMotion::ApplyBankAndPitch(Unit* owner, Vec3* v)
     xz[1] = p2.z;
     FUN_004b7173(owner->angles.heading, xz);
     int n = (int)(((__int64)g_game->gravity << 16) / 0xccd);
-    owner->angles.bank = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a2 * -xz[0]) >> 16), n);
-    owner->angles.pitch = (short)FUN_004b715a((int)(((__int64)owner->type->field_1a6 * -xz[0]) >> 16), n);
+    owner->angles.bank = (short)FUN_004b715a((int)(((__int64)owner->def->field_1a2 * -xz[0]) >> 16), n);
+    owner->angles.pitch = (short)FUN_004b715a((int)(((__int64)owner->def->field_1a6 * -xz[0]) >> 16), n);
 }
 #pragma auto_inline(on)
 
@@ -1855,7 +1855,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     short heading;
     obj->v4(&a, &b, &heading);
 
-    UnitType_0043cd20* type = unit->type;
+    UnitType_0043cd20* type = unit->def;
     const float eps = 1.52587890625e-05f;
 
     float f18 = (float)type->field_19e * eps;
@@ -1864,7 +1864,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     velocity.Scale(scale);
 
     float dist = (float)_hypot(velocity.x, velocity.z) * eps;
-    float maxd = (float)unit->type->field_19a * eps;
+    float maxd = (float)unit->def->field_19a * eps;
     if (dist > maxd) {
         int f = (int)((double)(maxd / dist) * 65536.0);
         // MulFixed and AddFixed take the component by reference; written
@@ -1895,7 +1895,7 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     float hd = (float)_hypot(da.x, da.z) * eps;
     short d = (short)(heading - unit->angles.heading);
     if (d != 0) {
-        unsigned short max = unit->type->max_turn;
+        unsigned short max = unit->def->max_turn;
         if (d >= (int)max)
             turn = max;
         else if (d <= -(int)max)
@@ -1946,20 +1946,20 @@ void FreeUnitInfo();
 // FUNCTION: 0x43d6d0
 void UnitMotion::UpdatePosition(Unit* u)
 {
-    if (u->obj != 0) {
+    if (u->carrier != 0) {
         // Copy through the returned pointer, not an initialiser.
         Vec3 v;
-        v = GetPiecePosition(u->obj, u->index);
-        if (u->type->b19) {
+        v = GetPiecePosition(u->carrier, u->transportPiece);
+        if (u->def->b19) {
             // MAX stays a macro over the Fixed union with a prvalue second operand.
-            v.fy = MAXM_0043d6d0(v.fy, MakeFixed_0043d6d0(u->type->draft * 0xffff + g_game->seaLevel));
+            v.fy = MAXM_0043d6d0(v.fy, MakeFixed_0043d6d0(u->def->draft * 0xffff + g_game->seaLevel));
         }
         SetUnitPosition(u, v, mode);
-        Angles16 o = GetPieceAngles(u->obj, u->index);
+        Angles16 o = GetPieceAngles(u->carrier, u->transportPiece);
         u->angles = o;
-        if (u->obj->motion != 0) {
-            speed = u->obj->motion->speed;
-            velocity = u->obj->motion->velocity;
+        if (u->carrier->motion != 0) {
+            speed = u->carrier->motion->speed;
+            velocity = u->carrier->motion->velocity;
         } else {
             speed = 0;
             Vec3 zero(0, 0, 0);
@@ -1978,7 +1978,7 @@ void UnitMotion::UpdatePosition(Unit* u)
         return;
 
     lastMoveTick = g_game->field_38a47;
-    Point draft = u->draft;
+    Point draft = u->footprint;
     // Field by field, with draft.x * 0x80000 (a << 19 evaluates draft.x first).
     Point cell;
     cell.x = (pos.x - draft.x * 0x80000 + 0x80000) >> 20;
@@ -1991,15 +1991,15 @@ void UnitMotion::UpdatePosition(Unit* u)
 
     if (u->target->field_0 != 0) {
         if (u->target->type == 1 || u->target->type == 2)
-            flag = CanPlaceUnitFootprint(u->type, u->id, cell, m) == 0;
+            flag = CanPlaceUnitFootprint(u->def, u->id, cell, m) == 0;
     }
 
     if (flag) {
         // ClampToCell stays an inline helper taking both Points by value.
-        ClampToCell(pos, u->cell, u->draft);
+        ClampToCell(pos, u->cell, u->footprint);
 
-        if (speed > (u->type->maxvelocity / 2)) {
-            int half = u->type->maxvelocity / 2;
+        if (speed > (u->def->maxvelocity / 2)) {
+            int half = u->def->maxvelocity / 2;
             speed = half;
             unsigned short angle = u->angles.heading;
             Vec3 vec;
@@ -2029,12 +2029,12 @@ void UnitMotion::UpdatePosition(Unit* u)
 void UnitMotion::UpdateMoveRate(Unit* unit)
 {
     int rate;
-    if ((flags & 4) == 0 && unit->obj == 0
+    if ((flags & 4) == 0 && unit->carrier == 0
         && (speed != 0 || turn != 0)) {
-        if (speed <= unit->type->field_1ae) {
+        if (speed <= unit->def->field_1ae) {
             rate = 1;
         } else {
-            rate = 2 + (speed > unit->type->field_1b2);
+            rate = 2 + (speed > unit->def->field_1b2);
         }
     } else {
         rate = 0;
@@ -2074,14 +2074,14 @@ UnitMotion::UnitMotion(Unit* unit)
     p2 = Vec3(0, 0, 0);
     mode = 1;
     flag = 0;
-    movementClass = unit->type->field_1b6;
+    movementClass = unit->def->field_1b6;
     if (unit->target->field_0 != 0 && unit->target->type == 3) {
-        if (unit->type->flag_800)
+        if (unit->def->flag_800)
             obj = (Iface_0043dd20*)new PackedPosGoal(unit);
         else
             obj = (Iface_0043dd20*)new PatrolGoal(unit);
     } else {
-        if (unit->type->flag_800)
+        if (unit->def->flag_800)
             obj = (Iface_0043dd20*)new LiteGoal(unit);
         else
             obj = (Iface_0043dd20*)new AiSearchGoal(unit);
@@ -2100,7 +2100,7 @@ void UnitMotion::DestroyObject()
 void UnitMotion::UpdateMotion(Unit* u)
 {
     obj->v2();
-    if (u->type->flag_800)
+    if (u->def->flag_800)
         SteerAircraft(u);
     else
         SteerGroundUnit(u);

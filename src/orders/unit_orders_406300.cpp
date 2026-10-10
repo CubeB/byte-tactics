@@ -16,9 +16,9 @@ struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags
 #include "../units/unit_def.h"
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 struct Unit {
-    char pad0[8]; Weapon weapons[3]; Order* order;
-    char pad60[10]; Vec3 pos; char pad76[8]; short width; char pad80[6]; int busy;
-    char pad8a[8]; UnitDef* def; Owner* owner; char pad9a[12]; unsigned short category;
+    char pad0[8]; Weapon weapons[3]; Order* list;
+    char pad60[10]; Vec3 pos; char pad76[8]; short width; char pad80[6]; int spatialBucket;
+    char pad8a[8]; UnitDef* def; Owner* player; char pad9a[12]; unsigned short unitDefIndex;
     char pada8[0xf0-0xa8]; Unit* attacker; char padf4[0x108-0xf4]; short health;
     char pad10a[6]; unsigned int flags;
     void ReleaseWeapons(int);
@@ -51,7 +51,7 @@ struct Feature;
 int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
 {
     if (!order->target) return 5;
-    if (unit->busy) return 7;
+    if (unit->spatialBucket) return 7;
     if ((unsigned char)(order->target->def->flags1 >> 11) & 1) return 8;
     unsigned int state=0; state=order->state;
     switch(state) {
@@ -66,15 +66,15 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
     }
     case 1: {
         Unit* attacker=order->target->attacker;
-        if (attacker && !attacker->owner->allied[unit->owner->index] && (flags & 0x10) &&
-            !Contains(unit->def->categories,attacker->category)) {
+        if (attacker && !attacker->player->allied[unit->player->index] && (flags & 0x10) &&
+            !Contains(unit->def->categories,attacker->unitDefIndex)) {
             if (IssueAttackOrder(unit,attacker,1)) { order->flags=0; return 3; }
             if (unit->flags & 0x300000) {
                 for (unsigned char i=0;i<3;++i) {
                     Weapon* weapon=&unit->weapons[i];
                     if ((weapon->flags&2) && (weapon->flags&0x10) && !((unsigned char)(weapon->def->flags >> 26)&1)) {
                         Unit* target=GetWeaponTargetUnit(unit,i);
-                        if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
+                        if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->unitDefIndex))
                             SetWeaponTargetUnit(unit,attacker,i);
                     }
                 }
@@ -88,25 +88,25 @@ int __stdcall FollowGroundOrder(Unit* unit, Order* order, int flags)
                 order->flags=0; return 3;
             }
         }
-        if (order->target->order && order->target->order->kind.index &&
+        if (order->target->list && order->target->list->kind.index &&
             (unit->def->flags1&0x40) && (order->target->def->flags1&0x40) &&
-            (order->target->order->capabilities&0x100000) && unit!=order->target->order->Target()) {
-            int building=order->target->order->kind=="MobileBuild" ||
-                         order->target->order->kind=="BuildingBuild";
-            Order* other=order->target->order;
+            (order->target->list->capabilities&0x100000) && unit!=order->target->list->Target()) {
+            int building=order->target->list->kind=="MobileBuild" ||
+                         order->target->list->kind=="BuildingBuild";
+            Order* other=order->target->list;
             int actionable=((other->capabilities&0x200) && other->target) || (other->capabilities&0x400);
             MissionType kind;
             if (!building && actionable) {
                 order->SetAttachedFx(0);
-                kind=order->target->order->kind;
+                kind=order->target->list->kind;
                 // Target() and Position() on the base: keeps the two order->order loads from merging.
-                AppendOrder(unit,new Order(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
+                AppendOrder(unit,new Order(kind,order->Target()->list->target,order->Target()->list->Position(),0,0,0));
                 order->flags=0; return 3;
             }
             if (building && other->target) {
                 order->SetAttachedFx(0);
                 kind=MissionType("HelpBuild");
-                AppendOrder(unit,new Order(kind,order->Target()->order->target,order->Target()->order->Position(),0,0,0));
+                AppendOrder(unit,new Order(kind,order->Target()->list->target,order->Target()->list->Position(),0,0,0));
                 order->flags=0; return 3;
             }
         }

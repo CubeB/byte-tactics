@@ -30,9 +30,9 @@ struct Unit {
     char pad68[2]; Vec3 pos;
     char pad76[8]; Point footprint;
     char pad82[0x92-0x82]; UnitDef* def;
-    char pad96[0xb0-0x96]; int timeout;
-    char padb4[0xff-0xb4]; unsigned char player;
-    char pad100[4]; float progress;
+    char pad96[0xb0-0x96]; int workTime;
+    char padb4[0xff-0xb4]; unsigned char playerIndex;
+    char pad100[4]; float buildLeft;
     void ClaimWeapons(int);
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     void SetStateBits(int, int);
@@ -142,7 +142,7 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         unit->ClaimWeapons(3);
         SnapWorldPosToFootprint(def, &order->pos);
         ((PathOrderAttach*)((char*)order + 0x12))->SetUnit(
-            CreateUnit(unit->player, (short)order->type, order->pos, 0, 1, 0));
+            CreateUnit(unit->playerIndex, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");
             order->SetDeadlineTicks(300);
@@ -167,8 +167,8 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
             bounds[1] = order->target->pos + order->target->def->max;
             EmitNanoParticles(&start, bounds, 6);
         }
-        unit->timeout = g_game->tick + 300;
-        if (order->target->progress != 0.0f) {
+        unit->workTime = g_game->tick + 300;
+        if (order->target->buildLeft != 0.0f) {
             order->SetDeadlineTicks(1);
             order->flags |= 0xa;
             return 2;

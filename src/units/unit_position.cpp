@@ -158,26 +158,26 @@ struct Unit {
     Vec3 pos;                          // +0x6a
     Point16 cell;                      // +0x76
     char unknown_7a[0x7e - 0x7a];
-    Point16 origin;                    // +0x7e
-    SpatialBucket* list;               // +0x82
-    Unit* owner;                       // +0x86
-    Unit* first;                       // +0x8a
-    Unit* next;                        // +0x8e
-    UnitType* type;                    // +0x92
+    Point16 footprint;                 // +0x7e
+    SpatialBucket* spatialBucket;      // +0x82
+    Unit* carrier;                     // +0x86
+    Unit* cargo;                       // +0x8a
+    Unit* cargoNext;                   // +0x8e
+    UnitType* def;                     // +0x92
     Player* player;                    // +0x96
-    CobScript* f9a;                    // +0x9a
-    Block* block;                      // +0x9e
+    CobScript* script;                 // +0x9a
+    Block* state;                      // +0x9e
     char unknown_a2[0xa6 - 0xa2];
     unsigned short unitDefIndex;           // +0xa6
     unsigned short id;                 // +0xa8
     char unknown_aa[0xf5 - 0xaa];
-    unsigned char ff5;                 // +0xf5
-    unsigned char ff6;                 // +0xf6
-    unsigned char ff7;                 // +0xf7
+    unsigned char lastDamageType;      // +0xf5
+    unsigned char healthPercent;       // +0xf6
+    unsigned char prevHealthPercent;   // +0xf7
     char unknown_f8;                   // +0xf8
-    signed char f9;                    // +0xf9
-    unsigned char ffa;                 // +0xfa
-    int ffb;                           // +0xfb
+    signed char transportPiece;        // +0xf9
+    unsigned char recentlyDamagedTimer;  // +0xfa
+    int postTransferHoldoff;           // +0xfb
     unsigned char playerIndex;         // +0xff
     char unknown_100[0x104 - 0x100];
     float buildLeft;                   // +0x104
@@ -304,8 +304,8 @@ extern float g_buildPercentScale;
 void __stdcall SnapUnitToGround(Unit* unit)
 {
     extern Game* g_game;
-    if (unit->type->f241.bits.floats) {
-        unit->pos.y.value = max(GetGroundHeight(&unit->pos), g_game->seaLevel - unit->type->draft) << 16;
+    if (unit->def->f241.bits.floats) {
+        unit->pos.y.value = max(GetGroundHeight(&unit->pos), g_game->seaLevel - unit->def->draft) << 16;
     } else {
         unit->pos.y.value = GetGroundHeight(&unit->pos) << 16;
     }
@@ -323,19 +323,19 @@ void __stdcall SnapUnitToGround(Unit* unit)
 void __stdcall UpdateUnitHeight(Unit* unit)
 {
     extern Game* g_game;
-    if ((unit->flags & 0x10000) || unit->type->f241.bits.floats) {
+    if ((unit->flags & 0x10000) || unit->def->f241.bits.floats) {
         unit->flags &= ~0x10000;
         if (unit->motion && (unit->flags & 3) == 1) {
-            if (unit->type->f241.bits.over_water) {
-                if (unit->type->f241.bits.floats) {
-                    unit->pos.y.value = max(GetGroundHeight(&unit->pos), g_game->seaLevel - unit->type->draft) << 16;
+            if (unit->def->f241.bits.over_water) {
+                if (unit->def->f241.bits.floats) {
+                    unit->pos.y.value = max(GetGroundHeight(&unit->pos), g_game->seaLevel - unit->def->draft) << 16;
                 } else {
                     unit->pos.y.value = GetGroundHeight(&unit->pos) << 16;
                 }
-            } else if (unit->type->f241.bits.on_water) {
+            } else if (unit->def->f241.bits.on_water) {
                 // Union copy: an int would fold the product, sum and shift into (sea - draft) << 16.
                 Fixed h;
-                h.value = unit->type->draft * 0xffff + g_game->seaLevel;
+                h.value = unit->def->draft * 0xffff + g_game->seaLevel;
                 h.value <<= 16;
                 unit->pos.y = h;
             } else {
@@ -384,7 +384,7 @@ static inline Point16 WorldToCell(Vec3 v, Point16 origin)
 // FUNCTION: 0x48a9f0
 int __stdcall SetUnitPosition(Unit* unit, Vec3 pos, int param_5)
 {
-    Point16 cell = WorldToCell(pos, unit->origin);
+    Point16 cell = WorldToCell(pos, unit->footprint);
     if (cell.x == unit->cell.x && cell.y == unit->cell.y && param_5 == (unit->flags & 3)) {
         unit->pos = pos;
     } else {
@@ -404,9 +404,9 @@ int __stdcall SetUnitPosition(Unit* unit, Vec3 pos, int param_5)
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* target, char p3, char p4)
 {
     Order packet;
-    if ((unit->flags & 0x10000000) && !(unit->flags & 0x20000000) && unit->first == 0
+    if ((unit->flags & 0x10000000) && !(unit->flags & 0x20000000) && unit->cargo == 0
         && (target == 0
-            || ((target->flags & 0x10000000) && target != unit && target->owner == 0))) {
+            || ((target->flags & 0x10000000) && target != unit && target->carrier == 0))) {
         packet.type = 0xa;
         if (unit == 0)
             packet.id1 = 0;
@@ -454,40 +454,40 @@ void __stdcall ApplyAttachUnit(Order* order)
         unsigned int f = u->f110.all;
         if (f & 0x10000000) {
             if (!(f & 0x20000000)) {
-                if (u->first == 0) {
+                if (u->cargo == 0) {
                     if (t == 0
-                        || ((t->f110.all & 0x10000000) && t != u && t->owner == 0)) {
-                        if (u->owner != 0) {
-                            Unit* n = u->owner;
-                            Unit** link = &n->first;
-                            n = n->first;
+                        || ((t->f110.all & 0x10000000) && t != u && t->carrier == 0)) {
+                        if (u->carrier != 0) {
+                            Unit* n = u->carrier;
+                            Unit** link = &n->cargo;
+                            n = n->cargo;
                             while (n != u) {
-                                link = &n->next;
-                                n = n->next;
+                                link = &n->cargoNext;
+                                n = n->cargoNext;
                             }
-                            *link = u->next;
+                            *link = u->cargoNext;
                         } else {
-                            u->list->UnlinkUnit(u);
+                            u->spatialBucket->UnlinkUnit(u);
                         }
-                        u->f9 = order->param;
+                        u->transportPiece = order->param;
                         if (t) {
-                            u->owner = t;
-                            u->next = t->first;
-                            t->first = u;
+                            u->carrier = t;
+                            u->cargoNext = t->cargo;
+                            t->cargo = u;
                             // Named bool, `char` compared with -1, masked with `& 1`: keeps the field width mask.
                             bool v = ((order->param == -1) & 1);
                             u->f110.bits.b17 = v;
                         } else {
-                            u->next = 0;
+                            u->cargoNext = 0;
                             u->f110.bits.b17 = 0;
-                            u->owner = 0;
-                            u->list->PrependUnit((int)u);
+                            u->carrier = 0;
+                            u->spatialBucket->PrependUnit((int)u);
                         }
                         u->motion->bits_2e = order->param2;
                         if (u->player->active) {
                             unsigned char k = u->player->type;
                             if (k == 1 || k == 2) {
-                                if (t && !(t->type->f241.bits.low & 0x200))
+                                if (t && !(t->def->f241.bits.low & 0x200))
                                     AddBeCarriedOrder((Beacon*)u);
                             }
                         }
@@ -538,32 +538,32 @@ void __stdcall UpdateAllUnits(void)
                                 UpdateUnitWeapons(u);
                             }
                         }
-                        if (u->f9a != 0) {
-                            u->f9a->RunScripts(1);
+                        if (u->script != 0) {
+                            u->script->RunScripts(1);
                         }
-                        if (u->ffa != 0) {
-                            u->ffa--;
+                        if (u->recentlyDamagedTimer != 0) {
+                            u->recentlyDamagedTimer--;
                         }
-                        if (u->ffb != 0) {
-                            u->ffb--;
+                        if (u->postTransferHoldoff != 0) {
+                            u->postTransferHoldoff--;
                         }
                         if (u->f110.bits.b4 != 0) {
-                            if (!(u->f110.bits.b5) || u->buildLeft != 0.0f || u->ffb != 0
-                                || (u->owner != 0 && !(u->owner->f110.bits.b30))) {
+                            if (!(u->f110.bits.b5) || u->buildLeft != 0.0f || u->postTransferHoldoff != 0
+                                || (u->carrier != 0 && !(u->carrier->f110.bits.b30))) {
                                 u->f110.bits.b4 = 0;
                             }
                         }
                         // Unsigned `% 30` (here and below) keeps the original's `div`.
                         if ((unsigned int)g_game->gameTick % 30 == 0) {
-                            int v = u->health * 100 / u->type->f1fa;
+                            int v = u->health * 100 / u->def->f1fa;
                             if (v < 0) {
                                 v = 0;
                             }
                             if (v > 100) {
                                 v = 100;
                             }
-                            u->ff7 = u->ff6;
-                            u->ff6 = v;
+                            u->prevHealthPercent = u->healthPercent;
+                            u->healthPercent = v;
                         }
                         Player* pl = u->player;
                         if (pl->active != 0) {
@@ -572,12 +572,12 @@ void __stdcall UpdateAllUnits(void)
                                 if (g_game->mapInfo->waterDoesDamage != 0
                                     && g_game->mapInfo->waterDamage != 0
                                     && (unsigned int)g_game->gameTick % 30 == 0 && u->pos.y.whole <= g_game->seaLevel
-                                    && !u->type->f241.bits.floats) {
+                                    && !u->def->f241.bits.floats) {
                                     DamageUnit(0, u, g_game->mapInfo->waterDamage, 0xb, 0);
                                 }
-                                if (u->type->f200 != 0 && u->health < u->type->f1fa
+                                if (u->def->f200 != 0 && u->health < u->def->f1fa
                                     && (g_game->gameTick & 7) == 0) {
-                                    int n = u->type->f200 * 8;
+                                    int n = u->def->f200 * 8;
                                     AddRepairProgress(u, u, (float)(n / 30));
                                 }
                                 RunOrders(u);
@@ -589,7 +589,7 @@ void __stdcall UpdateAllUnits(void)
                             }
                         }
                         if (u->f110.bits.b14) {
-                            KillUnit(u, u->ff5);
+                            KillUnit(u, u->lastDamageType);
                         }
                     }
                     u = (Unit*)((char*)u + 0x118);
@@ -633,7 +633,7 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
     stream->WriteBits((u->buildLeft != 0.0f) ? 1 - (int)(u->buildLeft * -254.0f) : 0, 8);
     stream->WriteBits(u->activateFlags, 8);
     stream->WriteBits(u->flags & 3, 2);
-    if (u->owner) {
+    if (u->carrier) {
         // Hand-written advance: the store through stream->data reloads and retests the link.
         stream->data[stream->index] |= 1 << stream->bit;
         stream->bit++;
@@ -646,8 +646,8 @@ void __stdcall WriteUnitState(BitWriter* stream, Unit* u)
             stream->data[stream->index] = 0;
         }
         // `!owner ? 0 : ...` lays the zero arm ahead of the load; keep the redundant `& 0xffff`.
-        stream->WriteBits((!u->owner ? 0 : u->owner->id) & 0xffff, 0xf);
-        stream->WriteBits(u->f9, 8);
+        stream->WriteBits((!u->carrier ? 0 : u->carrier->id) & 0xffff, 0xf);
+        stream->WriteBits(u->transportPiece, 8);
     } else {
         stream->bit++;
         if (stream->bit == 0x20) {
@@ -711,7 +711,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
         spawn.tail.words = u->angles;
         CreateUnitFromPacket((u->angles.bank & ~0xff) | u->playerIndex, &spawn);
     }
-    u->block->field_10 = zero;
+    u->state->field_10 = zero;
     u->health = reader->ReadBits(0x10);
     // Unsigned into an __int64: gives `fild qword` with no `cdq`.
     __int64 alpha = (unsigned int)reader->ReadBits(8);
@@ -735,7 +735,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
         ApplyAttachUnit(&order);
         return;
     }
-    if (u->owner) {
+    if (u->carrier) {
         Order order;
         order.id1 = u->id;
         order.id2 = 0;
@@ -753,7 +753,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
     tail.bank = (unsigned short)reader->ReadBits(0x10);
     // Named local copy of the +0x7e pair and `* 0x80000` rather than a shift:
     // both keep the original's frame order.
-    Point16 fixed = u->origin;
+    Point16 fixed = u->footprint;
     Point16 np;
     np.x = (short)((pos.x - fixed.x * 0x80000 + 0x80000) >> 20);
     np.y = (short)((pos.z - fixed.y * 0x80000 + 0x80000) >> 20);

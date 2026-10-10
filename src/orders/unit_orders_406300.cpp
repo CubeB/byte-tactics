@@ -1,10 +1,11 @@
 // Decompiled by Claude Opus 5.5, finished by GPT-6, verified by GPT-6.1-sol, edited by deepseek-v4.1, finished by deepseek-v4.1-flash, finished by space-bunny-free, finished by deepseek-v4.1-flash. Names are provisional.
 
 #include <stdio.h>
-struct Vec3 {
-    int x, y, z;
-    Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
-};
+#include "../util/vec3.h"
+static inline Vec3 operator+(const Vec3& a, const Vec3& b) { Vec3 r; r.x=a.x+b.x; r.y=a.y+b.y; r.z=a.z+b.z; return r; }
+// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
+class UnitMotion;
+struct Player;
 struct Unit;
 struct Order;
 class MissionType { public: unsigned char index; MissionType() {} MissionType(const char*); int operator==(const MissionType& v) const { return index==v.index; } };

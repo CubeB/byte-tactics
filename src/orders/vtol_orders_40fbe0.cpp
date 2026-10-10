@@ -4,10 +4,8 @@
 // guarded unit's own build or reclaim order (as the VTOL_ variant of that
 // order). The ground twin is 0x406300.
 #include <stdio.h>
-struct Vec3 {
-    int x, y, z;
-    Vec3 operator+(const Vec3& v) const { Vec3 r; r.x=x+v.x; r.y=y+v.y; r.z=z+v.z; return r; }
-};
+#include "../util/vec3.h"
+static inline Vec3 operator+(const Vec3& a, const Vec3& b) { Vec3 r; r.x=a.x+b.x; r.y=a.y+b.y; r.z=a.z+b.z; return r; }
 struct Unit;
 struct Order;
 #include "mission_type.h"

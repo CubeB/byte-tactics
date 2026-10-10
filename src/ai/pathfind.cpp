@@ -100,6 +100,7 @@ void __stdcall PushHeapSiftUp(Entry_40d670* first, int hole, int top, Entry_40d6
     first[hole] = val;
 }
 
+// Own definition, not vec3.h: it has the member operator!= that TracePath inlines.
 struct Point16 {
     short x;
     short y;

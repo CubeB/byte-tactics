@@ -19,6 +19,7 @@ union Fixed {
     };
 };
 
+// Own definitions, not vec3.h: y is a 16.16 Fixed, and vec3.h would redefine Vec3.
 struct Vec3 {
     int x;                             // +0x0
     Fixed y;                           // +0x4

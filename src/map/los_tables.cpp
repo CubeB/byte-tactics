@@ -73,7 +73,7 @@ struct Entry_00432cf0 {
 // Entry_00432cf0.
 struct Elem_432cb0 {
     StringRef handle;               // +0x0
-    int field_4;                       // +0x4
+    int value;                         // +0x4
 };
 
 #pragma pack(push, 1)
@@ -218,14 +218,14 @@ UcopyFn_00432c40 Access_00432c40::fn = &Access_00432c40::_Ucopy;
 
 // std::fill over an array of 8-byte string handles (compare the
 // copy_backward at 0x432cb0 below): assigns the handle through its assignment
-// operator 0x4c93b0 and copies its field_4. The function was compiled with
+// operator 0x4c93b0 and copies its value. The function was compiled with
 // __stdcall as the default, hence `ret 0xc`.
 // FUNCTION: 0x432c80
 void __stdcall AssignRange(Elem_432cb0* first, Elem_432cb0* last, Elem_432cb0* value)
 {
     for (; first != last; ++first) {
         first->handle.Assign(&value->handle);
-        first->field_4 = value->field_4;
+        first->value = value->value;
     }
 }
 
@@ -236,7 +236,7 @@ Elem_432cb0* __stdcall AssignRangeBack(Elem_432cb0* param_1, Elem_432cb0* param_
         --param_2;
         --param_3;
         param_3->handle.Assign(&param_2->handle);
-        param_3->field_4 = param_2->field_4;
+        param_3->value = param_2->value;
     }
     return param_3;
 }

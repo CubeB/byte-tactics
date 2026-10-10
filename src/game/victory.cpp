@@ -1649,7 +1649,7 @@ class AiSearchGoal;                    // slot 6's result
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
 class PathGoal {
 public:
-    OrderFx* field_4;                   // +0x4
+    OrderFx* target;                   // +0x4
     Struct_004907e0* owner;             // +0x8
 
     PathGoal(Struct_004907e0* p);
@@ -1674,8 +1674,8 @@ class PackedGoal : public PathGoal {
 public:
     Vec3 pos;                  // +0xc
     Vec3 vel;                  // +0x18
-    short field_24;                     // +0x24
-    char field_26;                      // +0x26
+    short heading;                     // +0x24
+    char field_26;                     // +0x26
     union {
         struct {
             unsigned char dirty : 1;    // +0x27 bit 0
@@ -1684,7 +1684,7 @@ public:
         struct {
             unsigned char state : 3;    // +0x27, both
         };
-        unsigned char field_27;
+        unsigned char netDirtyFlags;   // +0x27, the whole byte
     };
 
     PackedGoal(Struct_004907e0* p);
@@ -1705,12 +1705,12 @@ PackedGoal::PackedGoal(Struct_004907e0* p)
 {
     pos = p->pos;
     vel = MakeVec3(0, 0, 0);
-    field_24 = p->heading;
+    heading = p->heading;
 }
 
 // PackedGoal's override of slot 4 (vtable 0x4fd980, inherited by
 // LiteGoal and PackedPosGoal; the class family is listed in
-// order_targets_44ef20.cpp): copies out the position, the velocity and field_24
+// order_targets_44ef20.cpp): copies out the position, the velocity and heading
 // (the heading 0x490690 turns towards the owner).
 // FUNCTION: 0x490650
 void PackedGoal::ExportGoalPose(Vec3* outPos, Vec3* outVel,
@@ -1718,7 +1718,7 @@ void PackedGoal::ExportGoalPose(Vec3* outPos, Vec3* outVel,
 {
     *outPos = pos;
     *outVel = vel;
-    *outHeading = field_24;
+    *outHeading = heading;
 }
 
 // PackedGoal's override of slot 2 (vtable 0x4fd980, inherited by
@@ -1735,10 +1735,10 @@ void PackedGoal::ExportGoalPose(Vec3* outPos, Vec3* outVel,
 // FUNCTION: 0x490690
 void PackedGoal::TickTowardGoal()
 {
-    if (!field_4)
+    if (!target)
         return;
     Vec3 old = pos;
-    field_4->FillWorldPos(&pos);
+    target->FillWorldPos(&pos);
     vel = pos - old;
     int dist = (int)_hypot(owner->pos.x - pos.x, owner->pos.z - pos.z);
     if (dist > 0xa00000) {
@@ -1749,11 +1749,11 @@ void PackedGoal::TickTowardGoal()
             // branches from being tail-merged.
             pos.y = (owner->def->altitude + owner->spatialBucket[1]) << 16;
     }
-    if (dist > 0x1400000 || (!field_4->GetDesiredHeading((unsigned short*)&field_24) && dist > 0x100000))
-        field_24 = (short)GetHeadingBetween(&owner->pos, &pos);
-    if (field_4->ContainsUnit((Unit*)owner)) {
-        field_4->AddFlags(0x20);
-        if (!field_4->KeepAfterComplete())
+    if (dist > 0x1400000 || (!target->GetDesiredHeading((unsigned short*)&heading) && dist > 0x100000))
+        heading = (short)GetHeadingBetween(&owner->pos, &pos);
+    if (target->ContainsUnit((Unit*)owner)) {
+        target->AddFlags(0x20);
+        if (!target->KeepAfterComplete())
             SetPathOrder(0);
     }
 }
@@ -1808,7 +1808,7 @@ void LiteGoal::TickTowardGoal()
 // FUNCTION: 0x4908b0
 int LiteGoal::HasNetUnitState()
 {
-    return field_27 & 1;
+    return netDirtyFlags & 1;
 }
 
 // Slot 8: writes the object at +0x4 (a 2-bit kind, then its own data) and the
@@ -1817,14 +1817,14 @@ int LiteGoal::HasNetUnitState()
 // FUNCTION: 0x4908c0
 void LiteGoal::SerializeNetUnitState(BitWriter* stream)
 {
-    if (field_4 == 0) {
+    if (target == 0) {
         stream->WriteBits(0, 2);
-    } else if (field_4->GetType() == 2) {
+    } else if (target->GetType() == 2) {
         stream->WriteBits(1, 2);
-        field_4->SerializeToBits(stream);
-    } else if (field_4->GetType() == 3) {
+        target->SerializeToBits(stream);
+    } else if (target->GetType() == 3) {
         stream->WriteBits(2, 2);
-        field_4->SerializeToBits(stream);
+        target->SerializeToBits(stream);
     }
     stream->WriteBits(owner->target->mode, 2);
     state = owner->target->mode << 1;     // clears the dirty bit too
@@ -1866,8 +1866,8 @@ PackedPosGoal::PackedPosGoal(Struct_004907e0* p)
 // FUNCTION: 0x4909e0
 PackedPosGoal::~PackedPosGoal()
 {
-    delete field_4;
-    field_4 = 0;
+    delete target;
+    target = 0;
 }
 
 // Slot 9: rebuilds the object at +0x4 from the bit stream (a 2-bit kind: 1 and
@@ -1876,15 +1876,15 @@ PackedPosGoal::~PackedPosGoal()
 // FUNCTION: 0x490a10
 void PackedPosGoal::DeserializeNetUnitState(BitReader* reader)
 {
-    if (field_4) {
-        delete field_4;
-        field_4 = 0;
+    if (target) {
+        delete target;
+        target = 0;
     }
     int kind = reader->ReadBits(2);
     if (kind == 1)
-        field_4 = new Class_0044e080(owner, reader);
+        target = new Class_0044e080(owner, reader);
     else if (kind == 2)
-        field_4 = new AirManeuverOrder((Owner_0044e9c0*)owner, reader);
+        target = new AirManeuverOrder((Owner_0044e9c0*)owner, reader);
     int state = reader->ReadBits(2);
     owner->obj->SetFlightMode((Unit*)owner, state);
 }

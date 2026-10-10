@@ -90,3 +90,7 @@ reason is what stopped it. A module whose row list is empty is one file.
 | network/online | src/network/online_45b250.cpp | Gap code: `tools/gapcheck.py` sizes a gap region by the file it is in, so it cannot share online.cpp. |
 | network/online | src/network/online_45b490.cpp | Gap code, same as online_45b250.cpp. |
 | network/online | src/network/online_45b670.cpp | Gap code, same as online_45b250.cpp. |
+| graphics/draw | src/graphics/draw_4c0330.cpp | Merged, its dy local keeps a register where the original spills it, which takes 4 bytes off the frame and moves the block codegen. |
+| graphics/model_render | src/graphics/model_render_4581e0.cpp | Its summing loop needs to be the first function after the module's own types; even there the merged context puts the store's lea before the fadd (99.8%). |
+| graphics/model_render | src/graphics/model_render_4589c0.cpp | It calls BuildObjectPicture and DrawPieces on CMemoryCache, so it needs the class to derive from UnitTable, where the module makes CMemoryCache the base. |
+| graphics/model_render | src/graphics/model_render_458fa0.cpp | Merged, one of its copy loop's two pointer loads is scheduled before the other (99.3%). |

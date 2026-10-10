@@ -6,10 +6,16 @@
 // the composite buffer and its shadow bitmap, the flat and lit piece
 // rasterisers), the per-piece draw calls and their bitmap helpers, and the
 // runtime "Object State" clone of a model's piece tree (its piece records,
-// their links and transforms). The module's files gathered in address order;
-// the functions that only match at their own file's symbol count stay in
-// model_render_4581e0.cpp, model_render_4584d0.cpp, model_render_4589c0.cpp,
-// model_render_458fa0.cpp and model_render_45b0a0.cpp.
+// their links and transforms). DrawPiece (0x4584d0) and PoseModel (0x45b0a0)
+// joined at the end and out of address order, where their bodies' symbol ids
+// do not move the other functions' register windows (docs/c2-regalloc.md).
+// Three functions cannot join: DrawObjectPicture (0x459200,
+// model_render_4589c0.cpp) needs its own CMemoryCache that derives from
+// UnitTable to reach BuildObjectPicture and DrawPieces, where this file's
+// CMemoryCache is the base; DrawLitPieces (0x459c70, model_render_4581e0.cpp)
+// needs to be the first function defined after its types, and even then the
+// summing loop's lea moves above the fadd (99.8%); DrawPieceEdges (0x458fa0,
+// model_render_458fa0.cpp) is one load order short of the original (99.3%).
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -274,10 +280,11 @@ public:
     void BuildShadow(Model_459200*, GafFrame*);
     void DrawObjectState(Model_459200*, void* context);
     void DrawObjectPieces(int param_1, Model_459200* list, Vec3 v, int param_6);
-    // Defined in model_render_4584d0.cpp: only matches at that file's symbol count.
+    // Defined at the end of this file, out of address order.
     void DrawPiece(Model_459200* model, void* surface, Vec3* camera,
         Object3do* info, Vec3* vertices, unsigned char palette, int useColor);
-    // Defined in model_render_4589c0.cpp: only matches at that file's symbol count.
+    // Defined in model_render_4589c0.cpp: it needs that file's CMemoryCache, which
+    // derives from UnitTable to reach BuildObjectPicture and DrawPieces.
     void DrawObjectPicture(int param_2, Model_459200* model, Vec3 v, int useColor);
     void MergeIntoComposite(GafFrame* src, Model_459200* model);
     void MeasureShadow(int* width, int* height, int* originX, int* originY, Model_459200* model);
@@ -349,7 +356,8 @@ public:
     void MeasureModel(int* width, int* height, int* originX, int* originY, Model_459200* model, Vec3* offset);
     int BuildObjectPicture(Model_459200* list, int param_2, int param_3);
     void DrawPieces(GafFrame* bitmap, Model_459200* list, int kind, int useColor);
-    // Defined in model_render_4581e0.cpp: only matches at that file's symbol count.
+    // Defined in model_render_4581e0.cpp: it must be the first function after its
+    // own types, and the merged context still moves its summing loop's lea.
     void DrawLitPieces(GafFrame* bitmap, Model_459200* list, int kind, int useColor);
 };
 
@@ -403,7 +411,7 @@ void __stdcall RotateByAngles(Vec3* in, Vec3* out, short* angles);
 int __stdcall CountObjects(Object3do* obj);
 Piece_459c70* __stdcall AddStateEntries(Model_459200* state, Object3do* obj, Piece_459c70* parent);
 Piece_459c70* __stdcall LinkStateEntries(Model_459200* state, Object3do* obj, Piece_459c70* parent);
-// Defined in model_render_45b0a0.cpp: only matches at that file's symbol count.
+// Defined at the end of this file, out of address order.
 void __fastcall PoseModel(Model_459200* state, Piece_459c70* entry, int flag);
 void __fastcall TransformPieces(Model_459200* model, Piece_459c70* piece,
                                 Vector3s* pos, Vec3* box, int force);
@@ -1307,4 +1315,96 @@ void __fastcall TransformPieces(Model_459200* owner, Piece_459c70* piece,
             break;
         deep = 1;
     }
+}
+
+// The two functions below are kept after 0x45b150 and out of address order:
+// defined at their addresses their bodies' symbol ids would move the register
+// windows the other functions match in (docs/c2-regalloc.md).
+// FUNCTION: 0x45b0a0
+void __fastcall PoseModel(Model_459200* model, Piece_459c70* piece, int force)
+{
+    if (piece->child)
+        PoseModel(model, piece->child, 1);
+
+    Vector3s pos;
+    pos.x = piece->short_14;
+    pos.z = piece->short_10;
+    pos.y = piece->short_12;
+    if (!force) {
+        pos.x += model->pos.x;
+        pos.z += model->pos.z;
+        pos.y += model->pos.y;
+    }
+
+    Object3do* object = piece->object;
+    Vec3 box;
+    box.x = piece->rot_x + object->box_x;
+    box.y = piece->rot_y + object->box_y;
+    box.z = piece->rot_z + object->box_z;
+
+    TransformPieces(model, piece, &pos, &box, 0);
+
+    if (force && piece->sibling)
+        PoseModel(model, piece->sibling, 1);
+}
+
+// FUNCTION: 0x4584d0
+void CMemoryCache::DrawPiece(Model_459200* model, void* surface, Vec3* camera,
+    Object3do* info, Vec3* vertices, unsigned char palette, int useColor)
+{
+    void* pic;
+    int i;
+    int unit;
+    Point_4584d0 projected[2000];
+    Point_4584d0 poly[25];
+    Unit_459200* view = model->owner;
+    struct Off_4584d0 { int a; int y; int b; };
+    Off_4584d0 off;
+    off.a = view->pos_x - camera->x;
+    off.y = view->pos_y;
+    off.b = view->pos_z - camera->z;
+    {
+        for (i = 0; i < info->vertexCount; i++, vertices++) {
+            projected[i].x = 0x80 + (short)((vertices->x + off.a) >> 16);
+            projected[i].y = (0x20 + ((short)((off.b - vertices->z) >> 16)
+                - ((short)((off.y + vertices->y) >> 16) >> 1)));
+        }
+    }
+    Face_459c70* face;
+    if (info->firstFace != -1) {
+        face = info->faces + 1;
+        i = 1;
+    } else {
+        face = info->faces;
+        i = 0;
+    }
+    if (i < info->faceCount) do {
+        int j;
+        unsigned short* p;
+        j = 0, p = face->indices;
+        if (face->count > j) {
+            while (1) {
+                poly[j] = projected[*p];
+                j++, p++;
+                int count = face->count;
+                if (j >= count)
+                    break;
+            }
+        }
+        FaceFlags_459c70 flags = face->flags;
+        if (!flags.bits.textured) {
+            if (face->count != 4) goto skip0;
+            if (flags.bits.usePic) {
+                if (flags.bits.shaded) {
+                    unit = *(int*)(((char*)g_game + 0x1b8a) + ((palette & 0xff) * 0x14b));
+                    pic = GetGafFrame(face->color, *(unsigned char*)(unit + 0x96));
+                } else pic = useColor ? GetGafFrame(face->color, 0) : GetGafSequenceFrame(&face->pic);
+            } else pic = face->pic;
+            DrawFrameQuad(surface, pic, poly, 0);
+skip0:;
+        } else {
+            FillPolygon(surface, poly, face->count, face->unknown_0);
+        }
+        i++, face++;
+    } while (i < info->faceCount);
 }

@@ -68,6 +68,8 @@ void __stdcall DrawPolygonEdges(GafFrame* view, Vertex_0045a610* points, int cou
 
 // A method that ignores `this`: its one caller (0x458dd0, MATCH) passes its own
 // `this` through in ecx, and spells the parameters (image, model, palette).
+// It stays in its own file: merged, one of the copy loop's two pointer loads
+// is scheduled before the other, one instruction off (99.3%).
 class CMemoryCache {
 public:
     void DrawPieceEdges(GafFrame* view, Model_00458fa0* model, int color);

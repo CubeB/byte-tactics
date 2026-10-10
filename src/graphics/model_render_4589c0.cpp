@@ -205,8 +205,9 @@ static inline int shade_bias(Model_459200* model)
 
 // Draws a model relative to the camera position `v` (the 16.16 vector the
 // callers pass by value), then its attached units. It stays in its own file:
-// the merged model_render.cpp cannot place it at the symbol count its
-// registers need.
+// it calls BuildObjectPicture and DrawPieces on CMemoryCache, so it needs the
+// class to derive from UnitTable, where the merged file makes CMemoryCache the
+// base.
 //
 // BUG/ODDITY (kept as found): the far-sprite test is `unitDefIndex != 0 || dx >=
 //   seaLevel`, so the shadow is drawn for every unit whose def index is not

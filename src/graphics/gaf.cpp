@@ -5,12 +5,8 @@
 // The gaf module: the GAF frame trees and their drawing (keyed, opaque, lit,
 // blended, grey, shadowed, dithered, depth and scaled), the frame allocators,
 // the sequence references, the lens and depth frames, the image helpers and
-// the row compression. The module's files gathered in address order.
-//
-// Three functions stay in their own files, where the symbol count their
-// registers need is the one their file alone gives them: DrawFrameLit
-// (0x4b8310, gaf_4b8310.cpp), DrawFrameDepth (0x4b90a0, gaf_4b90a0.cpp) and
-// DownsampleFrame (0x4b95a0, gaf_4b95a0.cpp).
+// the row compression. DrawFrameLit (0x4b8310), DrawFrameDepth (0x4b90a0) and
+// DownsampleFrame (0x4b95a0) are joined at the end, out of address order.
 // <windows.h> is needed even though no function here calls it: its
 // declaration count sets the register windows of 0x4b9360 and 0x4b9740.
 #include <windows.h>
@@ -1541,5 +1537,112 @@ void __stdcall CutFrameBelow(GafFrame* image, unsigned char level)
         }
         p++;
         m++;
+    }
+}
+
+// The three functions below are kept after 0x4ba1b0 and out of address order:
+// at their addresses their bodies' symbol ids would move the register windows
+// the other functions match in (docs/c2-regalloc.md).
+// FUNCTION: 0x4b8310
+void __stdcall DrawFrameLit(Surface* param_1, GafFrame* param_2, int x, int y, int param_5)
+{
+    Display_004b8310* d = GetDisplay();
+    if ((d->flags.byte & 0x80) == 0x80) {
+        Screen_004b8310 screen;
+        if (param_1 == 0) {
+            int locked = LockScreen(&screen.surf);
+            if (locked != 0)
+                param_1 = (Surface*)&screen.surf;
+        }
+
+        if (param_2 != 0) {
+            if (param_2->count > 0) {
+                for (int i = 0; i < param_2->count; i++)
+                    DrawFrameBlended(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
+            } else {
+                Rect_004b7e60 screen_rect;
+                Rect_004b7e60 sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
+                int w = param_2->width;
+                int h = param_2->height;
+                screen_rect.left = x - param_2->x;
+                screen_rect.top = y - param_2->y;
+                screen_rect.right = w + screen_rect.left - 1;
+                screen_rect.bottom = h + screen_rect.top - 1;
+                Bounds_src_004b8310 bs;
+                param_1->GetClipRect(&bs.bounds);
+                ClipRects(&sprite_rect, &screen_rect, &bs.bounds);
+                if (screen_rect.right >= screen_rect.left && screen_rect.bottom >= screen_rect.top
+                    && sprite_rect.right >= sprite_rect.left && sprite_rect.bottom >= sprite_rect.top) {
+                    if (param_2->flag9 == 0) {
+                        Src_004b8310& src = bs.src;
+                        src.width = param_2->width;
+                        src.height = param_2->height;
+                        src.pitch = param_2->width;
+                        src.pixels = (GafFrame**)param_2->plane0;
+                        BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect, param_5, d->lightTable);
+                    } else {
+                        BlitCompressedLit(param_1->pixels, param_1->pitch, &screen_rect,
+                            (GafFrame**)param_2->plane0, &sprite_rect, d->lightTable + (param_5 << 8));
+                    }
+                }
+            }
+        }
+
+        if (param_1 == (Surface*)&screen.surf)
+            UnlockScreen(&screen.surf);
+    }
+}
+
+// FUNCTION: 0x4b90a0
+void __stdcall DrawFrameDepth(GafFrame* src, GafFrame* dst, int x, int y, int level)
+{
+    int yoff;
+    int xoff;
+    xoff = dst->x - src->x + x;
+    yoff = dst->y - src->y + y;
+    if (xoff < 0 || yoff < 0) {
+        return;
+    }
+    unsigned char* sp0 = src->plane0;
+    unsigned char* sp1 = src->plane1;
+    for (int row = 0; row < src->height; row++) {
+        unsigned char* dp0 = xoff + dst->plane0 + dst->width * (yoff + row);
+        unsigned char* dp1 = xoff + dst->plane1 + dst->width * (yoff + row);
+        int n = src->width;
+        while (n--) {
+            unsigned char c = *sp0;
+            if (c != src->colour && *dp1 <= *sp1 + level) {
+                *dp0 = c;
+                *dp1 = *sp1 + level;
+            }
+            dp0++;
+            sp0++;
+            dp1++;
+            sp1++;
+        }
+    }
+}
+
+// Declared ahead of the definition, as the other files declare it: these
+// symbol ids put the registers on the window DownsampleFrame matches in.
+void __stdcall DownsampleFrame(GafFrame* src, GafFrame* dst);
+// FUNCTION: 0x4b95a0
+void __stdcall DownsampleFrame(GafFrame* src, GafFrame* dst)
+{
+    Display_004b8310* pal = GetDisplay();
+    int row = 0;
+    for (; row < dst->height; row++) {
+        for (int x = 0; x < dst->width; x++) {
+            unsigned char* p = src->plane0 + (row * src->width + x) * 2;
+            unsigned char* table = pal->alphaTable;
+            unsigned char* q = src->plane0 + (row * 2 + 1) * src->width + x * 2;
+            int a = p[0];
+            int b = p[1];
+            int p1 = table[(a << 8) + b];
+            int c = q[0];
+            int d = q[1];
+            int p2 = table[(c << 8) + d];
+            dst->plane0[row * dst->width + x] = table[(p1 << 8) + p2];
+        }
     }
 }

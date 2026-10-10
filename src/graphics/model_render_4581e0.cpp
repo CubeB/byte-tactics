@@ -1,8 +1,9 @@
 // Decompiled by Opus, space-bunny-free, longcat-2.5-preview-free, GPT-6, GPT-6.1-sol, deepseek-v4.1, deepseek-v4.1-flash and claude-opus-5-5. Names are provisional.
 // The object-picture builder's lit rasteriser: projects the vertices, builds
 // a normal per face and draws each face with a shade from the averaged normal
-// (0x459c70). It stays in its own file: the merged model_render.cpp cannot
-// place it at the symbol count its registers need.
+// (0x459c70). It stays in its own file: even placed as the first function after
+// the module's own types, the merged context moves the summing loop's store
+// lea above the fadd, one instruction off (docs/c2-regalloc.md).
 // Keep <stdio.h>, <stdlib.h> and <math.h>: without them operand orders change.
 #include <stdio.h>
 #include <stdlib.h>

@@ -1143,7 +1143,7 @@ address,size,file,symbol,status,similarity
 0x4581e0,289,src/graphics/model_render.cpp,?MeasureModel@UnitTable@@QAEXPAH000PAUModel_459200@@PATVec3@@@Z,matched,100.0
 0x458310,281,src/graphics/model_render.cpp,?AddModelBounds@CMemoryCache@@QAEXPAH000PAUModel_459200@@UPos_4589c0@@@Z,matched,100.0
 0x458430,159,src/graphics/model_render.cpp,?DrawObjectPieces@CMemoryCache@@QAEXHPAUModel_459200@@TVec3@@H@Z,matched,100.0
-0x4584d0,461,src/graphics/model_render_4584d0.cpp,?DrawPiece@CMemoryCache@@QAEXPAUModel_4584d0@@PAXPAUVec3_4584d0@@PAUPieceInfo_4584d0@@PAUVertex_4584d0@@IH@Z,matched,100.0
+0x4584d0,461,src/graphics/model_render.cpp,?DrawPiece@CMemoryCache@@QAEXPAUModel_459200@@PAXPATVec3@@PAUObject3do@@2EH@Z,matched,100.0
 0x4586a0,267,src/graphics/model_render.cpp,?BuildObjectPicture@UnitTable@@QAEHPAUModel_459200@@HH@Z,matched,100.0
 0x4587b0,85,src/graphics/model_render.cpp,?HalveFrame@@YGXPAUGafFrame@@0@Z,matched,100.0
 0x458810,427,src/units/unit_motion.cpp,?DrawObjectState@CMemoryCache@@QAEXPAUList_458810@@PAUVec3_458810@@@Z,matched,100.0
@@ -1170,7 +1170,7 @@ address,size,file,symbol,status,similarity
 0x45aec0,202,src/graphics/model_render.cpp,?AddStateEntries@@YGPAUPiece_459c70@@PAUModel_459200@@PAUObject3do@@PAU1@@Z,matched,100.0
 0x45af90,152,src/graphics/model_render.cpp,?LinkStateEntries@@YGPAUPiece_459c70@@PAUModel_459200@@PAUObject3do@@PAU1@@Z,matched,100.0
 0x45b030,105,src/graphics/model_render.cpp,?RestorePieceVertices@@YIHPAUPiece_459c70@@H@Z,matched,100.0
-0x45b0a0,174,src/graphics/model_render_45b0a0.cpp,?PoseModel@@YIXPAUModel_0045b0a0@@PAUPiece_0045b030@@H@Z,matched,100.0
+0x45b0a0,174,src/graphics/model_render.cpp,?PoseModel@@YIXPAUModel_459200@@PAUPiece_459c70@@H@Z,matched,100.0
 0x45b150,242,src/graphics/model_render.cpp,?TransformPieces@@YIXPAUModel_459200@@PAUPiece_459c70@@PAUVector3s@@PATVec3@@H@Z,matched,100.0
 0x45b480,13,src/network/online.cpp,?OnlineTranslate@@YGXPAE@Z,matched,100.0
 0x45b640,27,src/network/online.cpp,?OnlineUnload@@YGXXZ,matched,100.0
@@ -2544,7 +2544,7 @@ address,size,file,symbol,status,similarity
 0x4b7f70,32,src/graphics/gaf.cpp,?GetGafFrameDuration@@YGGPAUObj_004b7f70@@@Z,matched,100.0
 0x4b7f90,439,src/graphics/gaf.cpp,?DrawFrame@@YGXPAUSurface@@PAUGafFrame@@HH@Z,matched,100.0
 0x4b8150,436,src/graphics/gaf.cpp,?DrawFrameOpaque@@YGXPAUSurface@@PAUGafFrame@@HH@Z,matched,100.0
-0x4b8310,484,src/graphics/gaf_4b8310.cpp,?DrawFrameLit@@YGXPAVSurface@@PAUGafFrame@@HHH@Z,matched,100.0
+0x4b8310,484,src/graphics/gaf.cpp,?DrawFrameLit@@YGXPAUSurface@@PAUGafFrame@@HHH@Z,matched,100.0
 0x4b8500,465,src/graphics/gaf.cpp,?DrawFrameBlended@@YGXPAUSurface@@PAUGafFrame@@HH@Z,matched,100.0
 0x4b86e0,481,src/graphics/gaf.cpp,?DrawFrameGray@@YGXPAUSurface@@PAUGafFrame@@HH@Z,matched,100.0
 0x4b88d0,427,src/graphics/gaf.cpp,?EraseFrameDithered@@YGXPAUSurface@@PAUGafFrame@@HHH@Z,matched,100.0
@@ -2559,11 +2559,11 @@ address,size,file,symbol,status,similarity
 0x4b8e00,77,src/graphics/gaf.cpp,?AllocDepthFrame@@YGPAUGafFrame@@IHH@Z,matched,100.0
 0x4b8e50,104,src/graphics/gaf.cpp,?ClearFrame@@YGXPAUGafFrame@@H@Z,matched,100.0
 0x4b8ec0,475,src/graphics/gaf.cpp,?DrawFrameShadow@@YGXPAUSurface@@PAUGafFrame@@HH@Z,matched,100.0
-0x4b90a0,260,src/graphics/gaf_4b90a0.cpp,?DrawFrameDepth@@YGXPAUGafFrame@@0HHH@Z,matched,100.0
+0x4b90a0,260,src/graphics/gaf.cpp,?DrawFrameDepth@@YGXPAUGafFrame@@0HHH@Z,matched,100.0
 0x4b91b0,423,src/graphics/gaf.cpp,?BuildLensFrame@@YGPAXHHH@Z,matched,100.0
 0x4b9360,341,src/graphics/gaf.cpp,?DrawLens@@YGXPAXPAUGafFrame@@HH@Z,matched,100.0
 0x4b94c0,212,src/graphics/gaf.cpp,?GrabBackground@@YGXPAXPAUGafFrame@@HH@Z,matched,100.0
-0x4b95a0,252,src/graphics/gaf_4b95a0.cpp,?DownsampleFrame@@YGXPAUGafFrame@@0@Z,matched,100.0
+0x4b95a0,252,src/graphics/gaf.cpp,?DownsampleFrame@@YGXPAUGafFrame@@0@Z,matched,100.0
 0x4b96a0,54,src/graphics/gaf.cpp,?ZeroFramePixels@@YGXPAUGafFrame@@@Z,matched,100.0
 0x4b96e0,90,src/graphics/gaf.cpp,?TintFrameBelow@@YGXPAUGafFrame@@E@Z,matched,100.0
 0x4b9740,778,src/graphics/gaf.cpp,?DrawFrameScaledBlended@@YGXPAUSurface@@PAUGafFrame@@HHNN@Z,matched,100.0
@@ -2682,10 +2682,10 @@ address,size,file,symbol,status,similarity
 0x4c01a0,353,src/graphics/draw.cpp,?DrawDashedCircle@@YGXPAUSurface@@HHHHHH@Z,matched,100.0
 0x4c0310,28,src/graphics/draw.cpp,?FillPolygon@@YGXPAUSurface@@PAUPoint@@HE@Z,matched,100.0
 0x4c0330,932,src/graphics/draw_4c0330.cpp,?ScanFillPolygon@@YGHPAVSurface@@PAUPoint_004c0330@@HE@Z,matched,100.0
-0x4c06e0,200,src/graphics/draw_4c06e0.cpp,?FillFlatSpan@@YGXHPAUSpan_004c06e0@@PAUGafFrame@@E@Z,matched,100.0
+0x4c06e0,200,src/graphics/draw.cpp,?FillFlatSpan@@YGXHPAUSpan@@PAUGafFrame@@E@Z,matched,100.0
 0x4c07b0,106,src/graphics/draw.cpp,?DrawPolygon@@YGHPAUSurface@@PAUVec3@@HH@Z,matched,100.0
 0x4c0820,613,src/graphics/draw.cpp,?DrawPolygonEdges@@YGHPAUGafFrame@@PAUVec3@@HH@Z,matched,100.0
-0x4c0a90,118,src/graphics/draw_4c0a90.cpp,?PlotSpanEnds@@YGXHPAUSpan_004c0a90@@PAUGafFrame@@E@Z,matched,100.0
+0x4c0a90,118,src/graphics/draw.cpp,?PlotSpanEnds@@YGXHPAUSpan@@PAUGafFrame@@E@Z,matched,100.0
 0x4c0b10,352,src/graphics/draw.cpp,?FillShadedSpan@@YGXHPAUSpan@@PAUGafFrame@@E@Z,matched,100.0
 0x4c0c70,897,src/graphics/draw.cpp,?FillShadedPolygon@@YGHPAUGafFrame@@PAUPoint_004c0c70@@HE@Z,matched,100.0
 0x4c1000,791,src/graphics/draw.cpp,?FillFlatPolygon@@YGHPAUGafFrame@@PAUVec3@@HH@Z,matched,100.0

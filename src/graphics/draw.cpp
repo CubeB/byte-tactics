@@ -1,8 +1,10 @@
 // Decompiled by space-bunny-free, Opus, Sonnet 5.5, LongCat 2.5 Preview Free, deepseek-v4.1-flash, GPT-6.1-sol, mimo-v2.6-pro, claude-opus-5-5, Space Bunny Free, Claude Sonnet 5.5, Haiku, GPT-6, deepseek-v4.1, DeepSeek V4.1 Flash, Claude Opus 5.5, space-bunny-alpha and Sonnet. Names are provisional.
 // The draw module: lines, circles, polygons, fades and scanline fills into a
-// surface or the locked screen. ScanFillPolygon (0x4c0330), FillFlatSpan
-// (0x4c06e0) and PlotSpanEnds (0x4c0a90) stay in files of their own: their
-// register allocation follows symbol ids.
+// surface or the locked screen. PlotSpanEnds (0x4c0a90) and FillFlatSpan
+// (0x4c06e0), the two span writers the polygon fillers hand their rows to,
+// are joined at the end, in that order. ScanFillPolygon (0x4c0330) stays in
+// draw_4c0330.cpp: merged, its dy local keeps a register where the original
+// spills it, which takes 4 bytes off the frame.
 #include <string.h>
 // The standard headers below only move the symbol counter to the windows the
 // merged functions need (docs/c2-regalloc.md).
@@ -1795,4 +1797,68 @@ unsigned char __stdcall FontHeight(void* ptr)
     unsigned int result = 0;
     result = *(unsigned char*)ptr;
     return (unsigned char)result;
+}
+
+// The two span writers below are kept after 0x4c1470 and out of address order:
+// at their addresses their bodies' symbol ids would move the register windows
+// the other functions match in (docs/c2-regalloc.md).
+// FUNCTION: 0x4c0a90
+void __stdcall PlotSpanEnds(int row, Span* span, GafFrame* surf, unsigned char color)
+{
+    unsigned char* d = surf->depth;
+    unsigned char* p = surf->bits;
+    int w = span->x2 - span->x1;
+    if (w > 0) {
+        int start = span->x1;
+        int z = span->z1;
+        p += row * surf->pitch + start;
+        if (d != 0) {
+            d += row * surf->pitch + span->x1;
+            unsigned char z1 = z >> 16;
+            if (*d <= z1) {
+                *p = color;
+                *d = z1;
+            }
+            d += w;
+            p += w;
+            unsigned char z2 = span->z2 >> 16;
+            if (*d <= z2) {
+                *p = color;
+                *d = z2;
+            }
+        } else {
+            *p = color;
+            p[w] = color;
+        }
+    }
+}
+
+// FUNCTION: 0x4c06e0
+void __stdcall FillFlatSpan(int row, Span* span, GafFrame* surf, unsigned char color)
+{
+    unsigned char* p = surf->bits;
+    unsigned char* d = surf->depth;
+    int slope = (span->z2 - span->z1) / (span->x2 - span->x1);
+    if (span->x1 < 0) {
+        span->z1 = span->z1 - span->x1 * slope;
+        span->x1 = 0;
+    }
+    if (span->x2 > (int)surf->Pitch() - 1)
+        span->x2 = surf->Pitch() - 1;
+    int n = span->x2 - span->x1;
+    if (n > 0) {
+        int start = span->x1;
+        int off = start + row * surf->pitch;
+        int z = span->z1;
+        p = p + (start + row * surf->pitch);
+        if (d != 0) {
+            d = d + off;
+            while (n--) {
+                if (*d <= (unsigned char)(z >> 16)) { *p = color; *d = (unsigned char)(z >> 16); }
+                p++; d++; z += slope;
+            }
+        } else {
+            while (n--) *p++ = color;
+        }
+    }
 }

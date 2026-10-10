@@ -21,19 +21,6 @@
 #include "../util/vec3.h"
 #include "../util/point.h"
 
-// The unit position at +0x6a: a vector, or the six shorts of the grid cell.
-union UnitPos_00467440 {
-    Vec3 vec;
-    struct {
-        short f6a;
-        short f6c;
-        short f6e;
-        short f70;
-        short f72;
-        short f74;
-    } half;
-};
-
 #include "../util/angles.h"
 
 #include "../units/unit_def.h"
@@ -104,15 +91,8 @@ struct Unit {
     char unknown_58[0x5c - 0x58];
     void* f_5c;                        // +0x5c, the mission queue
     void* f_60;                        // +0x60, the background mission queue
-    Angles16 rot;                      // +0x64
-    union {
-        UnitPos_00467440 pos;          // +0x6a
-        struct {
-            int x;                     // +0x6a
-            int y;                     // +0x6e
-            int z;                     // +0x72
-        };
-    };
+    Angles16 angles;                   // +0x64
+    Vec3 pos;                          // +0x6a
     char unknown_76[0x92 - 0x76];
     // The unit definition; 0x46a530 indexes the model table with the short at
     // the same offset, 0x467e50 reads it as a string pointer.
@@ -582,15 +562,15 @@ void DetectionVisitor::MarkUnitsInRadarOrSonarRadius(Unit* unit)
         return;
     }
 
-    int dz = unit->z - this->pos.z;
-    int dx = unit->x - this->pos.x;
+    int dz = unit->pos.z - this->pos.z;
+    int dx = unit->pos.x - this->pos.x;
     int dist = (int)(((__int64)dx * dx) >> 32) + (int)(((__int64)dz * dz) >> 32);
 
-    if (unit->y <= ((int)g_game->seaLevel << 16) && dist < this->sonarRangeSq) {
+    if (unit->pos.y <= ((int)g_game->seaLevel << 16) && dist < this->sonarRangeSq) {
         unit->flags |= 0x200;
     }
 
-    if (def->modelMaxY + unit->y >= ((int)g_game->seaLevel << 16) && dist < this->radarRangeSq) {
+    if (def->modelMaxY + unit->pos.y >= ((int)g_game->seaLevel << 16) && dist < this->radarRangeSq) {
         unit->flags |= 0x100;
     }
 }
@@ -1196,10 +1176,10 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
         corners[3].y = lo.y;
         corners[3].z = hi.z;
         Vec3 pos;
-        pos.x = unit->x - (g_game->scrollX << 16);
-        pos.y = unit->y;
-        pos.z = unit->z - (g_game->scrollY << 16);
-        DrawRotatedQuadOutline(view, &pos, corners, (char*)&unit->rot);
+        pos.x = unit->pos.x - (g_game->scrollX << 16);
+        pos.y = unit->pos.y;
+        pos.z = unit->pos.z - (g_game->scrollY << 16);
+        DrawRotatedQuadOutline(view, &pos, corners, (char*)&unit->angles);
     }
 }
 

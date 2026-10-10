@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "../util/vec3.h"
+#include "../util/angles.h"
 
 static inline Vec3 operator+(const Vec3& a, const Vec3& b)
 {
@@ -61,7 +62,7 @@ struct Object {
 
 struct Unit {
     char unknown_0[0x70];
-    short field_70;                    // +0x70
+    short yWhole;                      // +0x70, the whole part of pos.y
     char unknown_72[0x92 - 0x72];
     UnitDef_0043db50* type;            // +0x92
     char unknown_96[0x9a - 0x96];
@@ -88,7 +89,7 @@ extern Game* g_game;
 void Class_0043db50::UpdateSfxOccupy(Unit* unit)
 {
     int seaLevel = g_game->seaLevel;
-    int y = unit->field_70;
+    int y = unit->yWhole;
     int newState = unit->state;
     if ((unit->flags & 3) == 1 || (unit->flags & 3) == 2) {
         if (y > seaLevel) {
@@ -142,9 +143,7 @@ struct Block_0043def0 {
 #pragma pack(push, 1)
 struct Object_0043def0 {
     char unknown_0[0x64];
-    short f64;                         // +0x64
-    short f66;                         // +0x66
-    short f68;                         // +0x68
+    Angles16 angles;                   // +0x64
     char unknown_6a[0x9e - 0x6a];
     Block_0043def0* recs;              // +0x9e
 };
@@ -192,9 +191,9 @@ Vec3 __stdcall GetPieceOffset(Object_0043def0* obj, int index)
             angles[2] = n->f10;
             angles[1] = n->f12;
             if (n->next == 0) {
-                angles[0] = angles[0] + obj->f64;
-                angles[2] = angles[2] + obj->f68;
-                angles[1] = angles[1] + obj->f66;
+                angles[0] = angles[0] + obj->angles.bank;
+                angles[2] = angles[2] + obj->angles.pitch;
+                angles[1] = angles[1] + obj->angles.heading;
             }
             RotateByAngles(&result, &result, angles);
             result.x += n->p->f10 + n->x;
@@ -282,9 +281,7 @@ struct Rec_0043e180 {
 #pragma pack(push, 2)
 struct Obj_0043e180 {
     char pad0[0x64];
-    short f64;                     // +0x64
-    short f66;                     // +0x66
-    short f68;                     // +0x68
+    Angles16 angles;               // +0x64
     char pad1[0x9e - 0x6a];
     Rec_0043e180* recs;            // +0x9e
 };
@@ -299,12 +296,12 @@ struct Out_0043e180 {
 // Operand order (object field first, record second) must stay in both helpers.
 static inline short SumY_0043e180(Obj_0043e180* obj, Rec_0043e180* q)
 {
-    return obj->f66 + q->c;
+    return obj->angles.heading + q->c;
 }
 
 static inline short SumZ_0043e180(Obj_0043e180* obj, Rec_0043e180* q)
 {
-    return obj->f68 + q->b;
+    return obj->angles.pitch + q->b;
 }
 
 // Builds a three-short offset from the object's position fields (+0x64,
@@ -318,7 +315,7 @@ Out_0043e180 __stdcall GetPieceAngles(Obj_0043e180* obj, int index)
     Out_0043e180 p;
     p.z = SumZ_0043e180(obj, &r[index]);
     p.y = SumY_0043e180(obj, &r[index]);
-    p.x = obj->f64 + r[index + 1].a;
+    p.x = obj->angles.bank + r[index + 1].a;
     return p;
 }
 

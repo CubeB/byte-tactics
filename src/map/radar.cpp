@@ -9,16 +9,6 @@
 #include <math.h>
 #include <ddraw.h>
 
-// Unused here: real functions declared to keep the file's symbol count.
-void __stdcall SetCameraPosition(int x, int y, int z);
-void __stdcall RecalculateLineOfSight(int param);
-void __stdcall CollectVisibleUnitIds();
-// Unused here: real functions declared to balance the ids PlayerInfo in player_info.h adds.
-void __stdcall CompactProjectiles();
-void __stdcall UpdateAllCellHeightRanges();
-void __stdcall ShutdownIngameSystems();
-void __stdcall StopAllSounds();
-
 struct Point_4665d0 {
     int x;
     int y;
@@ -56,7 +46,7 @@ struct Fx_00466c20 {
     unsigned char* colorMap;         // +0xcc
 };
 
-struct Shot_00466dc0;
+struct WeaponDef;
 
 union Flags110_00466dc0 {
     unsigned int all;
@@ -121,19 +111,17 @@ struct Player {
     char unknown_88[0x14b - 0x88];
 };
 
-struct Slot_00466dc0 {
-    Shot_00466dc0* shot;                 // +0x0
-    char unknown_4[0xe - 4];
-    unsigned char field_e;               // +0xe
-    char unknown_f[0x1c - 0xf];
-};
-
-struct Shot_00466dc0 {
+struct WeaponDef {
     char unknown_0[0xe0];
     int field_e0;                        // +0xe0
     char unknown_e4[0x111 - 0xe4];
     Flags111_00466dc0 flags;             // +0x111
 };
+
+// These headers' symbol ids replace those of seven declarations and a type that
+// were here to balance the ids (docs/c2-regalloc.md).
+#include "../util/angles.h"
+#include "../weapons/unit_weapon_slot.h"
 
 struct UnitType_00466dc0 {
     char unknown_0[0x204];
@@ -148,14 +136,16 @@ struct UnitType_00466dc0 {
 };
 
 struct Unit {
-    char unknown_0[0x10];
-    Slot_00466dc0 slots[3];              // +0x10
-    char unknown_64[0x8];
-    short field_6c;                      // +0x6c
+    char unknown_0[0x4];
+    UnitWeaponSlot weapons[3];           // +0x4, stride 0x1c
+    char unknown_58[0xc];
+    Angles16 angles;                     // +0x64
+    char unknown_6a[0x2];
+    short xWhole;                        // +0x6c, the whole part of pos.x
     char unknown_6e[2];
-    short field_70;                      // +0x70
+    short yWhole;                        // +0x70, the whole part of pos.y
     char unknown_72[2];
-    short field_74;                      // +0x74
+    short zWhole;                        // +0x74, the whole part of pos.z
     char unknown_76[0x1c];
     UnitType_00466dc0* def;              // +0x92
     char unknown_96[0x10];
@@ -173,7 +163,7 @@ struct Unit {
 };
 
 struct Projectile_00466dc0 {
-    Shot_00466dc0* shot;                 // +0x0
+    WeaponDef* shot;                     // +0x0
     int posx;                            // +0x4
     int posy;                            // +0x8
     int posz;                            // +0xc
@@ -189,12 +179,6 @@ struct Tail_00466dc0 {
     Unit* owner;                         // q+0x48
     char unknown_4c[0x5c - 0x4c];
     unsigned char player;                // q+0x5c
-};
-
-struct Blip_00466dc0 {
-    short id;                            // +0x0
-    int x;                               // +0x2
-    int y;                               // +0x6
 };
 
 // The four shorts at +0x142e7 are named minimapGadgetX/Y/W/H, originX/
@@ -552,7 +536,7 @@ void UpdateRadarMapped()
 // declaration count that gives the original's order; reading the type through
 // a reference taken at the top of the loop body leaves the x multiply on `u`.
 // The radar helpers use the ByteMap Index/Get methods (width materialised,
-// `mov ecx, [edx+0x80]; imul ecx, edi`) and the slot loop reads `slot->shot`
+// `mov ecx, [edx+0x80]; imul ecx, edi`) and the slot loop reads `slot->weapon`
 // at each use instead of a `shot` local.
 static Player* Player_Get(unsigned char p)
 {
@@ -593,7 +577,7 @@ static inline int OnRadar_00466dc0(int px, int py)
 // A unit's screen y (height folded into z) times the minimap scale.
 static inline int ScaleY_00466dc0(Unit* u)
 {
-    return ((int)u->field_74 - ((int)u->field_70 >> 1)) * (int)g_game->minimapGadgetH;
+    return ((int)u->zWhole - ((int)u->yWhole >> 1)) * (int)g_game->minimapGadgetH;
 }
 
 // FUNCTION: 0x466dc0
@@ -622,7 +606,7 @@ void DrawRadarUnits(void)
             if (u->unitDefIndex != 0) {
                 if (enabled != 0 || (u->flags.all & 0x300) != 0 ||
                     u->playerIndex == g_game->playerIndex) {
-                    int x = u->field_6c * g_game->minimapGadgetW /
+                    int x = u->xWhole * g_game->minimapGadgetW /
                             g_game->mapPixelWidth;
                     int y = ScaleY_00466dc0(u) / g_game->mapPixelHeight;
                     if (u->recentlyDamagedTimer == 0 ||
@@ -657,14 +641,14 @@ void DrawRadarUnits(void)
                                     g_game->mapPixelWidth, base[0xc]);
                         }
                         if (type->flags_241.bit29) {
-                            Slot_00466dc0* slot = u->slots;
+                            UnitWeaponSlot* slot = u->weapons;
                             int n = 3;
                             do {
-                                if (slot->shot->flags.bits.bit30) {
+                                if (slot->weapon->flags.bits.bit30) {
                                     int r = ((int)g_game->minimapGadgetW *
-                                             (slot->shot->field_e0 - 0x200)) /
+                                             (slot->weapon->field_e0 - 0x200)) /
                                             g_game->mapPixelWidth;
-                                    if (slot->field_e != 0)
+                                    if (slot->stockpile != 0)
                                         DrawDashedCircle(surface, x, y, r, base[0xf],
                                                      0x20,
                                                      g_game->timer.byte.field_142f0.b.hi & 1);

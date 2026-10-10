@@ -110,3 +110,7 @@ reason is what stopped it. A module whose row list is empty is one file.
 | orders/unit_orders | src/orders/unit_orders_406c40.cpp | The module's inline `_Construct` hook turns its copy loop into calls (38 bytes against 35). |
 | orders/unit_orders | src/orders/unit_orders_406c70.cpp | The module inlines it into the repair patrol's vector insert. |
 | units/units | src/units/units_485070.cpp | GetGroundHeight is compiled with other registers when merged into units_485010.cpp (58.8%); 0 to 100 added declarations before it, and 0 to 8 each before g_game and before it, do not change that, and the module file already records that its symbol ids have to stay low. |
+| ingame/info_panel | src/ingame/info_panel_467440.cpp | Merged (with the module's Unit and Game, and a view of the unit position's 16-bit words), the sensor loops take other registers and unit base offsets (78.2%); 0 to 8 added declarations, and 20 to 4000, do not bring it back. |
+| ingame/info_panel | src/ingame/info_panel_468cf0.cpp | The module includes `<windows.h>` and `<ddraw.h>` for 0x4685a0; with just those includes in front of the file, an imul operand order flips (94.8%). |
+| ingame/info_panel | src/ingame/info_panel_46a610.cpp | Merged (with the module's Unit, Feature, Game and FeatureSpot, and a Cell view), the prologue loads the feature table and the scroll offsets in another order (93.7%); 0 to 100 added declarations reach 94.7% at best. |
+| ingame/info_panel | src/ingame/info_panel_46a860.cpp | `// FLAGS: /Gi`, which the merged file cannot carry. |

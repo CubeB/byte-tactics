@@ -11,8 +11,8 @@
 
 #pragma pack(push, 1)
 
-// The unit type table entry, 0x19 bytes each.
-struct UnitType_0048cf30 {
+// The order type table entry (not a UnitDef), indexed by an OrderType.
+struct OrderTypeEntry {
     unsigned char index;                // +0x00
     char unknown_1[0x8 - 0x1];
     unsigned int flags_a;               // +0x08
@@ -24,7 +24,7 @@ struct UnitType_0048cf30 {
 class OrderType {
 public:
     unsigned char index;
-    UnitType_0048cf30* GetTableEntry();
+    OrderTypeEntry* GetTableEntry();
 };
 
 // A unit type index built from a name.
@@ -85,7 +85,7 @@ static inline MissionType Order(const char* name) { return MissionType(name); }
 
 // Kept out of the merged selection.cpp: it only matches at this file's symbol count.
 // FUNCTION: 0x48cf30
-void __stdcall IssueOrderToSelection(UnitType_0048cf30* entry, unsigned char mode,
+void __stdcall IssueOrderToSelection(OrderTypeEntry* entry, unsigned char mode,
                             OrderType kind, int* pos, int param_5, int param_6)
 {
     int flag_a = (entry->flags_a >> 2) & 1;

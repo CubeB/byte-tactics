@@ -37,10 +37,11 @@ struct UnitDefFlags_00467440 {
 };
 #pragma pack(pop)
 
+// A partial view of UnitDef (the header's fields at the same offsets); it stays for its symbol ids, which 0x467a50 needs.
 struct UnitType_004685a0 {
     char name[0x152];                  // +0x0
     int count;                         // +0x152
-    unsigned short* types;             // +0x156
+    unsigned short* ids;               // +0x156
     char unknown_15a[0x22f - 0x15a];
     unsigned char mobile;              // +0x22f
 };
@@ -957,7 +958,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
         return 0;
     Unit* unit = &g_game->units[g_game->f_391bd];
     if ((unit->f_110 & 0x10000000) == 0 || (unit->f_110 & 0x4000) != 0
-            || unit->type->types == 0) {
+            || unit->type->ids == 0) {
         g_game->f_391b3 = 0;
         g_game->f_391b7 = 0;
     }
@@ -1010,7 +1011,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
         y += lineHeight;
         if (unit->type->count > 0) {
             do {
-                unsigned short id = unit->type->types[i];
+                unsigned short id = unit->type->ids[i];
                 int prob = GetBuildRating(unit->playerIndex, id);
                 Def_004685a0* def = &g_game->unitDefs[id];
                 Rect_004685a0 bar;

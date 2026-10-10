@@ -10,13 +10,13 @@
 #include "ta_types.h"
 
 
-// Own views of the unit, unit type and game: the shared header's types have plain words where bitfields are needed.
+// Own views of the unit, UnitDef and game, with the names of units/unit_def.h: the shared header's types have plain words where bitfields are needed.
 #pragma pack(push, 1)
 struct UnitType_0041b2e0 {
     char unknown_0[0x22e];
     unsigned char buildMenuPageCount;  // +0x22e
     char unknown_22f[0x241 - 0x22f];
-    unsigned int flags_241;            // +0x241
+    unsigned int flags1;               // +0x241
     unsigned int canMoveOrder : 1;     // +0x245 bit 0
     unsigned int canFireOrder : 1;     // bit 1
     unsigned int canOnOff : 1;         // bit 2
@@ -63,7 +63,7 @@ struct Unit_0041b2e0 {
 
 struct BuildType_0041b2e0 {
     char unknown_0[0x20];
-    char name[0x229];                  // +0x20
+    char unitname[0x229];              // +0x20
 };
 
 struct Orders_0041b2e0 {
@@ -238,10 +238,10 @@ void RefreshSelectionOrders()
         g_game->orders.refresh = 0;
     } else if (count == 1 && first->type->buildMenuPageCount) {
         int page = first->flags.buildPage ? first->flags.page : 0;
-        if (page > 0 || (first->type->flags_241 & 0x80000000)) {
+        if (page > 0 || (first->type->flags1 & 0x80000000)) {
             char name[256];
             char gui[256];
-            strncpy(name, g_game->unitDefs[first->typeIndex].name, 0x20);
+            strncpy(name, g_game->unitDefs[first->typeIndex].unitname, 0x20);
             name[0x1f] = 0;
             sprintf(gui, "%s%d.GUI", name, page);
             if ((IsScreenNamed(&g_game->menu, gui) == 0 || g_game->unitIndex != first->id)

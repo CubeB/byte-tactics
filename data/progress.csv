@@ -1883,7 +1883,7 @@ address,size,file,symbol,status,similarity
 0x48ca20,513,src/ingame/selection.cpp,?CollectSelectedUnits@@YGXPAV?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@@Z,matched,100.0
 0x48cc30,323,src/ingame/selection.cpp,?DrawSelectedUnitOrderOverlays@@YGXPAXPAPAUUnit@@@Z,matched,100.0
 0x48cd80,428,src/ingame/selection.cpp,?PickUnitUnderCursor@@YGGXZ,matched,100.0
-0x48cf30,742,src/ingame/selection_48cf30.cpp,?IssueOrderToSelection@@YGXPAUUnitType_0048cf30@@EVOrderType@@PAHHH@Z,matched,100.0
+0x48cf30,742,src/ingame/selection_48cf30.cpp,?IssueOrderToSelection@@YGXPAUOrderTypeEntry@@EVOrderType@@PAHHH@Z,matched,100.0
 0x48d220,499,src/ingame/selection.cpp,?ResolveCursorModeForSelection@@YGHD@Z,matched,100.0
 0x48d420,175,src/ingame/selection.cpp,?FindNextUnmarkedLocalUnit@@YGPAUUnit@@XZ,matched,100.0
 0x48d4d0,348,src/ingame/selection.cpp,?FocusNextLocalUnit@@YGXXZ,matched,100.0

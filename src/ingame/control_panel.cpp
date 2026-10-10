@@ -92,11 +92,11 @@ struct UnitTypeFlags2 {
     unsigned int bits15 : 17;
 };
 
-// The game's build type table entry (0x249 bytes), the unit's own type as well
-// as a build menu's entry.
+// UnitDef (units/unit_def.h, 0x249 bytes) with its flag words read as bit fields,
+// which the header lacks: the unit's own type and a build menu entry.
 struct UnitType {
     char unknown_0[0x20];
-    char name[0x20];                   // +0x20
+    char unitname[0x20];               // +0x20
     char unknown_40[0x111 - 0x40];
     unsigned int field_111;            // +0x111
     char unknown_115[0x14a - 0x115];
@@ -107,9 +107,9 @@ struct UnitType {
     float energyCost;                  // +0x186 (TDF buildcostenergy)
     float metalCost;                   // +0x18a (TDF buildcostmetal)
     char unknown_18e[0x1ea - 0x18e];
-    int buildTime;                     // +0x1ea
+    int buildtime;                     // +0x1ea
     char unknown_1ee[0x1fa - 0x1ee];
-    unsigned int maxHp;                // +0x1fa
+    unsigned int maxHealth;            // +0x1fa
     char unknown_1fe[0x21e - 0x1fe];
     short id;                          // +0x21e
     char unknown_220[0x22e - 0x220];
@@ -514,7 +514,7 @@ void InitCommands()
 // FUNCTION: 0x4195f0
 void __stdcall CopyMenuEntryName(char* dest, unsigned short index)
 {
-    strncpy(dest, g_game->unitDefs[index].name, 0x20);
+    strncpy(dest, g_game->unitDefs[index].unitname, 0x20);
     dest[0x1f] = 0;
 }
 
@@ -588,7 +588,7 @@ int UpdatePlacementGhostValidity(void)
 // FUNCTION: 0x419940
 void __stdcall SetBuildCountText(Gui* obj, unsigned short index, int n)
 {
-    Gadget* e = FindGadgetOrNull(obj->layer->entries, g_game->unitDefs[index].name);
+    Gadget* e = FindGadgetOrNull(obj->layer->entries, g_game->unitDefs[index].unitname);
     if (e) {
         if (n)
             sprintf(e->u.text, "+%d", n);
@@ -1243,7 +1243,7 @@ int __stdcall GetBuildMenuPage(Unit* obj)
 void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n)
 {
     char name[256];
-    strncpy(name, g_game->unitDefs[index].name, 0x20);
+    strncpy(name, g_game->unitDefs[index].unitname, 0x20);
     name[0x1f] = 0;
     sprintf(dest, "%s%d.GUI", name, n);
 }
@@ -1320,11 +1320,11 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
         return 0;
     UnitType* type = unit->type;
     float prev = unit->buildLeft;
-    float next = min(max(prev - amount / type->buildTime, 0.0f), 1.0f);
+    float next = min(max(prev - amount / type->buildtime, 0.0f), 1.0f);
     float step = prev - next;
     float energyCharge = type->energyCost * step;
     float metalCharge = type->metalCost * step;
-    int hp = (int)(prev * type->maxHp) - (int)(next * type->maxHp);
+    int hp = (int)(prev * type->maxHealth) - (int)(next * type->maxHealth);
     if (amount < 0.0f) {
         float refund = -metalCharge;
         // Through a float&: writing unit->store.metalMake directly moves the hp load and compare.
@@ -1351,7 +1351,7 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
         if (next >= 1.0f)
             DamageUnit(unit, unit, 30000, 9, 0);
     } else if (builder->store.RequestEnergyAndMetal(energyCharge, metalCharge)) {
-        unit->hp = min(hp + unit->hp, unit->type->maxHp);
+        unit->hp = min(hp + unit->hp, unit->type->maxHealth);
         unit->buildLeft = next;
         unit->flags.raw |= 0x2000;
         result = 1;
@@ -1364,7 +1364,7 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
 // FUNCTION: 0x41bcd0
 void __stdcall ApplyUnfinishedBuildDecay(Unit* param_1, int param_2)
 {
-    float val = -((float)(param_1->type->buildTime * param_2) / param_1->type->energyCost);
+    float val = -((float)(param_1->type->buildtime * param_2) / param_1->type->energyCost);
     AddBuildProgress(param_1, param_1, val);
 }
 
@@ -1373,8 +1373,8 @@ int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float f)
 {
     int result = 0;
     UnitType* s = unit->type;
-    int max = s->maxHp;
-    int v = s->buildTime;
+    int max = s->maxHealth;
+    int v = s->buildtime;
     if (unit->hp >= max)
         return 0;
     int n1 = (int)((max * f - 1.0f) / v + 1.0f);

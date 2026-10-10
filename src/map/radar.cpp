@@ -123,6 +123,7 @@ struct WeaponDef {
 #include "../util/angles.h"
 #include "../weapons/unit_weapon_slot.h"
 
+// A partial view of UnitDef (units/unit_def.h) with flags1 as a bit field, which the header lacks.
 struct UnitType_00466dc0 {
     char unknown_0[0x204];
     short radardistance;                 // +0x204
@@ -131,7 +132,7 @@ struct UnitType_00466dc0 {
     short radardistancejam;              // +0x20a
     short sonardistancejam;              // +0x20c
     char unknown_20e[0x241 - 0x20e];
-    Flags241_00466dc0 flags_241;         // +0x241
+    Flags241_00466dc0 flags1;           // +0x241
     unsigned char flags2;                // +0x245
 };
 
@@ -640,7 +641,7 @@ void DrawRadarUnits(void)
                                     (int)g_game->minimapGadgetW * type->sonardistancejam /
                                     g_game->mapPixelWidth, base[0xc]);
                         }
-                        if (type->flags_241.bit29) {
+                        if (type->flags1.bit29) {
                             UnitWeaponSlot* slot = u->weapons;
                             int n = 3;
                             do {

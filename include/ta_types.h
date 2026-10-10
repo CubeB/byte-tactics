@@ -2049,7 +2049,7 @@ struct UnitRecord_00486fd0;
 struct UnitRecord_004876c0;
 struct UnitRef;
 struct UnitType_00489280;
-struct UnitType_0048cf30;
+struct OrderTypeEntry;
 struct UnitType_499e50;
 class UnitVisitor_0048ec20;
 class UnitVisitor_0048ed50;
@@ -13010,7 +13010,7 @@ struct Slot_0048cd80 {  // 0xa bytes, 1 view
     int y;  // +0x6
 };
 
-struct UnitType_0048cf30 {  // 0x15 bytes, 1 view
+struct OrderTypeEntry {     // 0x15 bytes, 1 view
     unsigned char index;  // +0x0
     char unknown_1[7];
     unsigned int flags_a;  // +0x8

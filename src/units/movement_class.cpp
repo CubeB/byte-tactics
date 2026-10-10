@@ -112,28 +112,18 @@ struct Struct_00440a70 {
 };
 #pragma pack(pop)
 
-#pragma pack(push, 1)
-struct PlayerInfo_00440c10 {
-    char unknown_0[0x96];
-    unsigned char color;               // +0x96
-};
+struct PlayerInfo;
 
+#pragma pack(push, 1)
 struct Player_00440c10 {               // 0x14b bytes
     int active;                        // +0x0
     char unknown_4[0x27 - 0x4];
-    PlayerInfo_00440c10* info;         // +0x27
+    PlayerInfo* info;               // +0x27
     char unknown_2b[0x73 - 0x2b];
     unsigned char type;                // +0x73
     char unknown_74[0x146 - 0x74];
     unsigned char side;                // +0x146
     char unknown_147[0x14b - 0x147];
-};
-
-struct PlayerInfo {
-    char unknown_0[0xa7];
-    unsigned char versionMajor;        // +0xa7
-    unsigned char versionMinor;        // +0xa8
-    unsigned int mapCrc;               // +0xa9
 };
 
 struct Player_00440cd0 {
@@ -567,6 +557,10 @@ void MovementClass::RefreshUnitIfStale(Object_00440af0* p)
         this->RefreshPassMap(p->a, p->b);
     }
 }
+
+// Included here, not at the top: the ids it adds would move RefreshPassMap and
+// SetPassMapCell out of the windows they match in.
+#include "../network/player_info.h"
 
 // Returns the lowest of ten slot numbers (0..9) not taken by any active player
 // of type 1-3 (side 10 excluded), or 0 when all are taken.

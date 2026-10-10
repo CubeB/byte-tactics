@@ -13,6 +13,11 @@
 void __stdcall SetCameraPosition(int x, int y, int z);
 void __stdcall RecalculateLineOfSight(int param);
 void __stdcall CollectVisibleUnitIds();
+// Unused here: real functions declared to balance the ids PlayerInfo in player_info.h adds.
+void __stdcall CompactProjectiles();
+void __stdcall UpdateAllCellHeightRanges();
+void __stdcall ShutdownIngameSystems();
+void __stdcall StopAllSounds();
 
 struct Point_4665d0 {
     int x;
@@ -88,10 +93,7 @@ union Flags14281_00466dc0 {
     } bits;
 };
 
-struct PlayerInfo {
-    char unknown_0[0x96];
-    unsigned char color;                 // +0x96
-};
+#include "../network/player_info.h"
 
 struct MapSize_00466dc0 {
     unsigned int width;                  // +0x80

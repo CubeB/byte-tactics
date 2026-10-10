@@ -112,7 +112,7 @@ struct Game {
         } net_bits;
     };
     char unknown_38d77[0x391f1 - 0x38d77];
-    int mode;                          // +0x391f1
+    int frontendState;                 // +0x391f1
     char unknown_391f5[0x3923b - 0x391f5];
     unsigned short : 2;                // +0x3923b
     unsigned short bit2_3923b : 1;
@@ -469,7 +469,7 @@ static inline void DropPlayer(int id)
 
 static inline int CommandAllowed(unsigned char* bytes)
 {
-    int mode = g_game->mode;
+    int mode = g_game->frontendState;
     if (mode == 5 && (g_packetModes[bytes[0]] & 2))
         return 1;
     if (mode == 6 && (g_packetModes[bytes[0]] & 4))

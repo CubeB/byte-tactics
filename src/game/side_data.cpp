@@ -64,7 +64,7 @@ struct Game {
     void* logos32;                     // +0x148db
     char unknown_148df[0x37f39 - 0x148df];
     int sideCount;                     // +0x37f39
-    Side_00431a60 sides[5];            // +0x37f3d, stride 0x232
+    Side_00431a60 sideDefs[5];         // +0x37f3d, stride 0x232
 };
 #pragma pack(pop)
 
@@ -123,7 +123,7 @@ void FreeSideFonts()
 {
     for (int i = 0; i < 5; i++) {
         // The reference is load-bearing: it keeps FreeSideFonts at 59 bytes.
-        int*& buffer = (int*&)g_game->sides[i].font;
+        int*& buffer = (int*&)g_game->sideDefs[i].font;
         if (buffer) {
             GameFreeThunk(buffer);
             buffer = 0;
@@ -185,7 +185,7 @@ void __stdcall LoadSideData(void)
 
     BuildDataPath(name, "gamedata", "sidedata", "TDF");
     parser.LoadFile(name);
-    s = g_game->sides;
+    s = g_game->sideDefs;
     side = 0;
     // `while (1)`, not `for (;; side++)`: a for loop is rotated and peeled.
     while (1) {

@@ -88,11 +88,11 @@ struct Game {
     char unknown_0[0x14267];
     float tidal;                       // +0x14267
     char unknown_1426b[0x37ede - 0x1426b];
-    float wind;                        // +0x37ede
+    float windFraction;                // +0x37ede
     char unknown_37ee2[0x37eee - 0x37ee2];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38a47 - 0x37ef2];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
 };
 #pragma pack(pop)
 
@@ -318,7 +318,7 @@ void __stdcall UpdatePlayerEconomy(Player* p)
                     if (ok)
                         AddIncome(u, &u->resourceSlot.res[1].produced, u->def->makesMetal);
                 } else if (u->def->windGenerator > 0) {
-                    AddIncomeW(u, &u->resourceSlot.res[0].produced, g_game->wind * u->def->windGenerator);
+                    AddIncomeW(u, &u->resourceSlot.res[0].produced, g_game->windFraction * u->def->windGenerator);
                 } else if (u->def->tidalGenerator > 0) {
                     AddIncomeDB(u, &u->resourceSlot.res[0].produced, g_game->tidal * u->def->tidalGenerator);
                 }
@@ -334,7 +334,7 @@ void __stdcall UpdatePlayerEconomy(Player* p)
         }
         if (!(p->active && p->type == 3)) {
             if (u->bit11) {
-                if (!(u->flags & 0x1000) && u->workTime <= g_game->ticks) {
+                if (!(u->flags & 0x1000) && u->workTime <= g_game->gameTick) {
                     int cost = (int)((u->flags & 0xc) > 0 ? u->def->costActive : u->def->cost);
                     ((Unit*)u)->SetStateBits(4, u->resourceSlot.SpendEnergy(cost));
                 } else

@@ -32,7 +32,7 @@ struct Game {
     char unknown_0[0x1426f];
     Feature* features;                 // +0x1426f
     char unknown_14273[0x38a47 - 0x14273];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
 };
 #pragma pack(pop)
 
@@ -95,7 +95,7 @@ int __stdcall ReclaimOrder(Unit* unit, Order* order, int flags)
         order->time -= 2;
         if (order->time <= 0)
             return 1;
-        unit->workTime = g_game->ticks + 300;
+        unit->workTime = g_game->gameTick + 300;
         if (order->time > 15) {
             Vec3 nano;
             GetNanoPiecePosition(unit, &nano);

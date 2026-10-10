@@ -347,11 +347,11 @@ struct Game {
     void* unknown_147cf;               // +0x147cf, the smoke animation
     void* unknown_147d3;               // +0x147d3, the other smoke animation
     char unknown_147d7[0x37ecc - 0x147d7];
-    int windX;                         // +0x37ecc
+    int windVelX;                      // +0x37ecc
     char unknown_37ed0[4];
     int windZ;                         // +0x37ed4
     char unknown_37ed8[0x38a47 - 0x37ed8];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
     char unknown_38a4b[0x38d77 - 0x38a4b];
     ParticleLists* lists;              // +0x38d77, the ten per-index lists
 };
@@ -797,7 +797,7 @@ void __stdcall EmitTimedSubParticles(Vec3_00475150* p, short index)
 // FUNCTION: 0x474d10 ??_GSmokeParticles@@UAEPAXI@Z
 SmokeParticles::SmokeParticles()
 {
-    time = g_game->ticks;
+    time = g_game->gameTick;
 }
 #pragma auto_inline(on)
 
@@ -806,6 +806,6 @@ SmokeParticles::SmokeParticles()
 // FUNCTION: 0x475110 ??_GTimedSubParticles@@UAEPAXI@Z
 TimedSubParticles::TimedSubParticles()
 {
-    time = g_game->ticks;
+    time = g_game->gameTick;
 }
 #pragma auto_inline(on)

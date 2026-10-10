@@ -220,9 +220,9 @@ struct Game {
     char unknown_14397[0x37ee6 - 0x14397];
     unsigned short maxUnits;           // +0x37ee6, the unit count
     char unknown_37ee8[0x38a47 - 0x37ee8];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Mission* mode;                     // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 
 // The seven byte order record the caller at 0x48aac0 builds on its stack and
@@ -553,7 +553,7 @@ void __stdcall UpdateAllUnits(void)
                             }
                         }
                         // Unsigned `% 30` (here and below) keeps the original's `div`.
-                        if ((unsigned int)g_game->ticks % 30 == 0) {
+                        if ((unsigned int)g_game->gameTick % 30 == 0) {
                             int v = u->health * 100 / u->type->f1fa;
                             if (v < 0) {
                                 v = 0;
@@ -568,14 +568,14 @@ void __stdcall UpdateAllUnits(void)
                         if (pl->active != 0) {
                             unsigned char k3 = pl->type;
                             if (k3 == 1 || k3 == 2) {
-                                if (g_game->mode->waterDoesDamage != 0
-                                    && g_game->mode->waterDamage != 0
-                                    && (unsigned int)g_game->ticks % 30 == 0 && u->pos.y.whole <= g_game->seaLevel
+                                if (g_game->mapInfo->waterDoesDamage != 0
+                                    && g_game->mapInfo->waterDamage != 0
+                                    && (unsigned int)g_game->gameTick % 30 == 0 && u->pos.y.whole <= g_game->seaLevel
                                     && !u->type->f241.bits.floats) {
-                                    DamageUnit(0, u, g_game->mode->waterDamage, 0xb, 0);
+                                    DamageUnit(0, u, g_game->mapInfo->waterDamage, 0xb, 0);
                                 }
                                 if (u->type->f200 != 0 && u->health < u->type->f1fa
-                                    && (g_game->ticks & 7) == 0) {
+                                    && (g_game->gameTick & 7) == 0) {
                                     int n = u->type->f200 * 8;
                                     AddRepairProgress(u, u, (float)(n / 30));
                                 }
@@ -778,7 +778,7 @@ void __stdcall ReadUnitState(BitReader* reader, Unit* u)
 // the game's tick counter, which is also stored in the player at +0x18. Then
 // every unit of the player that is live, whose owner exists and whose owner
 // accepts it, until the stream is half full; then a 16-bit -1 end marker, one
-// more bit, the player's own unit (the one at ticks % the unit count) written
+// more bit, the player's own unit (the one at gameTick % the unit count) written
 // in full, the length patched into the header as two bytes, and the packet.
 // FUNCTION: 0x48b710
 void __stdcall SendUnitStates(Player* p)
@@ -787,8 +787,8 @@ void __stdcall SendUnitStates(Player* p)
     BitWriter stream;
     stream.WriteBits(0x2c, 8);
     stream.WriteBits(0, 0x10);
-    stream.WriteBits(g_game->ticks, 0x20);
-    p->syncTick = g_game->ticks;
+    stream.WriteBits(g_game->gameTick, 0x20);
+    p->syncTick = g_game->gameTick;
     for (Unit* u = p->unitsBegin; u <= p->unitsEnd; u++) {
         if (!(u->flags & 0x10000000))
             continue;
@@ -805,7 +805,7 @@ void __stdcall SendUnitStates(Player* p)
             break;
     }
     stream.WriteBits(-1, 0x10);
-    int i = g_game->ticks % g_game->maxUnits;
+    int i = g_game->gameTick % g_game->maxUnits;
     stream.data[stream.index] |= 1 << stream.bit;
     stream.bit++;
     if (stream.bit == 0x20) {

@@ -327,7 +327,7 @@ struct Game {
     unsigned int lobbyTimeoutSecs;     // +0x37f31
     char unknown_37f35[0x38a47 - 0x37f35];
     union {
-        unsigned int ticks;            // +0x38a47
+        unsigned int gameTick;         // +0x38a47
         struct {
             char unknown_38a47[0x38a51 - 0x38a47];
             union {
@@ -353,9 +353,9 @@ struct Game {
         };
     };
     char unknown_38d77[0x391e9 - 0x38d77];
-    Mission* campaign;                 // +0x391e9
-    MissionConditions* conditions;     // +0x391ed
-    int mode;                          // +0x391f1
+    Mission* mapInfo;                  // +0x391e9
+    MissionConditions* victoryConditions;  // +0x391ed
+    int frontendState;                 // +0x391f1
     char unknown_391f5[0x39211 - 0x391f5];
     char connection[4];                // +0x39211
     char unknown_39215[0x3923b - 0x39215];
@@ -900,7 +900,7 @@ int __stdcall AddNetPlayer(int param_1)
         SendLobbySyncRequests();
         g_packetManager.SendAllQueued(1);
     }
-    if (g_game->campaign->GetGameType() == 3 && g_game->numPlayers > 1) {
+    if (g_game->mapInfo->GetGameType() == 3 && g_game->numPlayers > 1) {
         ReportGameEvent(2);
     }
     return 1;
@@ -1057,7 +1057,7 @@ void __stdcall BuildGameInfo(char* name, int* d, int* c, int* b, int* a)
     memset(name, ' ', 0x20);
     name[0x1f] = 0;
     strncpy(name, g_game->gameName, 0x10);
-    int src = (int)g_game->campaign->GetMissionName();
+    int src = (int)g_game->mapInfo->GetMissionName();
     strncpy(name + 0x10, (char*)src, 0xf);
     char* q = name;
     int n = 0x20;
@@ -2289,7 +2289,7 @@ void __stdcall RemovePlayer(int id)
     p->info->flags_9d_wide &= 0xfffb;
     memset(&p->allied, 0, 11);
 
-    if (g_game->campaign->GetGameType() == 3)
+    if (g_game->mapInfo->GetGameType() == 3)
         ReportGameEvent(3);
 
     if ((g_game->flags.value & 4) && host != 0) {
@@ -3500,7 +3500,7 @@ void __stdcall HandlePlayerEconomy(PlayerViewStatePacket* packet, Player* player
         else
             team.ackMapping = 0;
         SendPacketToPlayer(p->dpid, player->dpid, &team, 3);
-        if (g_game->conditions->CheckVictory() != 0)
+        if (g_game->victoryConditions->CheckVictory() != 0)
             continue;
         if (p->shareLos[player->index] != 0)
             continue;
@@ -3755,7 +3755,7 @@ void __stdcall UpdateResourceSharing(Player* player)
     if ((g_game->flags_2a44 & 1) == 0)
         return;
 
-    if (g_game->ticks % 60 == 0) {
+    if (g_game->gameTick % 60 == 0) {
         Player* found = player;
         if (player->info->shareMetal && player->metal > player->shareMetal) {
             for (int i = 0; i < 10; i++) {
@@ -3807,7 +3807,7 @@ void __stdcall UpdateResourceSharing(Player* player)
         }
     }
 
-    if (g_game->ticks % 450 == 0) {
+    if (g_game->gameTick % 450 == 0) {
         // Must stay a standalone bitfield test, not a mask or shift.
         if (player->info->shareMapping) {
         for (int i = 0; i < 10; i++) {

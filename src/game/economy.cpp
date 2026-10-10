@@ -95,11 +95,11 @@ struct Game {
     char unknown_2851[0x14267 - 0x2851];
     float tidal;                       // +0x14267
     char unknown_1426b[0x37ede - 0x1426b];
-    float wind;                        // +0x37ede
+    float windFraction;                // +0x37ede
     char unknown_37ee2[0x37eee - 0x37ee2];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38a47 - 0x37ef2];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
 };
 #pragma pack(pop)
 

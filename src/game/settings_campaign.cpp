@@ -46,10 +46,10 @@ struct Game {
     unsigned short loaded : 1;         // +0x37ebe, bit 4
     unsigned short flags_5 : 11;
     char unknown_37ec0[0x37eec - 0x37ec0];
-    unsigned short maxUnits;           // +0x37eec
+    unsigned short unitLimitIni;       // +0x37eec
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x38a47 - 0x37ef2];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
     char unknown_38a4b[0x38d7f - 0x38a4b];
     unsigned short flags_38d7f;        // +0x38d7f
     int numSkirmishPlayers;            // +0x38d81
@@ -58,9 +58,9 @@ struct Game {
     char unknown_391af[0x391cf - 0x391af];
     char thumbs[0x19];                 // +0x391cf
     char unknown_391e8[0x391e9 - 0x391e8];
-    Mission* campaign;                 // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     MissionConditions* victoryConditions;  // +0x391ed
-    int state;                         // +0x391f1
+    int frontendState;                 // +0x391f1
 };
 #pragma pack(pop)
 
@@ -176,7 +176,7 @@ int __stdcall LoadSavedGameState(HapiBank* file)
 {
     file->OpenAccount(g_summaryAccountName);
     if (file->HasItem("maxunits"))
-        g_game->maxUnits = file->GetIntegerItem("maxunits", 0);
+        g_game->unitLimitIni = file->GetIntegerItem("maxunits", 0);
     LoadPlayers(file);
     ReadCameraPosition(file);
     LoadFeatures(file);
@@ -209,35 +209,35 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
     (&file)->SetIntegerItem(buf, 0);
     sprintf(buf, g_buildTimeFormat, g_game->buildTime);
     (&file)->SetIntegerItem(buf, 0);
-    (&file)->SetIntegerItem(g_maxUnitsKey, g_game->maxUnits);
-    (&file)->SetStringItem(g_campaignKey, g_game->campaign->GetCampaignName());
-    if (g_game->state != 6) {
-        g_game->campaign->AdvanceMission();
+    (&file)->SetIntegerItem(g_maxUnitsKey, g_game->unitLimitIni);
+    (&file)->SetStringItem(g_campaignKey, g_game->mapInfo->GetCampaignName());
+    if (g_game->frontendState != 6) {
+        g_game->mapInfo->AdvanceMission();
     }
-    (&file)->SetStringItem(g_missionKey, g_game->campaign->GetMissionName());
-    (&file)->SetStringItem(g_mapKey, g_game->campaign->GetMissionName());
+    (&file)->SetStringItem(g_missionKey, g_game->mapInfo->GetMissionName());
+    (&file)->SetStringItem(g_mapKey, g_game->mapInfo->GetMissionName());
     (&file)->SetIntegerItem(g_difficultyKey, g_game->difficulty);
     (&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].info->side);
     (&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
-    (&file)->SetIntegerItem(g_gameTypeKey, g_game->campaign->GetGameType());
+    (&file)->SetIntegerItem(g_gameTypeKey, g_game->mapInfo->GetGameType());
     (&file)->SetStringItem(g_thumbsKey, g_game->thumbs);
-    if (g_game->campaign->GetGameType() == 2) {
+    if (g_game->mapInfo->GetGameType() == 2) {
         (&file)->SetIntegerItem(g_commanderDeathKey, g_game->options->commanderDeath);
         (&file)->SetIntegerItem(g_locationKey, g_game->options->location);
         (&file)->SetIntegerItem(g_mappingKey, g_game->options->mapping);
         (&file)->SetIntegerItem(g_lineOfSightKey, g_game->options->lineOfSight);
         (&file)->SetIntegerItem(g_lineOfSightTypeKey, g_game->options->lineOfSightType);
     }
-    if (g_game->state != 6) {
+    if (g_game->frontendState != 6) {
         (&file)->SetIntegerItem(g_betweenMissionsKey, 1);
-        g_game->campaign->SelectMission(g_game->mission);
+        g_game->mapInfo->SelectMission(g_game->mission);
     }
     if (param_2 != 0) {
         (&file)->SetStringItem(g_descriptionKey, param_2);
     }
     (&file)->SetIntegerItem(g_gameIdKey, param_3);
-    (&file)->SetIntegerItem(g_gameTimeKey, g_game->ticks);
-    if (g_game->state == 6) {
+    (&file)->SetIntegerItem(g_gameTimeKey, g_game->gameTick);
+    if (g_game->frontendState == 6) {
         (&file)->OpenNamedBox(g_radarImageBoxName);
         SaveSurface(g_game->finalSurface, &file);
         WriteCameraPosition(&file);

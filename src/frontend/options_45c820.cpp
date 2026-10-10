@@ -2,7 +2,7 @@
 // Applies saved option values to the game: the volume at +0x37f0c, the sound
 // flag word at +0x37f19 (bits 4, 5 and 6 copied from g_optionsBackupSoundFlags, bits 0-2
 // after the sound object is switched by the low three bits), the byte at
-// +0x37f17, then the brightness and both volume levels (same tail as
+// +0x37f17, then the gamma and both volume levels (same tail as
 // 0x45c630 and 0x45bcc0).
 
 class Sound {
@@ -21,9 +21,9 @@ struct Game {
     char unknown_0[0x10];
     Sound* sound;                      // +0x10
     char unknown_14[0x37f08 - 0x14];
-    int brightness;                    // +0x37f08
-    int volume1;                       // +0x37f0c
-    int volume2;                       // +0x37f10
+    int gamma;                         // +0x37f08
+    int fxVolume;                      // +0x37f0c
+    int musicVolume;                   // +0x37f10
     char unknown_37f14[0x37f17 - 0x37f14];
     unsigned char unitChat;            // +0x37f17
     char unknown_37f18[0x37f19 - 0x37f18];
@@ -44,7 +44,7 @@ void __stdcall SetBrightness(float value);
 // FUNCTION: 0x45c820
 void RestoreSoundOptions()
 {
-    g_game->volume1 = g_optionsBackupFxVolume;
+    g_game->fxVolume = g_optionsBackupFxVolume;
     g_game->soundFlags = (g_game->soundFlags & ~0x10) | (g_optionsBackupSoundFlags & 0x10);
     g_game->soundFlags = (g_game->soundFlags & ~0x20) | (g_optionsBackupSoundFlags & 0x20);
     g_game->soundFlags = (g_game->soundFlags & ~0x40) | ((g_optionsBackupSoundFlags & 0x20) << 1);
@@ -54,7 +54,7 @@ void RestoreSoundOptions()
         g_game->sound->Disable3D();
     g_game->soundFlags = (g_game->soundFlags & ~7) | (g_optionsBackupSoundFlags & 7);
     g_game->unitChat = g_optionsBackupUnitChat;
-    SetBrightness(0.5 - g_game->brightness * -0.041666668f);
-    g_game->sound->SetWaveVolume(g_game->volume1 << 10);
-    g_game->sound->SetAuxVolume(g_game->volume2 << 10, 0);
+    SetBrightness(0.5 - g_game->gamma * -0.041666668f);
+    g_game->sound->SetWaveVolume(g_game->fxVolume << 10);
+    g_game->sound->SetAuxVolume(g_game->musicVolume << 10, 0);
 }

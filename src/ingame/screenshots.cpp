@@ -22,18 +22,18 @@ struct Game {
     char unknown_529[0x2c76 - 0x529];
     Input_00499890 selected;
     char unknown_2c8e[0x37ebe - 0x2c8e];
-    unsigned short orderFlags;
+    unsigned short ordersPanelFlags;
     char unknown_37ec0[0x37f2f - 0x37ec0];
     // The key test is a standalone if on bit 1 of this unsigned short bitfield.
     unsigned short screenBitA : 1;
     unsigned short screenBitB : 1;
     char unknown_37f31[0x38a37 - 0x37f31];
-    int screenshot;
+    int lastSimBudgetTick;
     char unknown_38a3b[0x38a51 - 0x38a3b];
     unsigned short otherFlags;
     char path[0x20c];
     char unknown_38c5f[0x391e9 - 0x38c5f];
-    Mission* manager;
+    Mission* mapInfo;
     char unknown_391ed[0x391f5 - 0x391ed];
     void (__cdecl* callback)();
 };
@@ -71,11 +71,11 @@ void MainFrameTick()
             ToggleFullScreen();
         }
     }
-    if ((g_game->orderFlags & 1) && key == 0xe3) {
+    if ((g_game->ordersPanelFlags & 1) && key == 0xe3) {
         PopKey();
         PopUntilNamedLayout(0);
-        g_game->orderFlags &= 0xfffe;
-        if (g_game->manager->GetGameType() != 3)
+        g_game->ordersPanelFlags &= 0xfffe;
+        if (g_game->mapInfo->GetGameType() != 3)
             g_game->otherFlags &= 0xfffe;
     }
     if (key == 0xd6) {
@@ -84,7 +84,7 @@ void MainFrameTick()
         sprintf(path, g_screenshotDirFormat, g_game->path);
         MakeDirectoryPath(path);
         SaveScreenshot(path, g_screenshotPrefix);
-        g_game->screenshot = GetTicks();
+        g_game->lastSimBudgetTick = GetTicks();
     }
     PeekMouseEvent(&first);
     UpdateMenu(g_game->menu);

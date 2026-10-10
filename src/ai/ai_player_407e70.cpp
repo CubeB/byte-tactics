@@ -22,7 +22,7 @@ struct Game {
     char unknown_1422b[0x14281 - 0x1422b];
     unsigned short mapFlags;            // +0x14281
     char unknown_14283[0x38a47 - 0x14283];
-    int ticks;                          // +0x38a47
+    int gameTick;                       // +0x38a47
 };
 #pragma pack(pop)
 
@@ -181,7 +181,7 @@ void SpatialTimer::OnTimer()
 {
     // Computed first or the sum folds into one lea.
     int delay = RandomInt(150) + 30;
-    next = g_game->ticks + delay;
+    next = g_game->gameTick + delay;
     if (((Group_00407e90*)group)->units.empty())
         return;
     // Unused on purpose: it emits the operator delete call after the loop.

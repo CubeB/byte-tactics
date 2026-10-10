@@ -21,9 +21,9 @@ struct Game_0046c2a0 {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x38a47 - 0x2a43];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Mission* campaign;                 // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned short bits0_3923b : 2;    // +0x3923b
     unsigned short bit2_3923b : 1;
@@ -95,8 +95,8 @@ int FillScoreTables()
             g_onlineReportPlayers[i]->numAllies = n;
             for (; n < 10; n++)
                 allies[n] = 0;
-            Mission* c = g_game->campaign;
-            int score = (int)(g_game->ticks / 60 * c->timeMul);
+            Mission* c = g_game->mapInfo;
+            int score = (int)(g_game->gameTick / 60 * c->timeMul);
             score += (int)(p->kills * c->killMul);
             g_onlineReportScoreBoards[i]->score = score;
             g_onlineReportScoreBoards[i]->count = 9;

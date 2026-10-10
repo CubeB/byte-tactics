@@ -29,7 +29,7 @@ struct Game_0041dc20 {
     char unknown_0[0x1b63];
     Player players[10];                // +0x1b63
     char unknown_2851[0x38a47 - 0x2851];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x38dd9 - 0x38a4b];
     Stat_0041dc20 stats[10];           // +0x38dd9
     char unknown_3901d[0x3918f - 0x3901d];
@@ -44,7 +44,7 @@ struct Game_0041dc20 {
     int won;                           // +0x391af
     char unknown_391b3[0x391cf - 0x391b3];
     char results[0x391e9 - 0x391cf];   // +0x391cf
-    Mission* campaign;                 // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned short bits0_3923b : 2;    // +0x3923b
     unsigned short bit2_3923b : 1;
@@ -64,8 +64,8 @@ void CollectEndGameStats()
 {
     Stat_0041dc20* stats = g_game->stats;
     g_game->won = g_game->bit4_3923b;
-    if (g_game->campaign->GetGameType() == 1) {
-        g_game->mission = g_game->campaign->GetMissionIndex();
+    if (g_game->mapInfo->GetGameType() == 1) {
+        g_game->mission = g_game->mapInfo->GetMissionIndex();
         g_game->results[g_game->mission] = g_game->won ? 'W' : 'L';
     }
     g_game->maxKills = 10;
@@ -87,8 +87,8 @@ void CollectEndGameStats()
                 stats[i].metalProduced = (int)p->totalMetalProduced;
                 stats[i].energyWasted = (int)p->energyWasted;
                 stats[i].metalWasted = (int)p->metalWasted;
-                Mission* c = g_game->campaign;
-                int t = (int)(g_game->ticks / 60 * c->timeMul);
+                Mission* c = g_game->mapInfo;
+                int t = (int)(g_game->gameTick / 60 * c->timeMul);
                 stats[i].score = t + (int)(stats[i].kills * c->killMul);
                 if (stats[i].score < 0)
                     stats[i].score = 0;

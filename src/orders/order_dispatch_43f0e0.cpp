@@ -182,7 +182,7 @@ struct Game {
     unsigned char threshold; // +0x1427f
     char unknown_14280[0x37efa - 0x14280];
     union {
-        int flag37efa; // +0x37efa
+        int interfaceType; // +0x37efa
         int multiplayer;
     };
 };
@@ -678,7 +678,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
             return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
         return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
     case 1: {
-        if (g_game->flag37efa == 1) {
+        if (g_game->interfaceType == 1) {
             // Both arms write out their recursive calls; a shared goto breaks register use.
             if ((def->f245 & 0x10) && enemy)
                 return GetOrderType(3, unit, target, pos);

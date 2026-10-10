@@ -175,8 +175,10 @@ struct Game {
     int showRanges;                   // +0x391bf
 };
 
+// The same four ints as graphics/rect.h. 0x438c00 only matches with Rect
+// declared in this file; including the header changes its frame.
 struct Rect {
-    int x1, y1, x2, y2;
+    int left, top, right, bottom;
 };
 
 #pragma pack(pop)
@@ -253,13 +255,13 @@ void __stdcall DrawBuildFootprint(void* surface, View* view, Order* order,
     Pos lo = order->pos + type->lo;
     Pos hi = order->pos + type->hi;
     Rect r;
-    r.x1 = ScreenX(view, lo.x.whole);
-    r.y1 = ScreenY(view, lo.z.whole, lo.y.whole);
-    r.x2 = ScreenX(view, hi.x.whole);
-    r.y2 = ScreenY(view, hi.z.whole, lo.y.whole);
+    r.left = ScreenX(view, lo.x.whole);
+    r.top = ScreenY(view, lo.z.whole, lo.y.whole);
+    r.right = ScreenX(view, hi.x.whole);
+    r.bottom = ScreenY(view, hi.z.whole, lo.y.whole);
     int level = __min(__max(g_game->frame - order->timestamp, 0), 10);
-    int dx = (r.x2 - r.x1) * level / 10;
-    int dy = (r.y2 - r.y1) * level / 10;
+    int dx = (r.right - r.left) * level / 10;
+    int dy = (r.bottom - r.top) * level / 10;
     unsigned char outer;
     unsigned char inner;
     if (order->unit->flag4) {
@@ -269,14 +271,14 @@ void __stdcall DrawBuildFootprint(void* surface, View* view, Order* order,
         outer = g_game->field_dcc;
         inner = g_game->field_dd4;
     }
-    DrawLine(surface, r.x1 + dx - 1, r.y1 - 1, r.x1 + dx - 1, r.y2 + 1, outer);
-    DrawLine(surface, r.x2 - dx + 1, r.y1 - 1, r.x2 - dx + 1, r.y2 + 1, outer);
-    DrawLine(surface, r.x1 - 1, r.y1 + dy - 1, r.x2 + 1, r.y1 + dy - 1, outer);
-    DrawLine(surface, r.x1 - 1, r.y2 - dy + 1, r.x2 + 1, r.y2 - dy + 1, outer);
-    DrawLine(surface, r.x1 + dx, r.y1, r.x1 + dx, r.y2, inner);
-    DrawLine(surface, r.x2 - dx, r.y1, r.x2 - dx, r.y2, inner);
-    DrawLine(surface, r.x1, r.y1 + dy, r.x2, r.y1 + dy, inner);
-    DrawLine(surface, r.x1, r.y2 - dy, r.x2, r.y2 - dy, inner);
+    DrawLine(surface, r.left + dx - 1, r.top - 1, r.left + dx - 1, r.bottom + 1, outer);
+    DrawLine(surface, r.right - dx + 1, r.top - 1, r.right - dx + 1, r.bottom + 1, outer);
+    DrawLine(surface, r.left - 1, r.top + dy - 1, r.right + 1, r.top + dy - 1, outer);
+    DrawLine(surface, r.left - 1, r.bottom - dy + 1, r.right + 1, r.bottom - dy + 1, outer);
+    DrawLine(surface, r.left + dx, r.top, r.left + dx, r.bottom, inner);
+    DrawLine(surface, r.right - dx, r.top, r.right - dx, r.bottom, inner);
+    DrawLine(surface, r.left, r.top + dy, r.right, r.top + dy, inner);
+    DrawLine(surface, r.left, r.bottom - dy, r.right, r.bottom - dy, inner);
     *out = order->pos;
 }
 

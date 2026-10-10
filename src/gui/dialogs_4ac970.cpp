@@ -2,6 +2,7 @@
 // Draws the frame of one cell of the 16x16 "COLS" colour grid gadget
 // (cell index = row * 16 + column, each cell 8 pixels).
 
+// Not gadget.h's Gadget: that header's symbol ids move 0x4ac970 off its match.
 #pragma pack(push, 1)
 struct Gadget_004ac970 {               // 0x15b bytes
     char unknown_0[0x13];

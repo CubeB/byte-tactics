@@ -1644,28 +1644,12 @@ struct Struct_004907e0 {               // the owner, the object at +0x8
 
 class AiSearchGoal;                    // slot 6's result
 
-// The object at +0x4. Only the offsets of the virtuals it is asked for matter.
-class Class_0044ced0 {
-public:
-    virtual ~Class_0044ced0();
-    virtual void vf1();
-    virtual int GetType();                          // +0x08
-    virtual void vf3();
-    virtual int ExportGoalPose(Struct_004907e0* param);  // slot 4
-    virtual void vf5();
-    virtual void vf6();
-    virtual void vf7();
-    virtual void SerializeNetUnitState(Vec3* param);  // slot 8
-    virtual int TryGetDesiredHeading(short* param);         // slot 9
-    virtual void Write(BitWriter* stream);          // +0x28
-    virtual int FUN_0044ef50_11();                  // slot 11
-    void AddFlags(int param);
-};
+#include "../orders/air_maneuver_order.h"
 
 // Vtable 0x4fd428, constructor 0x44ef20, ??_G 0x44ef60.
 class PathGoal {
 public:
-    Class_0044ced0* field_4;            // +0x4
+    OrderFx* field_4;                   // +0x4
     Struct_004907e0* owner;             // +0x8
 
     PathGoal(Struct_004907e0* p);
@@ -1754,7 +1738,7 @@ void PackedGoal::TickTowardGoal()
     if (!field_4)
         return;
     Vec3 old = pos;
-    field_4->SerializeNetUnitState(&pos);
+    field_4->FillWorldPos(&pos);
     vel = pos - old;
     int dist = (int)_hypot(owner->pos.x - pos.x, owner->pos.z - pos.z);
     if (dist > 0xa00000) {
@@ -1765,11 +1749,11 @@ void PackedGoal::TickTowardGoal()
             // branches from being tail-merged.
             pos.y = (owner->def->altitude + owner->spatialBucket[1]) << 16;
     }
-    if (dist > 0x1400000 || (!field_4->TryGetDesiredHeading(&field_24) && dist > 0x100000))
+    if (dist > 0x1400000 || (!field_4->GetDesiredHeading((unsigned short*)&field_24) && dist > 0x100000))
         field_24 = (short)GetHeadingBetween(&owner->pos, &pos);
-    if (field_4->ExportGoalPose(owner)) {
+    if (field_4->ContainsUnit((Unit*)owner)) {
         field_4->AddFlags(0x20);
-        if (!field_4->FUN_0044ef50_11())
+        if (!field_4->KeepAfterComplete())
             SetPathOrder(0);
     }
 }
@@ -1837,28 +1821,20 @@ void LiteGoal::SerializeNetUnitState(BitWriter* stream)
         stream->WriteBits(0, 2);
     } else if (field_4->GetType() == 2) {
         stream->WriteBits(1, 2);
-        field_4->Write(stream);
+        field_4->SerializeToBits(stream);
     } else if (field_4->GetType() == 3) {
         stream->WriteBits(2, 2);
-        field_4->Write(stream);
+        field_4->SerializeToBits(stream);
     }
     stream->WriteBits(owner->target->mode, 2);
     state = owner->target->mode << 1;     // clears the dirty bit too
 }
 
 #pragma pack(push, 2)
-class Class_0044e080 : public Class_0044ced0 {
+class Class_0044e080 : public OrderFx {
 public:
-    char unknown_4[0x36 - 0x4];
+    char unknown_8[0x36 - 0x8];
     Class_0044e080(Struct_004907e0* owner, BitReader* reader);
-};
-
-struct Owner_0044e9c0;
-
-class AirManeuverOrder : public Class_0044ced0 {
-public:
-    char unknown_4[0x2c - 0x4];
-    AirManeuverOrder(Owner_0044e9c0* owner, BitReader* reader);
 };
 #pragma pack(pop)
 

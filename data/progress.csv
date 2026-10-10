@@ -728,7 +728,7 @@ address,size,file,symbol,status,similarity
 0x438870,15,src/orders/order_queue_4384a0.cpp,?OrStatusFlags@Order@@UAEXI@Z,matched,100.0
 0x438880,33,src/orders/order_queue_4384a0.cpp,?AnnounceStatusIfFlagged@Order@@QAEXPAD@Z,matched,100.0
 0x4388b0,21,src/orders/order_queue_4384a0.cpp,?ReattachFxToUnit@Order@@QAEXXZ,matched,100.0
-0x4388d0,89,src/orders/order_queue_4384a0.cpp,?SetAttachedFx@Order@@QAEXPAVAttached_0043a1f0@@@Z,matched,100.0
+0x4388d0,89,src/orders/order_queue_4384a0.cpp,?SetAttachedFx@Order@@QAEXPAVOrderFx@@@Z,matched,100.0
 0x438930,196,src/orders/order_queue_4384a0.cpp,?AttachApproachRadiusGoal@Order@@QAEXPAHH@Z,matched,100.0
 0x438a00,205,src/orders/order_queue_4384a0.cpp,?AttachRingApproachGoal@Order@@QAEXPAUVec3_0043a1f0@@HH@Z,matched,100.0
 0x438ad0,191,src/orders/order_queue_4384a0.cpp,?AttachBuildFootprintMarker@Order@@QAEXUPoint_00438ad0@@0@Z,matched,100.0
@@ -932,7 +932,7 @@ address,size,file,symbol,status,similarity
 0x44ce80,5,src/orders/order_targets.cpp,?SerializeSave@@YGHHHH@Z,matched,100.0
 0x44ce90,47,src/orders/order_targets.cpp,?FillGoalCells@OrderFx@@QAEXPAV?$vector@PAUElem_0044ce90@@V?$allocator@PAUElem_0044ce90@@@std@@@std@@@Z,matched,100.0
 0x44cec0,5,src/orders/order_targets.cpp,?ApproxDist@OrderFx@@QAEHHH@Z,matched,100.0
-0x44ced0,22,src/orders/order_targets.cpp,?AddFlags@PathOrder@@QAEXH@Z,matched,100.0
+0x44ced0,22,src/orders/order_targets.cpp,?AddFlags@OrderFx@@QAEXH@Z,matched,100.0
 0x44cef0,3,src/orders/order_targets.cpp,?KeepAfterComplete@OrderFx@@QAEHXZ,matched,100.0
 0x44cf00,24,src/orders/order_targets.cpp,?ContainsUnit@Class_0044cf00@@QAEXH@Z,matched,100.0
 0x44cf20,5,src/orders/order_targets.cpp,?ContainsCell@OrderFx@@QAEHHH@Z,matched,100.0

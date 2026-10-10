@@ -187,13 +187,13 @@ The failures fall into four groups:
    their views) first.
 3. **A pointee the header only forward-declares** (6 files): `UnitDef` in
    `ai_player_407e70.cpp`, `ai_player_40b530.cpp`, `unit_orders_401e00.cpp`,
-   `unit_orders_406aa0.cpp` and `unit_targets_489280.cpp`, and `Player` in
+   `unit_orders_406aa0.cpp` and `unit_targets.cpp`, and `Player` in
    `info_panel_467440.cpp`. The real header would include `unit_def.h` (and a
    player header when one exists); a header that pulls in nothing cannot let
    the caller dereference `def`.
 4. **A type or union the single member cannot carry** (11 files): the state
    pointer as `SpotState*` (`info_panel_46a610.cpp`), `def` as a
-   `UnitType*`/`char*` (`selection.cpp`, `sound_47ed40.cpp`), whole-`Vec3` or
+   `UnitType*`/`char*` (`selection.cpp`, `sound.cpp`), whole-`Vec3` or
    whole-`Point` assignments (`order_list.cpp`, `unit_orders_405980.cpp`,
    `line_of_sight_482ac0.cpp`, `net_game.cpp`), a union at +0x10 read as
    `mover`/`field_10` (`vtol_orders.cpp`, `vtol_orders_4118e0.cpp`,
@@ -335,7 +335,7 @@ uv run python3 build/scratch/6334/swap.py                    # the 83 verdicts
 | `src/orders/vtol_orders_414770.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/orders/vtol_orders_414a80.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/orders/vtol_orders_4152f0.cpp` | does not compile | C2039 is not a member of 'Unit' |
-| `src/sound/sound_47ed40.cpp` | does not compile | C2039 is not a member of 'Unit' |
+| `src/sound/sound.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/units/squads.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/units/unit.cpp` | does not compile | C2065 undeclared identifier |
 | `src/units/unit_commands.cpp` | does not compile | C2039 is not a member of 'Unit' |
@@ -344,7 +344,7 @@ uv run python3 build/scratch/6334/swap.py                    # the 83 verdicts
 | `src/units/unit_save.cpp` | does not compile | C2011 'class' type redefinition |
 | `src/units/unit_script.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/units/unit_scripts.cpp` | does not compile | C2039 is not a member of 'Unit' |
-| `src/units/unit_targets_489280.cpp` | does not compile | C2027 use of undefined type 'UnitDef' |
+| `src/units/unit_targets.cpp` | does not compile | C2027 use of undefined type 'UnitDef' |
 | `src/units/units_485010.cpp` | does not compile | C2011 'struct' type redefinition |
 | `src/units/units_4851c0.cpp` | does not compile | C2039 is not a member of 'Unit' |
 | `src/weapons/explosions.cpp` | does not compile | C2039 is not a member of 'Unit' |

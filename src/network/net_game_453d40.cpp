@@ -188,7 +188,7 @@ struct BuilderLinkPacket {
 };
 
 // A sound (0x13): the positional flag, the sound index and the sound's
-// position. sound/sound_47ed40.cpp names the same record.
+// position. sound/sound.cpp names the same record.
 struct Packet_0047f0c0 {
     unsigned char type;                // +0x0
     unsigned char flag;                // +0x1

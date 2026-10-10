@@ -450,7 +450,7 @@ registers need. Not queued.
 The list-free block (`GameFreeThunk` on the file names, descriptions, side
 list, then the radar preview, each cleared to 0) is written out twice here
 (399-410 and 513-524), and again in `SaveGameScreenHandler` (627-639) and
-`game_state_490ac0.cpp:993`. The "back to the menu" tail (`mode = 2; handler
+`game_state.cpp:993`. The "back to the menu" tail (`mode = 2; handler
 = MenuFrame; SetCloseHandler(LeaveNetGameCallback, 0)`, 534-536 and
 510-512) is a second three-line repeat. The load itself (426-541) is one
 sequence of summary-bank reads. Candidate: a `static inline` that frees the

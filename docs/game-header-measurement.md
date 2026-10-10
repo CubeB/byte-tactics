@@ -277,7 +277,7 @@ forward-declared, and `type clash` the numbered view against the header's type.
 | `src/game/economy.cpp` | does not compile | redefines `Player` |
 | `src/game/economy_401360.cpp` | does not compile | member `wind` |
 | `src/game/game_load.cpp` | does not compile | member `color1`, `displayContext`, `displayHeight`, `displayWidth` +28 |
-| `src/game/game_state_490ac0.cpp` | does not compile | member `assem`, `bit0_37ebe`, `bit11_37ebe`, `bit2_3923b` +24 |
+| `src/game/game_state.cpp` | does not compile | member `assem`, `bit0_37ebe`, `bit11_37ebe`, `bit2_3923b` +24 |
 | `src/game/main.cpp` | does not compile | member `displayContext`, `musicMode`, `sound`, `version` +2 |
 | `src/game/main_loop.cpp` | does not compile | member `bit0_14281`, `bit0_37ebe`, `bit1_14281`, `bit2` +19 |
 | `src/game/players_464290.cpp` | does not compile | redefines `Player`; member `blinkOn`, `flags_3923b`, `map`, `menu` +4; incomplete `PathMap` |
@@ -374,7 +374,7 @@ forward-declared, and `type clash` the numbered view against the header's type.
 | `src/orders/vtol_orders_413470.cpp` | does not compile | redefines `Player` |
 | `src/orders/vtol_orders_414380.cpp` | does not compile | member `tick` |
 | `src/orders/vtol_orders_414770.cpp` | takes it |  |
-| `src/sound/sound_47ed40.cpp` | does not compile | member `categories`, `displayContext`, `flags_37f19`, `frame` +1 |
+| `src/sound/sound.cpp` | does not compile | member `categories`, `displayContext`, `flags_37f19`, `frame` +1 |
 | `src/sound/sound_types.cpp` | does not compile | member `sounds` |
 | `src/units/movement_class.cpp` | does not compile | member `mapInfo`, `players2`; incomplete `Cell`, `Unit` |
 | `src/units/unit.cpp` | does not compile | member `f1427f` |
@@ -384,7 +384,7 @@ forward-declared, and `type clash` the numbered view against the header's type.
 | `src/units/unit_save.cpp` | does not compile | member `mapInfo` |
 | `src/units/unit_script.cpp` | does not compile | redefines `Player`; member `limitY`, `sources` |
 | `src/units/unit_scripts.cpp` | does not compile | member `localPlayerBit`, `multiplayer`; incomplete `Feature` |
-| `src/units/unit_targets_489280.cpp` | does not compile | member `frame`, `gridH`, `gridW`, `hmaps` +2 |
+| `src/units/unit_targets.cpp` | does not compile | member `frame`, `gridH`, `gridW`, `hmaps` +2 |
 | `src/units/unit_types.cpp` | does not compile | member `categories`, `categoryCount`, `displayContext`, `models` +2; incomplete `BuildList_0041ace0`, `Class_00437c80` |
 | `src/units/unit_types_42a8d0.cpp` | does not compile | member `unit_count`, `unitinfo`, `version_major`, `version_minor` |
 | `src/units/units_485010.cpp` | does not compile | redefines `Player`; member `autoFollowFlags`, `b7`, `conditions`, `definitions` +5; incomplete `Cell`, `Feature` |

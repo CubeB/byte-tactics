@@ -4,108 +4,16 @@
 // ranges.
 #include <string.h>
 #include <yvals.h>
+#include "name_map_tree.h"
 
-class NameKey {
-public:
-    char* name;                        // +0x0
-    bool LessThan(const NameKey& other) const;
-};
-
-struct Value_004e2620 {
-    NameKey key;                       // +0x0
-    char text[500];                    // +0x4
-
-    Value_004e2620& operator=(const Value_004e2620& v)
-    {
-        if (this)
-            memcpy(this, &v, sizeof(Value_004e2620));
-        return *this;
-    }
-};
-
-struct Node_004e2620 {
-    Node_004e2620* left;               // +0x0
-    Node_004e2620* parent;             // +0x4
-    Node_004e2620* right;              // +0x8
-    Value_004e2620 value;              // +0xc
-    int color;                         // +0x204
-};
-
-extern Node_004e2620* DAT_005292c4;    // the tree's _Nil
-
-class NameMapAllocator {
-public:
-    void* Allocate(unsigned int n);
-};
-
-struct Less_004e2620 {
-    bool operator()(const NameKey& a, const NameKey& b) const
-    {
-        return a.LessThan(b);
-    }
-};
-
-class Iter_004e2620 {
-public:
-    Node_004e2620* ptr;
-
-    Iter_004e2620() {}
-    Iter_004e2620(Node_004e2620* p) : ptr(p) {}
-};
-
-class NameMapTree {
-public:
-    Less_004e2620 compare;             // +0x0
-    Node_004e2620* head;               // +0x4
-    int nilref;                        // +0x8
-    unsigned int size;                 // +0xc
-
-    Node_004e2620*& _Root() { return head->parent; }
-    Node_004e2620*& _Lmost() { return head->left; }
-    Node_004e2620*& _Rmost() { return head->right; }
-
-    static Node_004e2620*& _Left(Node_004e2620* p) { return p->left; }
-    static Node_004e2620*& _Right(Node_004e2620* p) { return p->right; }
-    static Node_004e2620*& _Parent(Node_004e2620* p) { return p->parent; }
-    static int& _Color(Node_004e2620* p) { return p->color; }
-
-    void _Lrotate(Node_004e2620* _X)
-    {
-        std::_Lockit _Lk;
-        Node_004e2620* _Y = _Right(_X);
-        _Right(_X) = _Left(_Y);
-        if (_Left(_Y) != DAT_005292c4)
-            _Parent(_Left(_Y)) = _X;
-        _Parent(_Y) = _Parent(_X);
-        if (_X == _Root())
-            _Root() = _Y;
-        else if (_X == _Left(_Parent(_X)))
-            _Left(_Parent(_X)) = _Y;
-        else
-            _Right(_Parent(_X)) = _Y;
-        _Left(_Y) = _X;
-        _Parent(_X) = _Y;
-    }
-    void _Rrotate(Node_004e2620* _X)
-    {
-        std::_Lockit _Lk;
-        Node_004e2620* _Y = _Left(_X);
-        _Left(_X) = _Right(_Y);
-        if (_Right(_Y) != DAT_005292c4)
-            _Parent(_Right(_Y)) = _X;
-        _Parent(_Y) = _Parent(_X);
-        if (_X == _Root())
-            _Root() = _Y;
-        else if (_X == _Right(_Parent(_X)))
-            _Right(_Parent(_X)) = _Y;
-        else
-            _Left(_Parent(_X)) = _Y;
-        _Right(_Y) = _X;
-        _Parent(_X) = _Y;
-    }
-
-    Iter_004e2620 Insert(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V);
-};
+// Declared in the header's class; defined here so the tree insert below
+// inlines it, as the original's memcpy copy does.
+inline Value_004e2620& Value_004e2620::operator=(const Value_004e2620& v)
+{
+    if (this)
+        memcpy(this, &v, sizeof(Value_004e2620));
+    return *this;
+}
 
 // FUNCTION: 0x4e2620
 Iter_004e2620 NameMapTree::Insert(Node_004e2620* _X, Node_004e2620* _Y, const Value_004e2620& _V)
@@ -117,10 +25,10 @@ Iter_004e2620 NameMapTree::Insert(Node_004e2620* _X, Node_004e2620* _Y, const Va
     _Left(_Z) = DAT_005292c4;
     _Right(_Z) = DAT_005292c4;
     _Z->value = _V;
-    ++size;
-    if (_Y == head || _X != DAT_005292c4 || compare(_V.key, _Y->value.key)) {
+    ++_Size;
+    if (_Y == _Head || _X != DAT_005292c4 || compare(_V.key, _Y->value.key)) {
         _Left(_Y) = _Z;
-        if (_Y == head) {
+        if (_Y == _Head) {
             _Root() = _Z;
             _Rmost() = _Z;
         } else if (_Y == _Lmost())

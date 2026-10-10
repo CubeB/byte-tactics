@@ -139,6 +139,7 @@ struct UnitDef {
     unsigned int MaxHealth() { return maxHealth; }
 };
 
+// Keeps its own view: the declarations of player.h move the symbol ids that 0x402b70, 0x404730 and 0x405d90 match at.
 struct Player {
     int active;                        // +0x0
     char unknown_4[0x73 - 0x4];

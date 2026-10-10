@@ -48,6 +48,7 @@ struct Unit {
 
 #include "../network/player_info.h"
 
+// Keeps its own view: InitPlayerSlot clears the halves of the energy and metal totals apart, which player.h's doubles do not.
 struct Player {
     int active;                        // +0x00
     int index;                         // +0x04

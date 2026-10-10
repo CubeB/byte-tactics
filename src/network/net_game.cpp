@@ -100,7 +100,7 @@ union GameFlags_2a44 {
 
 // A player record at g_game+0x1b63 (0x14b bytes). One type for every view:
 // where two views name the same bytes differently the union carries both
-// names.
+// names. Keeps its own view: this file defines IsPlayableSlot (0x456030), which player.h does not declare.
 struct Player {
     int active;                        // +0x00
     union {

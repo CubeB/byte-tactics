@@ -13,6 +13,7 @@
 
 #include "player_info.h"
 
+// Keeps its own view: it declares the constructor that `Player temp` calls (0x463be0), which player.h leaves out.
 class Player {
 public:
     int active;                        // +0x00

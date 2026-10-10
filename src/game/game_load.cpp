@@ -559,7 +559,7 @@ unsigned short __stdcall GetCellFeature(Cell* cell);
 // - QueryPerformanceCounter's halves: the sum is written straight from the two
 //   fields, `SeedRandom(perfCount.LowPart + perfCount.HighPart)`. Through named
 //   locals the addition lands in the other register.
-// Earlier passes fixed: the network flags at +0x38d75 written as volatile
+// Also kept: the network flags at +0x38d75 written as volatile
 // (the field the guide names); the +0x9b bit-6 test as a 1-bit bitfield; the
 // mission-count loop with `i++` before `def += 6`; the ten-player walks with
 // `(unsigned char)i` so the multiply is not strength-reduced; the

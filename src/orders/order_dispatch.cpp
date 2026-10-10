@@ -339,7 +339,7 @@ static inline Feature_0043e490* GetFeature(Cell* cell) {
 // usual do/while(0) form: the loop emits no code, but it is load-bearing for
 // register allocation. Without it (the same if-statement written out at each
 // site) case 2 loads unit into ebx before the target test instead of after it,
-// and the extra reload block costs 20 bytes (85.0%).
+// and an extra reload block of 20 bytes appears.
 #define RECLAIM_CHECK(def, unit, pos, mask, result)                  \
     do {                                                             \
         if (((def)->f245 & (mask)) && Visible((unit), (pos))) {      \

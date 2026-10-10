@@ -265,7 +265,7 @@ public:
 
     // The real constructor is 0x43a0c0, in order_list.cpp: it needs
     // `kind(k)` as a plain member initialiser, which this class's second base
-    // rules out (98.9%).
+    // rules out.
     Order(MissionType, int, void*, int, int, int);
     ~Order();
     Order(Unit* punit, HapiBank* file, char* name);

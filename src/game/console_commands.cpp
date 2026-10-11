@@ -348,9 +348,7 @@ struct Point_00417f60 {
     int y;
 };
 
-struct Rect {
-    int left, top, right, bottom;
-};
+#include "../graphics/rect.h"
 
 // The command records the three tables hold.
 struct ConsoleCommand {

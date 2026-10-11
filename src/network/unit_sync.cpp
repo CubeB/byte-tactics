@@ -579,9 +579,9 @@ void ProtectUnitDefsReadOnly();
 extern char g_unitSyncStatusText[];
 
 // Inlined copy of PacketSequencer::SendUnsequenced (a method that ignores this).
-static inline void SendPacket(unsigned int to, void* packet)
+static inline void SendPacket(unsigned int to, UnitSyncPacket* packet)
 {
-    *(int*)((char*)packet + 2) = 0;
+    packet->id = 0;
     SendPacketToPlayer(GetLocalHumanDpid(), to, packet, 0xe);
 }
 
@@ -614,7 +614,7 @@ public:
         UnitSyncIter p = UnitSyncIter(map.LowerBound(key));
         return (p == End() || map.key_compare(*key, p.ptr->key)) ? End() : p;
     }
-    void Send(Target_0046d530* target, void* packet)
+    void Send(Target_0046d530* target, UnitSyncPacket* packet)
     {
         if (direct != 0) {
             SendPacket(target->id, packet);
@@ -742,8 +742,9 @@ PacketSequencer::PacketSequencer()
 // FUNCTION: 0x46cec0
 void PacketSequencer::SendUnsequenced(unsigned int param_1, void* param_2)
 {
-    *(int*)((char*)param_2 + 2) = 0;
-    SendPacketToPlayer(GetLocalHumanDpid(), param_1, param_2, 0xe);
+    UnitSyncPacket* packet = (UnitSyncPacket*)param_2;
+    packet->id = 0;
+    SendPacketToPlayer(GetLocalHumanDpid(), param_1, packet, 0xe);
 }
 
 // Dispatches a 0xe-byte command packet. arg 0x65 re-sends the stored copy that
@@ -887,10 +888,11 @@ void UnitSync::SendSyncPacket(unsigned int* param_1, UnitSyncPacket* param_2, in
 // FUNCTION: 0x46d500
 void UnitSync::ReceiveSyncPacket(void* param_1, int param_2)
 {
-    unsigned char b = *((unsigned char*)param_1 + 1);
-    *(int*)((char*)param_1 + 2) = 0;
+    UnitSyncPacket* packet = (UnitSyncPacket*)param_1;
+    unsigned char b = packet->arg;
+    packet->id = 0;
     if (b < 0x64) {
-        HandleSyncPacket((UnitSyncPacket*)param_1, param_2);
+        HandleSyncPacket(packet, param_2);
     }
 }
 

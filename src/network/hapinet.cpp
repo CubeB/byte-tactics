@@ -402,10 +402,10 @@ int __stdcall HAPINET_createnewgame(Net_4c97b0* net, char* name, int a3, int a4,
         unsigned long size = 0x50;
         int hr = net->dp->GetSessionDesc(0, &size);
         if (hr == (int)0x8877001e) {
-            void* buf = GameAllocIgnoreTag("DP SESSION DATA2", size);
+            SessionDesc_4c9890* buf = (SessionDesc_4c9890*)GameAllocIgnoreTag("DP SESSION DATA2", size);
             if (buf != 0) {
                 if (net->dp->GetSessionDesc(buf, &size) == 0)
-                    net->desc.guidInstance = *(GUID_004c9920*)((char*)buf + 8);
+                    net->desc.guidInstance = buf->guidInstance;
                 GameFreeThunk(buf);
             }
         }

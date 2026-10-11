@@ -14,45 +14,21 @@ struct Vec3_00467440 {
 
 union UnitPos_00467440 {
     Vec3_00467440 vec;
-    struct {
-        short f6a;
-        short f6c;
-        short f6e;
-        short f70;
-        short f72;
-        short f74;
-    } half;
+    short half[6];                     // the words of x, y and z: [1] x whole, [3] y whole, [5] z whole
 };
 
-struct UnitDef_00467440 {
-    char unknown_0[0x204];
-    short radardistance;               // +0x204
-    short sonardistance;               // +0x206
-    short mincloakdistance;            // +0x208
-    short radardistancejam;            // +0x20a
-    short sonardistancejam;            // +0x20c
-    char unknown_20e[0x245 - 0x20e];
-    unsigned int flags2;               // +0x245
-};
+#include "../units/unit_def.h"
 
 #include "../network/player_info.h"
 
-struct Owner_00467440 {
-    void* active;                      // +0x0
-    char unknown_4[0x27 - 0x4];
-    PlayerInfo* data;                  // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    char type;                         // +0x73
-    char unknown_74[0x108 - 0x74];
-    unsigned char allied[1];           // +0x108
-};
+struct PlayerInfo_00467440;
 
 struct Unit {
     char unknown_0[0x6a];
     UnitPos_00467440 pos;              // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitDef_00467440* def;             // +0x92
-    Owner_00467440* player;          // +0x96
+    UnitDef* def;                      // +0x92
+    PlayerInfo_00467440* player;       // +0x96
     char unknown_9a[0xb0 - 0x9a];
     int workTime;                      // +0xb0
     char unknown_b4[0xff - 0xb4];
@@ -88,9 +64,13 @@ struct PlayerInfo_00467440 {
     char unknown_2b[0x67 - 0x2b];
     Unit* unitsBegin;                  // +0x67
     Unit* unitsEnd;                    // +0x6b
-    char unknown_6f[0x7c - 0x6f];
+    char unknown_6f[0x73 - 0x6f];
+    char type;                         // +0x73
+    char unknown_74[0x7c - 0x74];
     ByteMap_00467440 explored;         // +0x7c
-    char unknown_88[0x146 - 0x88];
+    char unknown_88[0x108 - 0x88];
+    unsigned char allied[1];           // +0x108
+    char unknown_109[0x146 - 0x109];
     unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 };
@@ -141,8 +121,8 @@ bool __stdcall HasReadyUnitInRange(int player, Vec3_00467440* p, int range);
 
 static inline int IsExplored_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
 {
-    int tx = pos->half.f6c >> 5;
-    int ty = (pos->half.f74 - (pos->half.f70 >> 1)) >> 5;
+    int tx = pos->half[1] >> 5;
+    int ty = (pos->half[5] - (pos->half[3] >> 1)) >> 5;
     if (p->explored.size.Contains(tx, ty) && p->explored.Get(tx, ty) != 0)
         return 1;
     return 0;
@@ -150,8 +130,8 @@ static inline int IsExplored_00467440(PlayerInfo_00467440* p, UnitPos_00467440* 
 
 static inline int IsSeen_00467440(PlayerInfo_00467440* p, UnitPos_00467440* pos)
 {
-    int tx = pos->half.f6c >> 5;
-    int ty = (pos->half.f74 - (pos->half.f70 >> 1)) >> 5;
+    int tx = pos->half[1] >> 5;
+    int ty = (pos->half[5] - (pos->half[3] >> 1)) >> 5;
     if (!p->explored.size.Contains(tx, ty))
         return 0;
     return (g_game->visibilityMask[p->explored.size.width * ty + tx] &
@@ -190,7 +170,7 @@ void UpdateSensorRadarAndCloak(void)
             if (u->def->radardistance != 0 || u->def->sonardistance != 0) {
                 // t is computed before b is loaded, then squared.
                 short a = u->def->radardistance;
-                int t = a + u->pos.half.f70 * 2;
+                int t = a + u->pos.half[3] * 2;
                 short b = u->def->sonardistance;
                 t = t * t;
                 int s = (int)b * (int)b;

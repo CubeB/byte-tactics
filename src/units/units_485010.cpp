@@ -1052,27 +1052,28 @@ int __stdcall IsUnitCommander(Unit* unit)
 
 // A live unit that changed its type (the linked unit name at g_game+0x37f5f
 // matches the unit type's name) recomputes a "Killed" kill count and sends the
-// 0xb byte command record at +0xa it builds here to its own player. param_2 is
-// the command kind: 7 means a spy / non-kill path, 4/5/9 or a positive
+// 0xb byte killed packet (type 0xc) it builds here to its own player; the
+// handler ApplyUnitDeath takes the same packet. param_2 is the kill type
+// (the packet's high nibble at +0xa): 7 means a spy / non-kill path, 4/5/9 or a positive
 // health skip the recount, otherwise the kills are a percentage of the
 // type's maxHealth.
 
 #pragma pack(push, 1)
-struct Cmd_004864b0 {
+struct UnitKilledPacket {
     unsigned char type;                // +0x0
     unsigned short unitId;             // +0x1
-    int killerId;                      // +0x3
-    unsigned short parentId;           // +0x7
-    signed char amount;                // +0x9
+    int attackerPlayerNetId;           // +0x3, the player net id of the last attacker slot
+    unsigned short attackerUnitId;     // +0x7, 0 for none
+    signed char cobKilledSeverity;     // +0x9, the Killed script's first result
     // 4-bit bitfields, not a plain char: they give the XOR read-modify-writes.
-    unsigned char count : 4;           // +0xa
-    unsigned char kind : 4;            // +0xa
+    unsigned char wreckageLevel : 4;   // +0xa
+    unsigned char killType : 4;        // +0xa
 };
 #pragma pack(pop)
 
 int __stdcall GetSlotDpid(unsigned char index);
 int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
-void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int param);
+void __stdcall ApplyUnitDeath(UnitKilledPacket* cmd, int param);
 void __stdcall PopUntilNamedLayout(int param);
 void __stdcall KillPlayerUnits(unsigned char player);
 
@@ -1104,18 +1105,18 @@ void __stdcall KillUnit(Unit* unit, int param_2)
         if (unit->buildLeft != 0.0f) {
             flag = 0;
         }
-        Cmd_004864b0 cmd;
-        // unitId before amount: sets the register roles.
+        UnitKilledPacket cmd;
+        // unitId before the severity: sets the register roles.
         cmd.unitId = unit->id;
-        cmd.amount = amount;
+        cmd.cobKilledSeverity = amount;
         cmd.type = 0xc;
-        cmd.count = flag;
-        cmd.kind = param_2;
-        cmd.killerId = GetSlotDpid(unit->lastAttackerSlot);
+        cmd.wreckageLevel = flag;
+        cmd.killType = param_2;
+        cmd.attackerPlayerNetId = GetSlotDpid(unit->lastAttackerSlot);
         if (unit->attacker == 0)
-            cmd.parentId = 0;
+            cmd.attackerUnitId = 0;
         else
-            cmd.parentId = unit->attacker->id;
+            cmd.attackerUnitId = unit->attacker->id;
         if (unit->player->active != 0 &&
             (unit->player->type == 1 || unit->player->type == 2)) {
             BroadcastPacket(unit->player->id, (unsigned char*)&cmd, 0xb);
@@ -1156,7 +1157,7 @@ void __stdcall AnnouncePlayerLeft(int id);
 void __stdcall AnnounceForcesDestroyed(void* player);
 
 // FUNCTION: 0x4866d0
-void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
+void __stdcall ApplyUnitDeath(UnitKilledPacket* cmd, int local)
 {
     Unit* unit;
     if (cmd->unitId == 0)
@@ -1169,12 +1170,12 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     if (unit->player->index == g_game->playerIndex)
         AddEyeball(&unit->pos, unit->def->x202, unit->def->x170, 60);
     Unit* parent;
-    if (cmd->parentId == 0)
+    if (cmd->attackerUnitId == 0)
         parent = 0;
     else
-        parent = &g_game->units[cmd->parentId];
+        parent = &g_game->units[cmd->attackerUnitId];
     unit->attacker = parent;
-    unit->lastAttackerSlot = FindSlotByDpid(cmd->killerId);
+    unit->lastAttackerSlot = FindSlotByDpid(cmd->attackerPlayerNetId);
     g_game->conditions->NotifyUnitDied(unit);
     DeleteOrders(unit, 1);
     RemoveSpeechOfUnit(unit);
@@ -1183,18 +1184,18 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     if (unit->carrier != 0)
         AttachUnitToPiece(unit, 0, -1, 1);
     while (unit->cargo != 0) {
-        unsigned char depth = cmd->kind != 3 ? 6 : 3;
+        unsigned char depth = cmd->killType != 3 ? 6 : 3;
         DamageUnit(unit->attacker, unit->cargo, 30000, depth, 0);
         AttachUnitToPiece(unit->cargo, 0, -1, 1);
     }
     ClearFootprintAndUnlink(unit);
     if ((g_game->mapFlags & 2) == 2)
         RemoveUnitLineOfSight(unit);
-    if (local == 0 && cmd->amount > 0)
-        unit->script->StartScriptWithArgs(g_killedScriptName, 0, 1, 1, cmd->amount, 0, 0, 0);
+    if (local == 0 && cmd->cobKilledSeverity > 0)
+        unit->script->StartScriptWithArgs(g_killedScriptName, 0, 1, 1, cmd->cobKilledSeverity, 0, 0, 0);
 
     int credited = 0;
-    switch (cmd->kind) {
+    switch (cmd->killType) {
     case 5:
         if (unit->lastAttackerSlot == 10 || unit->lastAttackerSlot == unit->playerIndex)
             break;
@@ -1283,7 +1284,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             FlashScorePanelKillLoss(unit->lastAttackerSlot, unit->player->index);
     }
 
-    if (cmd->kind == 5 && unit->attacker != 0) {
+    if (cmd->killType == 5 && unit->attacker != 0) {
         // Field pointer, not a Unit* copy; and the copy into f is needed too.
         Unit** par = &unit->attacker;
         float health = 1.0f - unit->buildLeft;
@@ -1304,12 +1305,12 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
             (*par)->resourceSlot.metalMake += f;
         }
     }
-    if (cmd->amount > 0 && unit->buildLeft == 0.0f)
-        DetonateUnitWeapon(unit, cmd->kind == 3);
-    if (cmd->count > 0) {
+    if (cmd->cobKilledSeverity > 0 && unit->buildLeft == 0.0f)
+        DetonateUnitWeapon(unit, cmd->killType == 3);
+    if (cmd->wreckageLevel > 0) {
         // Local flag: without it the script's virtual delete uses another register.
-        int flag = cmd->kind != 7;
-        CreateUnitCorpse(unit, cmd->count, flag);
+        int flag = cmd->killType != 7;
+        CreateUnitCorpse(unit, cmd->wreckageLevel, flag);
     }
 
     ClearUnitRefs(unit);

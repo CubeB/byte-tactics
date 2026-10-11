@@ -252,7 +252,7 @@ struct Game {
             int movieOutputRate;               // +0x38c57
             unsigned int nextMovieFrameTick;   // +0x38c5b
             char unknown_38c5f[0x38d75 - 0x38c5f];
-            Flags_38d75 netFlags;              // +0x38d75
+            Flags_38d75 loadingFlags;              // +0x38d75
             char unknown_38d77[0x38d85 - 0x38d77];
             FrameTimers profileTimingBars;     // +0x38d85
         };
@@ -356,9 +356,9 @@ void MainLoopTick()
             MainLoopContinueStub();
             MainLoopContinueStub_B();
             MainLoopContinueStub_C();
-            if (g_game->netFlags.bit2) {
+            if (g_game->loadingFlags.bit2) {
                 if (AssignStartPositions())
-                    g_game->netFlags.word &= 0xfffb;
+                    g_game->loadingFlags.word &= 0xfffb;
                 CHARGE(0);
             }
             EmptyMainLoopHook();

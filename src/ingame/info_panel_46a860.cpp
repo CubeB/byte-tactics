@@ -281,7 +281,7 @@ struct Game {
     int fontComix;                        // +0x391f9
     char unknown_391fd[0x3923b - 0x391fd];
     union {                               // +0x3923b
-        unsigned short flags_3923b;
+        unsigned short endGameFlags;
         unsigned char flagsByte_3923b;
         Flags46b_3923b bits_3923b;
     };
@@ -295,7 +295,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
     memset(&snapshot, 0, sizeof(snapshot));
     char text[256];
 
-    unsigned short flags = g_game->flags_3923b;
+    unsigned short flags = g_game->endGameFlags;
     if (flags & 1 && flags & 2) {
         int y = 0x81;
         unsigned char player = g_game->playerIndex;

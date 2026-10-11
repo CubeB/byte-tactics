@@ -170,7 +170,7 @@ struct Game {
             unsigned short b3 : 1;
             unsigned short rest : 12;
         };
-    } flags_3923b;                       // +0x3923b
+    } endGameFlags;                       // +0x3923b
 };
 #pragma pack(pop)
 
@@ -458,7 +458,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
         if (g_game->flags_2a44.b2)
             ShutdownIngameSystems();
-        g_game->flags_3923b.b3 = 1;
+        g_game->endGameFlags.b3 = 1;
 
         g_game->pendingSaveStore = OpenHapiBank(g_game->saveName);
         if (g_game->pendingSaveStore == 0)

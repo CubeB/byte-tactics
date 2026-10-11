@@ -337,7 +337,7 @@ struct Game {
             char unknown_38d6f[0x38d75 - 0x38d6f];
             union {
                 volatile unsigned char flags_38d75;   // +0x38d75
-                volatile unsigned short netFlags;
+                volatile unsigned short loadingFlags;
                 struct {
                     unsigned short : 2;
                     unsigned short net_bit2 : 1;

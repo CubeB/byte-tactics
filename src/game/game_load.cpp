@@ -345,7 +345,7 @@ struct Game {
     // volatile: the loader thread writes these; gives the bars' byte loads.
     volatile unsigned char progress[6]; // +0x38d6f
     union {                             // +0x38d75
-        volatile LoadFlags_00497f40 netFlags;
+        volatile LoadFlags_00497f40 loadingFlags;
         struct {
             unsigned short : 3;
             unsigned short synced : 1;
@@ -672,8 +672,8 @@ void __cdecl LoadMatch(void*)
 
     if (g_game->mapInfo->GetGameType() != 1) {
         if (g_game->mapInfo->GetGameType() == 3) {
-            g_game->netFlags.value |= 4;
-            while ((g_game->netFlags.value & 8) == 0)
+            g_game->loadingFlags.value |= 4;
+            while ((g_game->loadingFlags.value & 8) == 0)
                 SleepMilliseconds(0x32);
 
             int sel = FindHostSlot();
@@ -817,7 +817,7 @@ tail:
     }
     RebuildAIFeatureCells();
 
-    g_game->netFlags.value |= 2;
+    g_game->loadingFlags.value |= 2;
 }
 //
 // Kept as written, each for the registers it gives:
@@ -947,7 +947,7 @@ void LoadingScreenFrame(void)
     PlayerInfo_00497f40* pi;
     char namebuf[100];
 
-    if (!g_game->netFlags.bits.started) {
+    if (!g_game->loadingFlags.bits.started) {
         while (g_game->field_531 != 0) {
             CloseTopScreen(&g_game->field_519);
         }
@@ -1014,10 +1014,10 @@ void LoadingScreenFrame(void)
         memset(g_scorePanelLossFlash, 0, 10);
         memset(&g_loadingBarFlashAlpha, 0, 6);
         memset(&g_loadingBarPrevPercent, 0, 6);
-        g_game->netFlags.bits.started = 1;
+        g_game->loadingFlags.bits.started = 1;
         OnlineUnload();
     }
-    if (g_game->netFlags.bits.loaded) {
+    if (g_game->loadingFlags.bits.loaded) {
         StopAllSounds();
         BlankScreen();
         FreePictureCache();
@@ -1062,10 +1062,10 @@ void LoadingScreenFrame(void)
     }
     HandleNetPackets();
     // Nested, not `b2 && AssignStartPositions()`: that folds to a test on the byte.
-    if (g_game->netFlags.bits.b2) {
+    if (g_game->loadingFlags.bits.b2) {
         if (AssignStartPositions() != 0) {
-            g_game->netFlags.bits.b2 = 0;
-            g_game->netFlags.bits.b3 = 1;
+            g_game->loadingFlags.bits.b2 = 0;
+            g_game->loadingFlags.bits.b3 = 1;
             HAPINET_guaranteepackets(0);
         }
     }

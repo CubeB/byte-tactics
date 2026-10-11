@@ -36,22 +36,19 @@ struct Gadget_0044a680 {                // 0x15b bytes
     char unknown_cc[0x15b - 0xcc];
 };
 
-struct Layer_0044a680 {
+struct Layer {
     int unknown_0;
     Gadget_0044a680* entries;           // +0x4
 };
 
-struct Gui_0044a680 {
-    char unknown_0[0x18];
-    Layer_0044a680* table;              // +0x18
-};
+#include "../gui/gui.h"
 
 struct UnitSync;
 
 struct Game {
     char unknown_0[0x519];
-    Gui_0044a680 gui;                   // +0x519
-    char unknown_535[0x1b63 - 0x535];
+    Gui gui;                            // +0x519
+    char unknown_120f[0x1b63 - 0x120f];
     Player players[10];                 // +0x1b63
     char unknown_2851[0x2a30 - 0x2851];
     UnitSync* sync;                     // +0x2a30
@@ -92,24 +89,24 @@ unsigned char __stdcall FindHostSlot();
 void __stdcall BuildPlayerSlotGadgets();
 void __stdcall RefreshBattleRoomRows();
 void ShowSelectedMapInfo();
-void __stdcall UpdateMaxUnitsText(Gui_0044a680* gui, int index);
-void __stdcall UpdateMetalText(Gui_0044a680* gui, int index);
+void __stdcall UpdateMaxUnitsText(Gui* gui, int index);
+void __stdcall UpdateMetalText(Gui* gui, int index);
 void __stdcall PlaySoundByName(char* name, int param);
-void __stdcall MarkChanged(Gui_0044a680* gui);
-void __stdcall MarkLayerChanged(Gui_0044a680* gui);
+void __stdcall MarkChanged(Gui* gui);
+void __stdcall MarkLayerChanged(Gui* gui);
 int __stdcall FindGadgetIndex(Gadget_0044a680* entries, char* name, int type);
-void __stdcall SetGadgetActiveByName(Gui_0044a680* gui, char* name, int param);
-void __stdcall SetTranslatedTextByName(Gui_0044a680* gui, char* name, char* text, int param);
-void __stdcall SetGrayedOutByName(Gui_0044a680* gui, char* name, int param);
+void __stdcall SetGadgetActiveByName(Gui* gui, char* name, int param);
+void __stdcall SetTranslatedTextByName(Gui* gui, char* name, char* text, int param);
+void __stdcall SetGrayedOutByName(Gui* gui, char* name, int param);
 Gadget_0044a680* __stdcall FindGadgetChecked_D(Gadget_0044a680* entries, char* name);
 Gadget_0044a680* __stdcall FindGadgetChecked_E(Gadget_0044a680* entries, char* name);
 void __stdcall GetGadgetRectByIndex(Gadget_0044a680* entries, int widget, RECT* rect);
 int __stdcall GetTextPixelWidth(char* text);
 int __stdcall GetFontLineHeight();
 void __stdcall DrawTextClipped(int a, char* text, int x, int y, int w, int h);
-void __stdcall SetCurrentFont(Gui_0044a680* gui, int flag);
+void __stdcall SetCurrentFont(Gui* gui, int flag);
 void __stdcall CloseTopScreen(void* gui);
-int __stdcall IsScreenNamed(Gui_0044a680* gui, char* name);
+int __stdcall IsScreenNamed(Gui* gui, char* name);
 void __stdcall SetSliderFromValue(Gadget_0044a680* gadget, int value);
 int __stdcall ReadSliderValue(Gadget_0044a680* gadget);
 int __stdcall GetTicks();
@@ -199,10 +196,10 @@ inline void CompactActivePlayerSlots()
 }
 
 // The ENERGY slider handler at 0x445d60, which has no callers: /Ob2 inlined it.
-void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
+void __stdcall UpdateEnergyText(Gui* gui, int unused)
 {
     char text[20];
-    Gadget_0044a680* value = FindGadgetChecked_D(gui->table->entries, "ENERGY");
+    Gadget_0044a680* value = FindGadgetChecked_D(gui->layer->entries, "ENERGY");
 
     if (value != 0) {
         int shown = ReadSliderValue(value) / 100 * 100;
@@ -220,10 +217,10 @@ void __stdcall UpdateEnergyText(Gui_0044a680* gui, int unused)
 }
 
 // The slider setter at 0x445e20, which has no callers: /Ob2 inlined it.
-void __stdcall SetNamedSliderValue(Gui_0044a680* gui, char* name, int value)
+void __stdcall SetNamedSliderValue(Gui* gui, char* name, int value)
 {
     // Gadget kept in a local: holds the value in edi across FindGadgetChecked_D.
-    Gadget_0044a680* gadget = FindGadgetChecked_D(gui->table->entries, name);
+    Gadget_0044a680* gadget = FindGadgetChecked_D(gui->layer->entries, name);
     SetSliderFromValue(gadget, value);
 }
 
@@ -247,7 +244,7 @@ void UpdateBattleRoom()
         return;
     }
 
-    entries = g_game->gui.table->entries;
+    entries = g_game->gui.layer->entries;
     if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
         int idx = FindGadgetIndex(entries, "PLAYER0", 0xe);
         entries[idx].colour = 0x18;
@@ -295,7 +292,7 @@ void UpdateBattleRoom()
                 Gadget_0044a680* start;
 
                 SetGrayedOutByName(&g_game->gui, "SYNCHING", 1);
-                start = FindGadgetChecked_E(g_game->gui.table->entries, "battlestart");
+                start = FindGadgetChecked_E(g_game->gui.layer->entries, "battlestart");
                 if (start->frame > 0 && g_startCountdownNextTick < GetTicks()) {
                     if (start->frame < 8) {
                         start->frame++;

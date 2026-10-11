@@ -17,7 +17,23 @@ int __stdcall LzssExpand(char* out, char* in);
 void LzssDisablePreset();
 void LzssEnablePreset();
 
-extern char* g_game;
+#pragma pack(push, 1)
+// The three byte header of a condensed packet: the kind (3 stored, 4
+// compressed) and the checksum of the data that follows.
+struct CondensedHeader {
+    unsigned char kind;                // +0x0
+    unsigned short sum;                // +0x1
+};
+
+struct Game {
+    char unknown_0[0x4ed];
+    int compressionOff;                // +0x4ed
+    char unknown_4f1[0x37f35 - 0x4f1];
+    int netSendDropPct;                // +0x37f35
+};
+#pragma pack(pop)
+
+extern Game* g_game;
 
 int __stdcall LzssCompress(char* out, char* in, int size);
 void LzssDisablePreset();
@@ -34,7 +50,10 @@ public:
     int unpackedSize;                // +0xc
     char* sendBuffer;                // +0x10
     char* buffer_14;                 // +0x14
-    char* packet;                    // +0x18
+    union {
+        char* packet;                // +0x18
+        CondensedHeader* header;
+    };
     unsigned char sendCount;         // +0x1c
     int sendSize;                    // +0x1d
     int to;                          // +0x21
@@ -129,11 +148,12 @@ int NetCondenser::ReceivePacket(void* net, char* data, int* size)
         return 0;
     }
 
+    CondensedHeader* received = (CondensedHeader*)data;
     int result = HAPINET_receivepacket(net, data, size);
     if (((Net_0044f9c0*)net)->from != 0) {
         if (result == 0) {
             CountPacket(*size, 0, 0);
-            if (data[0] != 3 && data[0] != 4)
+            if (received->kind != 3 && received->kind != 4)
                 return 0;
             if (*size < 4)
                 return 0x887700be;
@@ -143,9 +163,9 @@ int NetCondenser::ReceivePacket(void* net, char* data, int* size)
                 sum += (unsigned char)data[i];
                 data[i] ^= (unsigned char)i;
             }
-            if (*(unsigned short*)(data + 1) != sum)
+            if (received->sum != sum)
                 return 0x887700be;
-            if (data[0] == 4) {
+            if (received->kind == 4) {
                 LzssEnablePreset();
                 unpackedSize = LzssExpand(buffer, data + 3);
                 LzssDisablePreset();
@@ -198,7 +218,7 @@ int NetCondenser::SendPacket(void* session, int from)
 
     unsigned char flag;
     int total;
-    if (compressed + 3 < sendSize && *(int*)(g_game + 0x4ed) == 0) {
+    if (compressed + 3 < sendSize && g_game->compressionOff == 0) {
         flag = 4;
         total = compressed + 3;
     } else {
@@ -215,12 +235,12 @@ int NetCondenser::SendPacket(void* session, int from)
         packet[i] ^= (unsigned char)i;
         sum += (unsigned char)packet[i];
     }
-    packet[0] = flag;
-    *(unsigned short*)(packet + 1) = sum;
+    header->kind = flag;
+    header->sum = sum;
 
     // A simulated packet loss: the packet is thrown away unless the dice say so.
     int result;
-    if (*(int*)(g_game + 0x37f35) != 0 && (int)((__int64)rand() * 101 / 32768) <= *(int*)(g_game + 0x37f35))
+    if (g_game->netSendDropPct != 0 && (int)((__int64)rand() * 101 / 32768) <= g_game->netSendDropPct)
         result = 0;
     else
         result = HAPINET_sendpacket(session, from, to, packet, total);

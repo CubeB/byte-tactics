@@ -110,8 +110,8 @@ struct PacketSequencer { // 0x2c bytes, the entry's +0x30 member
 
     PacketSequencer();
     void SendUnsequenced(unsigned int param_1, void* param_2);
-    void Inl(unsigned int param_1, void* param_2) {
-        *(int*)((char*)param_2 + 2) = 0;
+    void Inl(unsigned int param_1, UnitSyncPacket* param_2) {
+        param_2->id = 0;
         SendPacketToPlayer(GetLocalHumanDpid(), param_1, param_2, 0xe);
     }
 };

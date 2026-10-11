@@ -119,13 +119,17 @@ int UpdatePlacementGhostValidity();
 void RefreshSelectionOrders();
 void DispatchOrdersPanelPageFlags();
 void ResetCameraState();
-void SetUpEndMissionScreen();
-void StartScreenFade();
-void StepScreenFade();
-void FreeRadar();
-void StopAllSounds();
-void FlipScreen();
-void RestoreStartDirectory();
+
+// The HAPINET session object that ReceiveFrame passes to the receive: the
+// sender and recipient ids of the packet just received (hapinet.cpp has the
+// whole object).
+#pragma pack(push, 1)
+struct Net_00462f30 {
+    char unknown_0[0x4b5];
+    int from;                          // +0x4b5
+    int to;                            // +0x4b9
+};
+#pragma pack(pop)
 
 // One queued frame of a player's ring: the tick it is due, the data and size.
 struct Frame {
@@ -1542,6 +1546,7 @@ int PacketReceiver::ResetReceiveBuffer()
 // FUNCTION: 0x462f30
 int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
 {
+    Net_00462f30* hnet = (Net_00462f30*)net;
     int tick = g_game->gameTick;
     PlayerFrameInfo* entry;
     unsigned int i;
@@ -1556,8 +1561,8 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
             break;
         src = GetFrame(&e->tail, tick, len);
         if (src != 0) {
-            *(int*)((char*)net + 0x4b5) = e->tail.fromId;
-            *(int*)((char*)net + 0x4b9) = e->tail.toId;
+            hnet->from = e->tail.fromId;
+            hnet->to = e->tail.toId;
             memcpy(data, src, len);
             *size = len;
             // Both copy-outs goto the one `ok: return 0;`.
@@ -1628,9 +1633,9 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
             // Always true here (the enclosing test), so MSVC emits no test; the error
             // block stays after B only as this if's else arm.
             if (n == 0) {
-                fromId = *(int*)((char*)net + 0x4b5);
-                toId = *(int*)((char*)net + 0x4b9);
-                if (*(int*)((char*)net + 0x4b5) != 0) {
+                fromId = hnet->from;
+                toId = hnet->to;
+                if (hnet->from != 0) {
                     if ((unsigned int)length >= sizeof(int)) {
                         if (length == sizeof(int))
                             return (int)0x80004005;
@@ -1758,8 +1763,8 @@ int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
         src = TakeFrame(tail, f, tick, len);
     }
     if (src != 0) {
-        *(int*)((char*)net + 0x4b5) = entry->tail.fromId;
-        *(int*)((char*)net + 0x4b9) = entry->tail.toId;
+        hnet->from = entry->tail.fromId;
+        hnet->to = entry->tail.toId;
         memcpy(data, src, len);
         *size = len;
         goto ok;
@@ -2009,6 +2014,7 @@ void EmptyAtexitHandler(void)
 void __cdecl AllocNotifyNop(int);
 
 #include "../map/grid.h"
+#include "player_info.h"
 
 // Constructor of the per-player record (0x14b bytes, 11 of them inside the
 // game object built by 0x41d920).
@@ -2018,7 +2024,7 @@ struct Player {
     char unknown_4[0x27 - 0x4];
     union {
         char* data;                    // +0x27 (0xb9 bytes)
-        void* info;
+        PlayerInfo* info;
     };
     char unknown_2b[0x73 - 0x2b];
     char type;                         // +0x73
@@ -2055,7 +2061,7 @@ void Player::SetType(int param_1)
 {
     type = (char)param_1;
     if (param_1 != 3) {
-        *((char*)info + 0x94) = (char)param_1;
+        info->kind = (char)param_1;
     }
 }
 

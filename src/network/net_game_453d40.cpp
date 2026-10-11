@@ -122,6 +122,14 @@ struct Game {
     unsigned short : 11;
 };
 
+// The player data HAPINET_addplayer sends with a create-player message (the
+// same record in hapinet.cpp).
+struct PlayerData_004ca6a0 {
+    char name[17];                     // +0x00, the game password
+    short versionMajor;                // +0x11, the host rejects a joiner unless 0
+    short versionMinor;                // +0x13, the host rejects a joiner unless 0x50
+};
+
 // The DirectPlay system message HandleNetPackets reads when the sender is 0:
 // +0x00 is its DPSYS_ type (3 create, 5 destroy, 0x102 set data, 0x103 set
 // name, 0x104 set session description). The fields are named for the
@@ -134,7 +142,7 @@ struct Packet_00453d40 {
     int playerType;                    // +0x04, 1 is a player
     int id;                            // +0x08
     char* data;                        // +0x0c
-    char* createData;                  // +0x10
+    PlayerData_004ca6a0* createData;   // +0x10
     int dataSize;                      // +0x14
     char* longName;                    // +0x18
 };
@@ -242,13 +250,6 @@ public:
     void SendAllQueued(int);
     void HandleIntegrityNop(int, int, int);
 };
-
-// Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-int __stdcall CountLocalComputerPlayers();
-int __stdcall CountActiveAIPlayers();
-int __stdcall CountActiveHumanOrAiPlayers();
-int __stdcall CountRemotePlayers();
-int __stdcall CountCombatPlayers();
 
 extern Game* g_game;
 extern char DAT_005119b8[];
@@ -547,7 +548,7 @@ int HandleNetPackets()
                     break;
                 // info is read before payload: on equal priority the register goes to the first written.
                 PlayerInfo* info = LocalPlayer()->info;
-                char* payload = msg->createData;
+                PlayerData_004ca6a0* payload = msg->createData;
                 if (info->closed) {
                     RejectPlayer(GetPlayerId(target), 3);
                     break;
@@ -556,13 +557,13 @@ int HandleNetPackets()
                     RejectPlayer(GetPlayerId(target), 8);
                     break;
                 }
-                if (*(short*)(payload + 0x11) != 0 || *(short*)(payload + 0x13) != 0x50) {
+                if (payload->versionMajor != 0 || payload->versionMinor != 0x50) {
                     RejectPlayer(GetPlayerId(target), 8);
                     break;
                 }
                 if (!(info->flags_9d & 1))
                     break;
-                if (payload && !_strcmpi(g_game->password, payload))
+                if (payload && !_strcmpi(g_game->password, payload->name))
                     break;
                 RejectPlayer(GetPlayerId(target), 4);
                 break;

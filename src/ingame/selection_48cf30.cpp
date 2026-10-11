@@ -34,6 +34,7 @@ public:
     MissionType(const char* name);
 };
 
+// Not units/unit_def.h: its symbol ids move 0x48cf30 out of its window.
 struct UnitDef_0048cf30 {
     char unknown_0[0x245];
     unsigned char flags;                // +0x245

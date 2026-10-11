@@ -42,27 +42,13 @@ struct UnitInfo {
 
 #include "../network/player.h"
 
-struct UnitDef_00401360 {
-    char unknown_0[0x1c2];
-    float energyMake;                  // +0x1c2
-    float energyUse;                   // +0x1c6
-    float metalMake;                   // +0x1ca
-    float extractsMetal;               // +0x1ce
-    float windGenerator;               // +0x1d2
-    float tidalGenerator;              // +0x1d6
-    float cost;                        // +0x1da
-    float costActive;                  // +0x1de
-    float energyStorage;               // +0x1e2
-    float metalStorage;                // +0x1e6
-    char unknown_1ea[0x22d - 0x1ea];
-    unsigned char makesMetal;          // +0x22d
-};
+#include "../units/unit_def.h"
 
 struct Unit {
     char unknown_0[0x58];
     float extraction;                  // +0x58
     char unknown_5c[0x92 - 0x5c];
-    UnitDef_00401360* def;             // +0x92
+    UnitDef* def;                      // +0x92
     char unknown_96[0xb0 - 0x96];
     unsigned int workTime;             // +0xb0
     char unknown_b4[0xbc - 0xb4];

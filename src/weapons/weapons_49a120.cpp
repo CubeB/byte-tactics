@@ -309,6 +309,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
                         enemyDamage += damage;
                 }
             }
+            // A mask test (bit 14, unitsOnly): the bit-field form changes the code.
             if (weapon->def->flags.value & 0x4000)
                 continue;
             Cell* origin = cell;
@@ -349,7 +350,7 @@ void __stdcall ApplyAreaDamage(Weapon_0049a120* weapon, Vec3_0049a120* pos)
         }
     }
 
-    if (weapon->def->flags.b.f30) {
+    if (weapon->def->flags.b.interceptor) {
         // Every field is read through `other` (no projectiles[j]): the derived
         // pointer is stepped after it.
         Weapon_0049a120* other = g_game->projectiles;

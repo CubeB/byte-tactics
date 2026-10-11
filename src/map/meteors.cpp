@@ -99,7 +99,7 @@ void InitMeteors()
         g_meteorWeapon = (WeaponDef*)((char*)g_game + 0x2cf3);
         return;
     }
-    if (!(g_meteorWeapon->flags.flags8 & 0x20))
+    if (!g_meteorWeapon->flags.b.meteor)
         g_meteorWeapon = (WeaponDef*)((char*)g_game + 0x2cf3);
 }
 

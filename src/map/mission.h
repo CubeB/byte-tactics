@@ -71,13 +71,13 @@ public:
     int GetTerrainSizeTier();
     int MissionExists(int index);
     int LoadMissionByName(char* map);
-    int SelectMission(int param_1);
+    int SelectMission(int index);
     char* GetTranslatedName();
     char* GetMissionName();
     bool HasMissionName();
     int GetMissionIndex();
     int AdvanceMission();
-    void RefreshMapList(int param_1);
+    void RefreshMapList(int multiplayer);
     int LoadMission(char* map);
     int SelectSchema(int type, TdfFile* parser, char* schema);
     void LoadMissionData(char* name, TdfFile* parser);

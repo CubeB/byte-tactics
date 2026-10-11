@@ -216,7 +216,7 @@ public:
         int field_6;                    // +6
     };
     void UnlinkUnit(Node_0047cb00* node);
-    void PrependUnit(int param_1);
+    void PrependUnit(int node);
 };
 
 class ClaimFootprintVisitor {
@@ -379,11 +379,11 @@ void SpatialBucket::UnlinkUnit(Node_0047cb00* node)
 }
 
 // FUNCTION: 0x47cb40
-void SpatialBucket::PrependUnit(int param_1)
+void SpatialBucket::PrependUnit(int node)
 {
     int temp = field_6;
-    ((Node_0047cb00*)param_1)->next = (Node_0047cb00*)temp;
-    field_6 = param_1;
+    ((Node_0047cb00*)node)->next = (Node_0047cb00*)temp;
+    field_6 = node;
 }
 
 // FUNCTION: 0x47cb60

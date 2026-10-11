@@ -126,7 +126,7 @@ struct Game {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2c76 - 0x2a43];
-    char orders_2c76[0x2cba - 0x2c76];  // +0x2c76
+    char orders[0x2cba - 0x2c76];       // +0x2c76
     unsigned short hoverUnitId;         // +0x2cba
     char unknown_2cbc[0x2cc3 - 0x2cbc];
     unsigned char orderMode;            // +0x2cc3
@@ -721,7 +721,7 @@ void HandleGameKey(void)
             }
         }
         if (found == 0)
-            IssueOrderToSelection(g_game->orders_2c76, 0, order, 0, 0, 0);
+            IssueOrderToSelection(g_game->orders, 0, order, 0, 0, 0);
         break;
     }
 

@@ -174,8 +174,8 @@ public:
 
 struct Game {
     char unknown_0;
-    char version_major;                // +0x1
-    char version_minor;                // +0x2
+    char version;                      // +0x1
+    char versionMinor;                 // +0x2
     char unknown_3[0x1438c];
     int unitDefCount;                  // +0x1438f
     char unknown_14393[8];
@@ -320,9 +320,9 @@ int LoadUnitInfo()
             double version = parser.GetDouble("Version", 0.0);
             int major = (int)floor(version);
             int minor = (int)floor((version - major) * 10.0);
-            if (major < g_game->version_major)
+            if (major < g_game->version)
                 u->flags1 |= 0x800000;
-            else if (major == g_game->version_major && minor <= g_game->version_minor)
+            else if (major == g_game->version && minor <= g_game->versionMinor)
                 u->flags1 |= 0x800000;
             else
                 u->flags1 &= ~0x800000;

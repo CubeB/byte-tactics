@@ -328,7 +328,7 @@ struct Game {
     unsigned short mapFlags;           // +0x14281
     char unknown_14283[0x142cb - 0x14283];
     char field_142cb[0x142f1 - 0x142cb]; // +0x142cb, the radar viewport rectangle
-    CameraFlags flags_142f1;           // +0x142f1
+    CameraFlags viewDirtyFlags;        // +0x142f1
     Unit* cameraFollowUnit;            // +0x142f3
     Follow_0041ca10* cameraFollowTrackObj;  // +0x142f7
     char unknown_142fb[0x1431f - 0x142fb];
@@ -1640,7 +1640,7 @@ void __stdcall SetCameraPosition(int x, int y, int instant)
     } else {
         g_game->scrollX = x;
         g_game->scrollY = y;
-        g_game->flags_142f1.lo |= 2;
+        g_game->viewDirtyFlags.lo |= 2;
         ClampCameraPosition();
         g_game->x2 = g_game->scrollX;
         g_game->y2 = g_game->scrollY;
@@ -1729,7 +1729,7 @@ void __stdcall CenterCameraOnPoint(int a, int b, int c)
     } else {
         g_game->scrollX = cx;
         g_game->scrollY = cy;
-        g_game->flags_142f1.lo |= 2;
+        g_game->viewDirtyFlags.lo |= 2;
         ClampCameraPosition();
         g_game->x2 = g_game->scrollX;
         g_game->y2 = g_game->scrollY;
@@ -1760,7 +1760,7 @@ void __stdcall CenterCameraOnMapPosition(Vec3* p, int param_2)
     } else {
         g_game->scrollX = cx;
         g_game->scrollY = cy;
-        g_game->flags_142f1.lo |= 2;
+        g_game->viewDirtyFlags.lo |= 2;
         ClampCameraPosition();
         g_game->x2 = g_game->scrollX;
         g_game->y2 = g_game->scrollY;
@@ -1837,12 +1837,12 @@ void UpdateCameraFollow()
         g_game->mapFlags &= 0xfff7;
     }
     if (g_game->scrollX != g_game->x2) {
-        g_game->flags_142f1.raw |= 2;
+        g_game->viewDirtyFlags.raw |= 2;
         g_game->mapFlags &= 0xfff7;
         g_game->scrollX = Approach(g_game->scrollX, g_game->x2);
     }
     if (g_game->scrollY != g_game->y2) {
-        g_game->flags_142f1.raw |= 2;
+        g_game->viewDirtyFlags.raw |= 2;
         g_game->mapFlags &= 0xfff7;
         g_game->scrollY = Approach(g_game->scrollY, g_game->y2);
     }
@@ -1886,7 +1886,7 @@ static inline void ScrollTo(int x, int y)
 {
     g_game->scrollX = x;
     g_game->scrollY = y;
-    g_game->flags_142f1.raw |= 2;
+    g_game->viewDirtyFlags.raw |= 2;
     ClampCameraPosition();
     g_game->x2 = g_game->scrollX;
     g_game->y2 = g_game->scrollY;
@@ -1977,7 +1977,7 @@ void UpdateEdgeScroll()
     if (g_game->scrollX != x || g_game->scrollY != y) {
         g_game->scrollX = x;
         g_game->scrollY = y;
-        g_game->flags_142f1.lo |= 2;
+        g_game->viewDirtyFlags.lo |= 2;
         ClampCameraPosition();
         g_game->x2 = g_game->scrollX;
         g_game->y2 = g_game->scrollY;

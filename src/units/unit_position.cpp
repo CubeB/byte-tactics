@@ -207,7 +207,7 @@ struct Game {
     char unknown_0[0x1b63];
     Player players[10];                // +0x1b63
     char unknown_1c3f[0x2a44 - 0x1b63 - 10 * 0x14b];
-    unsigned char f2a44;               // +0x2a44
+    unsigned char flags_2a44;          // +0x2a44
     char unknown_2a45[0x1427f - 0x2a45];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14353 - 0x14280];
@@ -594,7 +594,7 @@ void __stdcall UpdateAllUnits(void)
                     }
                     u = (Unit*)((char*)u + 0x118);
                 }
-                if (g_game->f2a44 & 1) {
+                if (g_game->flags_2a44 & 1) {
                     if (p->active != 0) {
                         unsigned char k4 = p->type;
                         if (k4 == 1 || k4 == 2) {

@@ -221,11 +221,11 @@ union RadarTimer_00466dc0 {
 
 struct Game {
     char unknown_0[0xc];
-    Fx_00466c20* fx;                     // +0xc
+    Fx_00466c20* displayContext;         // +0xc
     char unknown_10[0xdcb - 0x10];
     unsigned char fogColor;              // +0xdcb
     char unknown_dcc[0xdd9 - 0xdcc];
-    unsigned char field_dd9;             // +0xdd9
+    unsigned char hudPalette14;          // +0xdd9
     char unknown_dda[0x1b63 - 0xdda];
     Player players[1];      // +0x1b63, 0x14b bytes each
     char unknown_1cae[0x2a43 - 0x1cae];
@@ -480,7 +480,7 @@ void __stdcall DrawRadar(void* param_1)
     if (g_game->timer.word.flags.pending) {
         g_game->timer.word.flags.pending = 0;
         DrawSurface(param_1, g_game->finalSurface, g_game->minimapGadgetX, g_game->minimapGadgetY);
-        DrawRectangle(param_1, g_game->field_142cb, g_game->field_dd9);
+        DrawRectangle(param_1, g_game->field_142cb, g_game->hudPalette14);
     }
 }
 
@@ -519,7 +519,7 @@ void UpdateRadarMapped()
                 } else if (t->explored.data[index]) {
                     *dst = *src;
                 } else {
-                    *dst = g_game->fx->colorMap[*src];
+                    *dst = g_game->displayContext->colorMap[*src];
                 }
                 j++;
                 mapX += halfWidth;

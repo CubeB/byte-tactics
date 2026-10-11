@@ -138,7 +138,7 @@ struct Item {
 struct Game {
     int unknown_0;
     char unknown_4[0x10 - 4];
-    Sound* input;                      // +0x10
+    Sound* sound;                      // +0x10
     char unknown_14[0x519 - 0x14];
     Gui gui;                          // +0x519
     char unknown_120f[0x1b8a - 0x120f];
@@ -1273,7 +1273,7 @@ void __stdcall UpdatePlanet(Gui* arg1, Gadget* arg2)
     void* surface = arg1->layer->entries->surface;
     if (g_briefingPlanetNextTick <= GetTickCount()) {
         g_briefingPlanetNextTick = GetTickCount() + 0x19;
-        if (g_game->input->IsStreamActive() == 0) {
+        if (g_game->sound->IsStreamActive() == 0) {
             if (GetButtonStageByName(arg1, "SHUTUP")) {
                 SetButtonStageByName(arg1, "SHUTUP", 0);
                 MarkChanged(arg1);
@@ -1328,7 +1328,7 @@ void __stdcall HandleMissionBriefingClick(Gui* menu)
         if (FindGameCdDrive(0)) {
             RegisterDataArchives();
             SetCursorMode(0x14);
-            g_game->input->StopStream();
+            g_game->sound->StopStream();
             BlankScreen();
             g_game->frontendSubstateRequest = 2;
             return;
@@ -1342,7 +1342,7 @@ void __stdcall HandleMissionBriefingClick(Gui* menu)
     if (IsCurrentGadgetNamed(menu, "SHUTUP")) {
         PlaySoundByName("Options", 0);
         if (!GetButtonStageByName(menu, "SHUTUP")) {
-            g_game->input->StopStream();
+            g_game->sound->StopStream();
         } else if (g_game->frontendState != 6) {
             char* text = (char*)g_game->mapInfo->GetNameSlot(3);
             if (text) {
@@ -1354,7 +1354,7 @@ void __stdcall HandleMissionBriefingClick(Gui* menu)
         return;
     }
     if (IsCurrentGadgetNamed(menu, "PrevMenu")) {
-        g_game->input->StopStream();
+        g_game->sound->StopStream();
         PlaySoundByName("Previous", 0);
         BlankScreen();
         g_game->frontendSubstateRequest = 3;

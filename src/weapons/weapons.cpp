@@ -321,7 +321,7 @@ struct Net {
 
 struct Game {
     char unknown_0[0xdcb];
-    unsigned char palette[0x2a];       // +0xdcb, the line colours of the shots
+    unsigned char colors[0x2a];        // +0xdcb, the line colours of the shots
     char unknown_df5[0x1b63 - 0xdf5];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
@@ -3173,8 +3173,8 @@ void __stdcall DrawProjectiles(void* surface)
             if (visible) {
                 type = p->type;
                 if (type->shotKind == 0) {
-                    unsigned int color1 = g_game->palette[type->colour];
-                    unsigned int color2 = g_game->palette[type->colour2];
+                    unsigned int color1 = g_game->colors[type->colour];
+                    unsigned int color2 = g_game->colors[type->colour2];
                     int x1;
                     int y1;
                     int x2;
@@ -3288,7 +3288,7 @@ void __stdcall DrawProjectiles(void* surface)
                     DrawFrameBlended(surface, frame0, sx, sy);
                     DrawModel3doProjected(surface, &sp, type->model, &p->angles);
                 } else if (type->shotKind == 7) {
-                    unsigned int color = g_game->palette[type->colour];
+                    unsigned int color = g_game->colors[type->colour];
                     Vec3* start = &p->start;
                     d.x = pos->x - start->x;
                     d.y = pos->y - start->y;

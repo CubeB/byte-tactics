@@ -35,7 +35,7 @@ struct Game {
     short minimapGadgetW;              // +0x142eb
     short minimapGadgetH;              // +0x142ed
     char unknown_142ef[0x142f1 - 0x142ef];
-    unsigned char flags_142f1;         // +0x142f1
+    unsigned char viewDirtyFlags;      // +0x142f1
     char unknown_142f2;
     int cameraFollowUnit;              // +0x142f3
     int cameraFollowTrackObj;          // +0x142f7
@@ -85,7 +85,7 @@ void CenterCameraOnRadarClick()
     int x = g_game->mapPixelWidth * (r.x - g_game->minimapGadgetX) / g_game->minimapGadgetW - g_game->viewPixelWidth / 2;
     g_game->scrollX = x;
     g_game->scrollY = y;
-    g_game->flags_142f1 |= 2;
+    g_game->viewDirtyFlags |= 2;
     ClampCameraPosition();
     g_game->x2 = g_game->scrollX;
     g_game->y2 = g_game->scrollY;
@@ -104,7 +104,7 @@ void CenterCameraOnStartPosition()
     for (; i < count; i++, e++) {
         if (e->type == 1 && e->id == 0) {
             SetPos(e->x - g_game->viewPixelWidth / 2, e->z - g_game->viewPixelHeight / 2);
-            g_game->flags_142f1 |= 2;
+            g_game->viewDirtyFlags |= 2;
             ClampCameraPosition();
             g_game->x2 = g_game->scrollX;
             g_game->y2 = g_game->scrollY;
@@ -124,7 +124,7 @@ void __stdcall ReadCameraPosition(HapiBank* file)
     int x = file->GetIntegerItem(g_cameraXPosition, g_game->scrollX);
     g_game->scrollX = x;
     g_game->scrollY = z;
-    g_game->flags_142f1 |= 2;
+    g_game->viewDirtyFlags |= 2;
     ClampCameraPosition();
     g_game->x2 = g_game->scrollX;
     g_game->y2 = g_game->scrollY;
@@ -156,7 +156,7 @@ void __stdcall RestoreCameraPosition(int index)
         g_game->cameraFollowUnit = 0;
         g_game->cameraFollowTrackObj = 0;
         SetPos(g_game->xs[index], g_game->ys[index]);
-        g_game->flags_142f1 |= 2;
+        g_game->viewDirtyFlags |= 2;
         ClampCameraPosition();
         g_game->x2 = g_game->scrollX;
         g_game->y2 = g_game->scrollY;

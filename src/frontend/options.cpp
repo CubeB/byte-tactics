@@ -309,7 +309,7 @@ struct Game {
     char unknown_2bf0[0x14281 - 0x2bf0];
     Los_0045cf60 mapFlags;             // +0x14281
     char unknown_14283[0x142f1 - 0x14283];
-    unsigned short flags_142f1;        // +0x142f1
+    unsigned short viewDirtyFlags;     // +0x142f1
     char unknown_142f3[0x1434d - 0x142f3];
     unsigned char scrollSpeed;         // +0x1434d
     char unknown_1434e[0x1437b - 0x1434e];
@@ -2622,7 +2622,7 @@ void __stdcall DrawOptionsScrollBar(void* surf)
         src.p[3].y = g_optionsFlipFrame.h - 1;
         DrawFrameQuad(surf, &g_optionsFlipFrame, &dst, &src);
         MarkChanged((char*)&g_game->gui);
-        g_game->flags_142f1 |= 2;
+        g_game->viewDirtyFlags |= 2;
         g_game->field_37e98 = 1;
     }
 }

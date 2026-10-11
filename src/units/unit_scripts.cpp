@@ -28,14 +28,9 @@ static inline Vec3 operator+(const Vec3& a, const Vec3& b)
 struct Unit_0043e490;
 struct Feature_0043e490;
 
-#pragma pack(push, 1)
-struct UnitDef_0043db50 {
-    char unknown_0[0x170];
-    short field_170;                   // +0x170
-    char unknown_172[0x22c - 0x172];
-    unsigned char draft;               // +0x22c
-};
+#include "../units/unit_def.h"
 
+#pragma pack(push, 1)
 struct Game {
     char unknown_0[0x2a42];
     unsigned char localPlayer;    // +0x2a42
@@ -64,7 +59,7 @@ struct Unit {
     char unknown_0[0x70];
     short yWhole;                      // +0x70, the whole part of pos.y
     char unknown_72[0x92 - 0x72];
-    UnitDef_0043db50* def;             // +0x92
+    UnitDef* def;                      // +0x92
     char unknown_96[0x9a - 0x96];
     CobScript* script;                 // +0x9a
     char unknown_9e[0x10a - 0x9e];
@@ -430,20 +425,11 @@ struct Flags_0043e490 {
     unsigned int b15_31 : 17;
 };
 
-struct UnitDef {
-    char unknown_0[0x156];
-    int f156; // +0x156
-    char unknown_15a[0x1ee - 0x15a];
-    Node_0043e490* f1ee; // +0x1ee
-    char unknown_1f2[0x241 - 0x1f2];
-    union {
-        unsigned int f241; // +0x241
-        Flags_0043e490 f241b;
-    };
-    union {
-        unsigned int f245; // +0x245
-        Flags_0043e490 f245b;
-    };
+// The flag words at +0x241 and +0x245 read as bit fields; the header keeps plain words.
+struct UnitDefFlags_0043e490 {
+    char unknown_0[0x241];
+    Flags_0043e490 f241b;              // +0x241
+    Flags_0043e490 f245b;              // +0x245
 };
 
 struct Size_0043e490 {
@@ -549,7 +535,7 @@ static inline Feature_0043e490* GetFeature(Cell* cell) {
 // and the extra reload block adds 20 bytes.
 #define RECLAIM_CHECK(def, unit, pos, mask, result)                  \
     do {                                                             \
-        if (((def)->f245 & (mask)) && Visible((unit), (pos))) {      \
+        if (((def)->flags2 & (mask)) && Visible((unit), (pos))) {      \
             Feature_0043e490* f = GetFeature(GetMapCellAtPosition(pos));     \
             if (f && (f->flags & 0x80))                              \
                 return (result);                                     \
@@ -584,9 +570,9 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
 
     switch (mode) {
     case 3:
-        if ((def->f245 & 0x10) && def->f1ee->f111b.b8)
+        if ((def->flags2 & 0x10) && ((Node_0043e490*)def->weapons[0])->f111b.b8)
             return 2;
-        if (def->f245b.b4) {
+        if (((UnitDefFlags_0043e490*)def)->f245b.b4) {
             node = unit->f10;
             if (unit->motion)
                 return 1;
@@ -598,13 +584,13 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
         }
         break;
     case 9:
-        return def->f245b.b6 ? 7 : 0x13;
+        return ((UnitDefFlags_0043e490*)def)->f245b.b6 ? 7 : 0x13;
     case 8:
         return ((Unit*)unit)->CanRepair(target) ? 6 : 0x13;
     case 7:
-        if (!(def->f245 & 0x20) || !friendly)
+        if (!(def->flags2 & 0x20) || !friendly)
             break;
-        if ((def->f241 & 0x800) || !(target->def->f241 & 0x800))
+        if ((def->flags1 & 0x800) || !(target->def->flags1 & 0x800))
             return 5;
         break;
     case 12:
@@ -614,21 +600,21 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 0xb;
         break;
     case 13:
-        if ((def->f245 & 0x1000) && target && unit->player != target->player)
+        if ((def->flags2 & 0x1000) && target && unit->player != target->player)
             return 4;
         break;
     case 6:
         if (!target || !((Unit*)unit)->CanLoad(target))
             break;
-        return def->f241b.b11 ? 8 : 0xc;
+        return ((UnitDefFlags_0043e490*)def)->f241b.b11 ? 8 : 0xc;
     case 5:
-        return def->f245b.b8 ? 0xd : 0x13;
+        return ((UnitDefFlags_0043e490*)def)->f245b.b8 ? 0xd : 0x13;
     case 14:
-        if (def->f156 == 0 || unit->motion == 0)
+        if (def->ids == 0 || unit->motion == 0)
             break;
         return 0x10;
     case 4:
-        if (def->f245b.b14) {
+        if (((UnitDefFlags_0043e490*)def)->f245b.b14) {
             // f48 pointer declared before the fec one.
             Limits_0043e490* l = unit->f48;
             Stats_0043e490* s = unit->fec;
@@ -640,12 +626,12 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
     case 11:
         return 9;
     case 2:
-        if (!(def->f245 & 0x80))
+        if (!(def->flags2 & 0x80))
             break;
         RECLAIM_CHECK(def, unit, pos, 0x800, 0xa);
         if (!target || !unit->motion)
             return 0xe;
-        if ((def->f245 & 0x1000) && enemy)
+        if ((def->flags2 & 0x1000) && enemy)
             return 4;
         if (enemy && ((Unit*)unit)->CanReclaim(target))
             return 0xb;
@@ -653,11 +639,11 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 6;
         if (friendly && ((Unit*)unit)->CanRepair(target))
             return 6;
-        if ((def->f241 & 0x800) && (target->def->f241 & 0x200))
+        if ((def->flags1 & 0x800) && (target->def->flags1 & 0x200))
             return 0xd;
         if (((Unit*)unit)->CanLoad(target))
-            return def->f241b.b11 ? 8 : 0xc;
-        if ((def->f245 & 0x20) && friendly)
+            return ((UnitDefFlags_0043e490*)def)->f241b.b11 ? 8 : 0xc;
+        if ((def->flags2 & 0x20) && friendly)
             return 5;
         return 0xe;
     case 1:
@@ -673,9 +659,9 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             break;
         }
         // Self calls, not a goto loop: they become the original's jump to the top.
-        if ((def->f245 & 0x10) && enemy)
+        if ((def->flags2 & 0x10) && enemy)
             return GetOrderCursor(3, unit, target, pos);
-        if ((def->f245 & 0x400) && enemy)
+        if ((def->flags2 & 0x400) && enemy)
             return GetOrderCursor(0xc, unit, target, pos);
         if (target && ((Unit*)unit)->CanRepair(target) && target->buildLeft != 0.0f)
             return 6;
@@ -683,7 +669,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 0xf;
         RECLAIM_CHECK(def, unit, pos, 0x800, 0xa);
         RECLAIM_CHECK(def, unit, pos, 0x400, 0xb);
-        return def->f245b.b7 ? 0xe : 0x13;
+        return ((UnitDefFlags_0043e490*)def)->f245b.b7 ? 0xe : 0x13;
     }
     return 0x13;
 }

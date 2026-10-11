@@ -14,13 +14,7 @@ struct Display_00491a70;
 struct Src_004ab400;
 
 #pragma pack(push, 1)
-struct Gui_00491d70 {
-    char unknown_0[8];
-    int fontSlot0;                     // +0x8
-    char unknown_c[8];
-    int activeFontGaf;                 // +0x14
-    void* current;                     // +0x18
-};
+#include "../gui/gui.h"
 
 struct Player_004917d0 {
     char unknown_0[0x140];
@@ -50,10 +44,8 @@ struct Game {
     Display_00491a70* displayContext;  // +0xc
     Sound* sound; // +0x10
     char unknown_14[0x519 - 0x14];
-    Gui_00491d70 gui;   // +0x519
-    char unknown_535[0x589 - 0x535];
-    int field_589;   // +0x589
-    char unknown_58d[0x12ef - 0x58d];
+    Gui gui;   // +0x519
+    char unknown_120f[0x12ef - 0x120f];
     char chatHudRing[4];  // +0x12ef
     char unknown_12f3[0x1b63 - 0x12f3];
     Player_004917d0 players[10];   // +0x1b63
@@ -626,7 +618,7 @@ void InitGame()
     LoadGafFile(&g_game->gui, g_commonGuiName);
     LoadGafIntoSlot(&g_game->gui, g_hattFont12Name, 0);
     LoadGafIntoSlot(&g_game->gui, g_hattFont11Name, 1);
-    g_game->gui.activeFontGaf = g_game->gui.fontSlot0;
+    g_game->gui.language = g_game->gui.values[0];
     SetTextKeyColor(0xfe);
     SetFont(g_game->fontComix);
     g_game->debugMode = 0;
@@ -645,7 +637,7 @@ void InitGame()
         GlobalMemoryStatus(&mem2);
     }
     ClearPictureCache();
-    g_game->field_589 = 1;
+    g_game->gui.clearQuickKeys = 1;
     int limit = GetPreferenceInt(g_unitLimitKey, 0xfa);
     if (limit > 500)
         limit = 500;
@@ -938,8 +930,8 @@ void __stdcall UpdateBattleHoverMode(int unused)
     }
 }
 
-int __stdcall IsScreenNamed(Gui_00491d70* queue, char* name);
-void __stdcall CloseTopScreen(Gui_00491d70* queue);
+int __stdcall IsScreenNamed(Gui* queue, char* name);
+void __stdcall CloseTopScreen(Gui* queue);
 
 // FUNCTION: 0x491d70
 int __stdcall PopUntilNamedLayout(int force)
@@ -950,7 +942,7 @@ int __stdcall PopUntilNamedLayout(int force)
         return 0;
     }
     g_game->unitIndex = 0;
-    while (g_game->gui.current) {
+    while (g_game->gui.layer) {
         if (IsScreenNamed(&g_game->gui, g_game->mainHudLayoutName))
             return 1;
         CloseTopScreen(&g_game->gui);

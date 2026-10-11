@@ -141,7 +141,7 @@ extern char g_testGadgetName[8];                                                
 extern char g_volTextGadgetName[8];                                                                             // 0x5069c8, 8 bytes; 1 of 1 files
 extern char g_modeGadgetName[8];                                                                                // 0x5069d0, 8 bytes; 1 of 1 files
 extern char g_explodeSoundFile[20];                                                                             // 0x5069d8, 20 bytes; 1 of 1 files
-extern int g_usePacketManager;                                                                                  // 0x506dbc, 4 bytes; 9 of 9 files
+extern int g_usePacketManager;                                                                                  // 0x506dbc, 4 bytes; 8 of 8 files
 extern char g_continueWatchingTitle[32];                                                                        // 0x507318, 32 bytes; 1 of 1 files
 extern char g_radarPicTempName[16];                                                                             // 0x5074e8, 16 bytes; 1 of 1 files
 extern char g_radarPictureName[16];                                                                             // 0x5074f8, 16 bytes; 1 of 1 files
@@ -249,7 +249,7 @@ extern unsigned char DAT_00511a54[4];                                           
 extern int g_messageCountByType[45][2];                                                                         // 0x511a58, 360 bytes; 3 of 3 files
 extern int g_messageBytesReceived;                                                                              // 0x511bc0, 4 bytes; 3 of 3 files
 extern int g_messageBytesSent;                                                                                  // 0x511bc4, 4 bytes; 3 of 3 files
-extern int g_packetBytesSent;                                                                                   // 0x511bc8, 4 bytes; 4 of 4 files
+extern int g_packetBytesSent;                                                                                   // 0x511bc8, 4 bytes; 3 of 3 files
 extern int g_lastPacketBytesReceived;                                                                           // 0x511bcc, 4 bytes; 1 of 1 files
 extern char g_commandLineBuf[80];                                                                               // 0x511bd0, 80 bytes; 1 of 1 files
 extern int DAT_00511c20;                                                                                        // 0x511c20, 4 bytes; 3 of 3 files
@@ -264,7 +264,7 @@ extern int g_lastMessageBytesReceived;                                          
 extern int g_lastMessageBytesSent;                                                                              // 0x511c44, 4 bytes; 1 of 1 files
 extern int g_packetsReceived;                                                                                   // 0x511c48, 4 bytes; 3 of 3 files
 extern unsigned int g_packetBytesSentRate;                                                                      // 0x511c4c, 4 bytes; 1 of 1 files
-extern int g_packetBytesReceived;                                                                               // 0x511c50, 4 bytes; 4 of 4 files
+extern int g_packetBytesReceived;                                                                               // 0x511c50, 4 bytes; 3 of 3 files
 extern unsigned char DAT_00511c54[4];                                                                           // 0x511c54, 4 bytes; nothing refers to it
 extern int g_messageBytesByType[45][2];                                                                         // 0x511c58, 360 bytes; 3 of 3 files
 extern unsigned int g_packetsReceivedRate;                                                                      // 0x511dc0, 4 bytes; 1 of 1 files
@@ -277,7 +277,7 @@ extern unsigned int g_netStatsTick;                                             
 extern unsigned int g_byteRatesTick;                                                                            // 0x511ddc, 4 bytes; 1 of 1 files
 extern int g_cdBypassDriveScan;                                                                                 // 0x511de0, 4 bytes; 2 of 2 files
 extern int g_cdPathMismatch;                                                                                    // 0x511de4, 4 bytes; 1 of 1 files
-extern Game* g_game;                                                                                            // 0x511de8, 4 bytes; 144 of 159 files (conflicting: shape)
+extern Game* g_game;                                                                                            // 0x511de8, 4 bytes; 131 of 146 files (conflicting: shape)
 extern int g_endGameGlamourSoundStarted;                                                                        // 0x511dec, 4 bytes; 1 of 1 files
 extern ExplodedPiece* g_explodedPieces[100];                                                                    // 0x511df0, 400 bytes; 1 of 1 files
 extern unsigned char g_debrisMemCache[16];                                                                      // 0x511f80, 16 bytes; CMemoryCache by value in 2 of 2 files
@@ -420,7 +420,7 @@ extern int g_lastPlaceMetalSum;                                                 
 extern SpeechQueue* g_speechQueue;                                                                              // 0x51e68c, 4 bytes; 1 of 1 files
 extern int g_noDirectSound;                                                                                     // 0x51e690, 4 bytes; 1 of 1 files
 extern int g_useWindowsSound;                                                                                   // 0x51e694, 4 bytes; 1 of 1 files
-extern int DAT_0051e698;                                                                                        // 0x51e698, 4 bytes; 2 of 2 files
+extern int g_cmdSingEnabled;                                                                                    // 0x51e698, 4 bytes; 2 of 2 files
 extern int g_playLooping;                                                                                       // 0x51e69c, 4 bytes; 1 of 1 files
 extern unsigned char DAT_0051e6b0[4];                                                                           // 0x51e6b0, 4 bytes; nothing refers to it
 extern int g_mapLoadFlag;                                                                                       // 0x51e6c0, 4 bytes; 1 of 1 files
@@ -600,7 +600,6 @@ extern long g_squashThreadLockTicket;                                           
 //   0x4fcd98 g_dpspGuidIpx: defined in src/data/guids.cpp
 //   0x4fcda8 g_dpspGuidTcpip: defined in src/data/guids.cpp
 //   0x51e598 IUUnitSyncEntry::IU?$pair::?$_Tree::_Nil: defined in src/network/unit_sync.cpp
-//   0x51e6a0 g_losTables: defined in src/map/line_of_sight.cpp
 //   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib.cpp
 //   0x4fcfb8 DAT_004fcfb8: defined in src/data/guids.cpp
 //   0x4fd2f8 g_orderFxVtable: defined in src/data/vtables.cpp
@@ -610,6 +609,7 @@ extern long g_squashThreadLockTicket;                                           
 //   0x51e574 g_onlineReportPlayers: PlayerInfo_0046c2a0** (1), PlayerInfo_0046bce0** (1), int* (1)
 //   0x51e57c g_onlineReportScoreBoards: ScoreBoard_0046c2a0** (1), ScoreBoard_0046bce0** (1), void* (1)
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
+//   0x51e6a0 g_losTables: defined in src/map/line_of_sight.cpp
 //   0x51fba4 g_guiContext: Root_004a32a0* (1), Holder_004a3ef0* (1), int* (1)
 //   0x528a54 std::IH::IU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib_4db610.cpp
 //   0x529e9c g_gdperfDriverReady: char (2), bool (1)

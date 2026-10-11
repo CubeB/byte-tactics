@@ -507,7 +507,7 @@ int g_lastPlaceMetalSum;  // 0x51e688 .bss
 SpeechQueue* g_speechQueue;  // 0x51e68c .bss
 int g_noDirectSound;  // 0x51e690 .bss
 int g_useWindowsSound;  // 0x51e694 .bss
-int DAT_0051e698;  // 0x51e698 .bss
+int g_cmdSingEnabled;  // 0x51e698 .bss
 int g_playLooping;  // 0x51e69c .bss
 unsigned char DAT_0051e6b0[4];  // 0x51e6b0 .bss
 int g_mapLoadFlag;  // 0x51e6c0 .bss

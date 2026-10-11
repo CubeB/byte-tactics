@@ -461,7 +461,7 @@ extern int g_packetsReceived;
 extern int g_packetBytesReceived;
 extern int g_contourSpacing;           // contour spacing
 extern int g_contourOffset;            // contour offset
-extern int DAT_0051e698;
+extern int g_cmdSingEnabled;
 extern int g_messageCountByType[45][2];
 extern int g_messageBytesByType[45][2];
 extern unsigned char g_contourColors[];  // colour by height band
@@ -1049,7 +1049,7 @@ void __stdcall CmdGamma(CommandArgs* args)
 // FUNCTION: 0x4172e0
 void __stdcall CmdSing(int unused)
 {
-    DAT_0051e698 = !DAT_0051e698;
+    g_cmdSingEnabled = !g_cmdSingEnabled;
 }
 
 // Toggles one flag bit in the same 16-bit flags word as 0x416e30, 0x417060

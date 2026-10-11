@@ -70,8 +70,8 @@ int __stdcall UnlockPrimary(void* unused, RECT* r1, RECT* r2);
 void __stdcall ResetClipRect(void* d);
 void* __stdcall AllocSurface(char* name, int width, int height);
 void __stdcall FreeSurface(void* obj);
-int __stdcall StartThread(void* param_1, unsigned int param_2, void* param_3);
-void __stdcall SleepMilliseconds(unsigned int param_1);
+int __stdcall StartThread(void* start, unsigned int stack, void* param);
+void __stdcall SleepMilliseconds(unsigned int ms);
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __cdecl GameFreeThunk(void* p);
 

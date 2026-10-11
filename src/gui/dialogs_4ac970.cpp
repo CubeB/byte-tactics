@@ -38,7 +38,7 @@ struct Rect_004ac970 {
 };
 
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
-void __stdcall DrawRectangle(void* param_1, void* param_2, int param_3);
+void __stdcall DrawRectangle(void* surface, void* rect, int color);
 
 // The x of one cell of the grid: the grid gadget's x plus the cell gadget's.
 // Must stay a defined helper: its presence affects the caller's codegen.

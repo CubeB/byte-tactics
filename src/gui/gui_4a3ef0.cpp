@@ -39,9 +39,9 @@ struct Dialog {
 extern Holder_004a3ef0* g_guiContext;
 
 void __stdcall SetFont(int id);
-int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
+int __stdcall GetGafFrame(unsigned short* seq, int frame);
 int GetFontHeight();
-void __stdcall DrawSliderBar(Dialog* param_1, int param_2);
+void __stdcall DrawSliderBar(Dialog* gui, int gadgetIndex);
 
 // The one helper for every GetGafFrame glyph fetch.
 static inline GafFrame* GetGlyph_004a3ef0(unsigned char c)
@@ -70,10 +70,10 @@ static inline int LineSize_004a3ef0(Gadget* e)
 }
 
 // FUNCTION: 0x4a3ef0
-void __stdcall DrawSlider(Dialog* param_1, int param_2)
+void __stdcall DrawSlider(Dialog* gui, int gadgetIndex)
 {
-    Gadget* entries = param_1->holder->entries;
-    Gadget* me = &entries[param_2];
+    Gadget* entries = gui->holder->entries;
+    Gadget* me = &entries[gadgetIndex];
     unsigned char kind = me->team;
     int found = Find_004a3ef0(entries, kind);
     // Must stay a union with both zero stores: a plain int changes the register choices.
@@ -136,5 +136,5 @@ void __stdcall DrawSlider(Dialog* param_1, int param_2)
             }
         }
     }
-    DrawSliderBar(param_1, param_2);
+    DrawSliderBar(gui, gadgetIndex);
 }

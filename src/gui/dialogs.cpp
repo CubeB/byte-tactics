@@ -411,50 +411,50 @@ int __stdcall IsScreenNamed(Gui* obj, const char* name)
 }
 
 // FUNCTION: 0x4ab0a0
-void __stdcall ClearSelectedGadget(void* param_1)
+void __stdcall ClearSelectedGadget(void* gui)
 {
-    *(int*)((char*)param_1 + 0x60) = -1;
+    *(int*)((char*)gui + 0x60) = -1;
 }
 
 // FUNCTION: 0x4ab0b0
-int __stdcall BlitLayers(Layer* node, void* param_2, Rect_004b6720* param_3)
+int __stdcall BlitLayers(Layer* node, void* surface, Rect_004b6720* clipRect)
 {
     Rect_004b6720 rect;
     if (node == 0) {
         return 0;
     }
-    BlitLayers(node->next, param_2, param_3);
+    BlitLayers(node->next, surface, clipRect);
     Gadget* g = node->entries;
     rect.left = g->x;
     rect.top = g->y;
     rect.right = g->width + rect.left - 1;
     rect.bottom = g->height + rect.top - 1;
-    if (param_3 == 0) {
+    if (clipRect == 0) {
         if (node->redraw == 1) {
             node->redraw = 0;
-            DrawSurface(param_2, g->u.assets.surface, g->x, g->y);
+            DrawSurface(surface, g->u.assets.surface, g->x, g->y);
         }
     } else {
-        if (node->redraw != 1 && RectsOverlap(&rect, param_3) == 0) {
+        if (node->redraw != 1 && RectsOverlap(&rect, clipRect) == 0) {
             goto finish;
         }
         node->redraw = 0;
-        DrawSurface(param_2, g->u.assets.surface, g->x, g->y);
+        DrawSurface(surface, g->u.assets.surface, g->x, g->y);
     }
 finish:
     return 1;
 }
 
 // FUNCTION: 0x4ab170
-void __stdcall BlitMenuLayers(Gui* param_1, unsigned int* param_2, int* param_3)
+void __stdcall BlitMenuLayers(Gui* gui, unsigned int* surface, int* rect)
 {
-    BlitLayers(param_1->layer, param_2, (Rect_004b6720*)param_3);
+    BlitLayers(gui->layer, surface, (Rect_004b6720*)rect);
 }
 
 // FUNCTION: 0x4ab190
-void __stdcall SetDescListCleanupFlag(int param_1, int param_2)
+void __stdcall SetDescListCleanupFlag(int gui, int flag)
 {
-    *(int*)(param_1 + 0xcc6) = param_2;
+    *(int*)(gui + 0xcc6) = flag;
 }
 
 // Appends a type-5 GUI entry to the holder's 0x15b-byte entry table and fills
@@ -711,10 +711,10 @@ void __stdcall UpdateCursorAndMouse(Gui* p)
 }
 
 // FUNCTION: 0x4ab690
-void __stdcall SetClickMode(void* param_1, int param_2)
+void __stdcall SetClickMode(void* gui, int mode)
 {
-    *(int*)((char*)param_1 + 0x58) = param_2;
-    *(int*)(*(int*)((char*)param_1 + 0x18) + 0x37) = param_2;
+    *(int*)((char*)gui + 0x58) = mode;
+    *(int*)(*(int*)((char*)gui + 0x18) + 0x37) = mode;
 }
 
 // FUNCTION: 0x4ab6b0
@@ -961,7 +961,7 @@ void __stdcall YesNoDialogHandler(Gui* gadget)
 // Opens the YESORNO.GUI dialog, fills its CHC1 / CHC2 / TITL text fields and
 // installs YesNoDialogHandler as the handler. Same shape as 0x4abb20 / 0x4ac130.
 // FUNCTION: 0x4abbd0
-int __stdcall OpenYesNoDialog(Gui* sub, char* param_2, char* param_3, char* param_4)
+int __stdcall OpenYesNoDialog(Gui* sub, char* title, char* chc2, char* chc1)
 {
     Layer* layer = LoadGuiLayer(sub, "YESORNO.GUI", 0x800);
     if (layer) {
@@ -969,9 +969,9 @@ int __stdcall OpenYesNoDialog(Gui* sub, char* param_2, char* param_3, char* para
         Gadget* p1 = &entries[FindGadgetIndex(entries, "CHC1", 1)];
         Gadget* p2 = &entries[FindGadgetIndex(entries, "CHC2", 1)];
         Gadget* p3 = &entries[FindGadgetIndex(entries, "TITL", 5)];
-        strcpy(p1->u.text, param_4);
-        strcpy(p2->u.text, param_3);
-        strcpy(p3->u.text, param_2);
+        strcpy(p1->u.text, chc1);
+        strcpy(p2->u.text, chc2);
+        strcpy(p3->u.text, title);
         layer->handler = YesNoDialogHandler;
         return 1;
     }
@@ -1107,9 +1107,9 @@ int __stdcall OpenNotExistDialog(Gui* sub, char* name)
 }
 
 // FUNCTION: 0x4ac130
-void __stdcall Choice3DialogHandler(Gui* param_1)
+void __stdcall Choice3DialogHandler(Gui* gui)
 {
-    Gadget* p = param_1->layer->entries;
+    Gadget* p = gui->layer->entries;
     FindGadgetIndex(p, "CHC1", 0xe);
     FindGadgetIndex(p, "CHC2", 0xe);
     FindGadgetIndex(p, "CHC3", 0xe);
@@ -1143,10 +1143,10 @@ int __stdcall OpenChoice3Dialog(Gui* menu, const char* title, const char* choice
 }
 
 // FUNCTION: 0x4ac300
-void __stdcall InputDialogHandler(Gui* param_1)
+void __stdcall InputDialogHandler(Gui* gui)
 {
-    Gadget* esi = param_1->layer->entries;
-    int edi = param_1->hotGadgetIndex;
+    Gadget* esi = gui->layer->entries;
+    int edi = gui->hotGadgetIndex;
     IsGadgetNamed(esi, edi, "CHC1");
     IsGadgetNamed(esi, edi, "CHC2");
     IsGadgetNamed(esi, edi, "INPT");

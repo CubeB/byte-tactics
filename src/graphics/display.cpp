@@ -954,9 +954,9 @@ int __stdcall EmptyPostArchiveMountHook(int)
 }
 
 // FUNCTION: 0x4b62d0
-void __stdcall InitTimers(int param_1)
+void __stdcall InitTimers(int tickRate)
 {
-    g_display->tickScale = param_1;
+    g_display->tickScale = tickRate;
     g_timerCount = 0;
     for (int i = 0; i < 10; i++) {
         g_timerSlots[i].interval = -1;

@@ -86,11 +86,11 @@ int __stdcall SetGafSequenceFrame(Obj_004b7f00* obj, int index)
     return result;
 }
 // FUNCTION: 0x4b7f30
-int __stdcall GetGafFrame(unsigned short* param_1, int param_2)
+int __stdcall GetGafFrame(unsigned short* seq, int frame)
 {
     int result = 0;
-    if (param_2 >= 0 && param_2 < (int)*param_1 && param_1 != 0) {
-        result = *(int*)((char*)param_1 + param_2 * 8 + 0x28);
+    if (frame >= 0 && frame < (int)*seq && seq != 0) {
+        result = *(int*)((char*)seq + frame * 8 + 0x28);
     }
     return result;
 }
@@ -344,73 +344,73 @@ void __cdecl BlitCompressedBlended(unsigned char* pixels, int pitch, Rect* drect
                                    GafFrame** src, Rect* srect,
                                    unsigned char* palette);
 
-// Draws one bitmap (`param_2`, a BITMAPINFO: width/height shorts, x/y origin
+// Draws one bitmap (`frame`, a BITMAPINFO: width/height shorts, x/y origin
 // shorts, two flag bytes, a texture count and a texture array) at x, y, either
-// into `param_1` or, when that is null, into the screen locked with
+// into `surface` or, when that is null, into the screen locked with
 // LockScreen and unlocked with UnlockScreen at the end (which is why the
-// unlock is guarded by a comparison of `param_1` with the address of the local
+// unlock is guarded by a comparison of `surface` with the address of the local
 // surface). A record with a child count draws each child through this same
 // function (recursion). A leaf builds the source rect (0, 0, w - 1, h - 1) and
 // the destination rect (x - dx, y - dy, ...), clips the destination to the
 // destination's own clip rect with ClipRects and blits through
 // BlitRectBlended, or, when the mode byte at +9 is set, through BlitCompressedBlended.
 // FUNCTION: 0x4b8500
-void __stdcall DrawFrameBlended(Surface* param_1, GafFrame* param_2, int x, int y)
+void __stdcall DrawFrameBlended(Surface* surface, GafFrame* frame, int x, int y)
 {
     Display_004b8310* d = GetDisplay();
     if ((d->flags.byte & 0x20) != 0) {
         Screen_004b8310 screen;
-        if (param_1 == 0) {
+        if (surface == 0) {
             int locked = LockScreen(&screen.surf);
             if (locked != 0)
-                param_1 = (Surface*)&screen.surf;
+                surface = (Surface*)&screen.surf;
         }
 
-        if (param_2 != 0) {
-            if (param_2->count > 0) {
-                for (int i = 0; i < param_2->count; i++)
-                    DrawFrameBlended(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
+        if (frame != 0) {
+            if (frame->count > 0) {
+                for (int i = 0; i < frame->count; i++)
+                    DrawFrameBlended(surface, ((GafFrame**)frame->plane0)[i], x, y);
             } else {
                 Rect screen_rect;
-                Rect sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
-                int w = param_2->width;
-                int h = param_2->height;
-                screen_rect.left = x - param_2->x;
-                screen_rect.top = y - param_2->y;
+                Rect sprite_rect = { 0, 0, frame->width - 1, frame->height - 1 };
+                int w = frame->width;
+                int h = frame->height;
+                screen_rect.left = x - frame->x;
+                screen_rect.top = y - frame->y;
                 screen_rect.right = w + screen_rect.left - 1;
                 screen_rect.bottom = h + screen_rect.top - 1;
                 Bounds_src_004b8310 bs;
-                param_1->GetClipRect(&bs.bounds);
+                surface->GetClipRect(&bs.bounds);
                 ClipRects(&sprite_rect, &screen_rect, &bs.bounds);
                 if (screen_rect.right >= screen_rect.left && screen_rect.bottom >= screen_rect.top
                     && sprite_rect.right >= sprite_rect.left && sprite_rect.bottom >= sprite_rect.top) {
-                    if (param_2->flag9 == 0) {
+                    if (frame->flag9 == 0) {
                         Src_004b8310& src = bs.src;
-                        src.width = param_2->width;
-                        src.height = param_2->height;
-                        src.pitch = param_2->width;
-                        src.pixels = (GafFrame**)param_2->plane0;
-                        BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect,
-                            param_2->colour, d->alphaTable);
+                        src.width = frame->width;
+                        src.height = frame->height;
+                        src.pitch = frame->width;
+                        src.pixels = (GafFrame**)frame->plane0;
+                        BlitRectBlended(surface, &src, &sprite_rect, &screen_rect,
+                            frame->colour, d->alphaTable);
                     } else {
-                        BlitCompressedBlended(param_1->pixels, param_1->pitch, &screen_rect,
-                            (GafFrame**)param_2->plane0, &sprite_rect, d->alphaTable);
+                        BlitCompressedBlended(surface->pixels, surface->pitch, &screen_rect,
+                            (GafFrame**)frame->plane0, &sprite_rect, d->alphaTable);
                     }
                 }
             }
         }
 
-        if (param_1 == (Surface*)&screen.surf)
+        if (surface == (Surface*)&screen.surf)
             UnlockScreen(&screen.surf);
     }
 }
 
 void __cdecl BlitRectRemapDest(Surface* dst, Surface* src, Rect* rect,
                                Rect* pos, int colour, unsigned char* table);
-void __stdcall ResetClipRect(int* param_1);
+void __stdcall ResetClipRect(int* surface);
 
-// Recursively draws a bitmap tree (`param_2`) at x, y into `param_1`, or into
-// the locked screen when `param_1` is null. Runs only when the display flag
+// Recursively draws a bitmap tree (`frame`) at x, y into `surface`, or into
+// the locked screen when `surface` is null. Runs only when the display flag
 // word at +0xf0 has bit 0x100 set (which is byte +0xf1 bit 0) and the record's
 // byte at +9 is clear (note the record is tested for null only after that byte
 // is read). A record with a child count
@@ -421,54 +421,54 @@ void __stdcall ResetClipRect(int* param_1);
 // dx, dy, flag bits), resets its clip rect with ResetClipRect and blits with
 // BlitRectRemapDest using the palette at display +0xcc.
 // FUNCTION: 0x4b86e0
-void __stdcall DrawFrameGray(Surface* param_1, GafFrame* param_2, int x, int y)
+void __stdcall DrawFrameGray(Surface* surface, GafFrame* frame, int x, int y)
 {
     Display_004b8310* d = GetDisplay();
     // Flag tested as bit 0x100 of the word: fuses into a byte test at +0xf1.
-    if ((d->flags.word & 0x100) != 0 && param_2->flag9 == 0) {
+    if ((d->flags.word & 0x100) != 0 && frame->flag9 == 0) {
         Surface screen;
-        if (param_1 == 0) {
+        if (surface == 0) {
             int locked = LockScreen(&screen);
             if (locked != 0)
-                param_1 = (Surface*)&screen;
+                surface = (Surface*)&screen;
         }
-        if (param_2 != 0) {
-            if (param_2->count > 0) {
-                for (int i = 0; i < param_2->count; i++)
-                    DrawFrameGray(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
+        if (frame != 0) {
+            if (frame->count > 0) {
+                for (int i = 0; i < frame->count; i++)
+                    DrawFrameGray(surface, ((GafFrame**)frame->plane0)[i], x, y);
             } else {
                 Rect other;
                 Rect rect;
                 other.left = 0;
-                other.right = param_2->width - 1;
+                other.right = frame->width - 1;
                 other.top = 0;
-                other.bottom = param_2->height - 1;
-                rect.left = x - param_2->x;
-                rect.top = y - param_2->y;
-                rect.right = rect.left + param_2->width - 1;
-                rect.bottom = rect.top + param_2->height - 1;
+                other.bottom = frame->height - 1;
+                rect.left = x - frame->x;
+                rect.top = y - frame->y;
+                rect.right = rect.left + frame->width - 1;
+                rect.bottom = rect.top + frame->height - 1;
                 Rect bounds;
-                param_1->GetClipRect(&bounds);
+                surface->GetClipRect(&bounds);
                 ClipRects(&other, &rect, &bounds);
                 if (rect.right >= rect.left && rect.bottom >= rect.top &&
                     other.right >= other.left && other.bottom >= other.top) {
                     Surface s;
-                    s.width = param_2->width;
-                    s.height = param_2->height;
-                    s.pitch = param_2->width;
-                    s.pixels = (unsigned char*)param_2->plane0;
+                    s.width = frame->width;
+                    s.height = frame->height;
+                    s.pitch = frame->width;
+                    s.pixels = (unsigned char*)frame->plane0;
                     s.zPriority = 10000;
                     s.colorKey = -1;
-                    s.x = param_2->x;
-                    s.y = param_2->y;
+                    s.x = frame->x;
+                    s.y = frame->y;
                     s.flag0 = 1;
                     s.flag1 = 0;
                     ResetClipRect((int*)&s);
-                    BlitRectRemapDest(param_1, &s, &other, &rect, param_2->colour, d->grayTable);
+                    BlitRectRemapDest(surface, &s, &other, &rect, frame->colour, d->grayTable);
                 }
             }
         }
-        if (param_1 == (Surface*)&screen)
+        if (surface == (Surface*)&screen)
             UnlockScreen(&screen);
     }
 }
@@ -1515,51 +1515,51 @@ void __stdcall CutFrameBelow(GafFrame* image, unsigned char level)
 // at their addresses their bodies' symbol ids would move the register windows
 // the other functions match in (docs/c2-regalloc.md).
 // FUNCTION: 0x4b8310
-void __stdcall DrawFrameLit(Surface* param_1, GafFrame* param_2, int x, int y, int param_5)
+void __stdcall DrawFrameLit(Surface* surface, GafFrame* frame, int x, int y, int paletteRow)
 {
     Display_004b8310* d = GetDisplay();
     if ((d->flags.byte & 0x80) == 0x80) {
         Screen_004b8310 screen;
-        if (param_1 == 0) {
+        if (surface == 0) {
             int locked = LockScreen(&screen.surf);
             if (locked != 0)
-                param_1 = (Surface*)&screen.surf;
+                surface = (Surface*)&screen.surf;
         }
 
-        if (param_2 != 0) {
-            if (param_2->count > 0) {
-                for (int i = 0; i < param_2->count; i++)
-                    DrawFrameBlended(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
+        if (frame != 0) {
+            if (frame->count > 0) {
+                for (int i = 0; i < frame->count; i++)
+                    DrawFrameBlended(surface, ((GafFrame**)frame->plane0)[i], x, y);
             } else {
                 Rect screen_rect;
-                Rect sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
-                int w = param_2->width;
-                int h = param_2->height;
-                screen_rect.left = x - param_2->x;
-                screen_rect.top = y - param_2->y;
+                Rect sprite_rect = { 0, 0, frame->width - 1, frame->height - 1 };
+                int w = frame->width;
+                int h = frame->height;
+                screen_rect.left = x - frame->x;
+                screen_rect.top = y - frame->y;
                 screen_rect.right = w + screen_rect.left - 1;
                 screen_rect.bottom = h + screen_rect.top - 1;
                 Bounds_src_004b8310 bs;
-                param_1->GetClipRect(&bs.bounds);
+                surface->GetClipRect(&bs.bounds);
                 ClipRects(&sprite_rect, &screen_rect, &bs.bounds);
                 if (screen_rect.right >= screen_rect.left && screen_rect.bottom >= screen_rect.top
                     && sprite_rect.right >= sprite_rect.left && sprite_rect.bottom >= sprite_rect.top) {
-                    if (param_2->flag9 == 0) {
+                    if (frame->flag9 == 0) {
                         Src_004b8310& src = bs.src;
-                        src.width = param_2->width;
-                        src.height = param_2->height;
-                        src.pitch = param_2->width;
-                        src.pixels = (GafFrame**)param_2->plane0;
-                        BlitRectBlended(param_1, &src, &sprite_rect, &screen_rect, param_5, d->lightTable);
+                        src.width = frame->width;
+                        src.height = frame->height;
+                        src.pitch = frame->width;
+                        src.pixels = (GafFrame**)frame->plane0;
+                        BlitRectBlended(surface, &src, &sprite_rect, &screen_rect, paletteRow, d->lightTable);
                     } else {
-                        BlitCompressedLit(param_1->pixels, param_1->pitch, &screen_rect,
-                            (GafFrame**)param_2->plane0, &sprite_rect, d->lightTable + (param_5 << 8));
+                        BlitCompressedLit(surface->pixels, surface->pitch, &screen_rect,
+                            (GafFrame**)frame->plane0, &sprite_rect, d->lightTable + (paletteRow << 8));
                     }
                 }
             }
         }
 
-        if (param_1 == (Surface*)&screen.surf)
+        if (surface == (Surface*)&screen.surf)
             UnlockScreen(&screen.surf);
     }
 }

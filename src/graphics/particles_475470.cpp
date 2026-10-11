@@ -129,8 +129,8 @@ struct SmokeParticle {
     int timer;                         // +0x1c
 
     void Step();
-    void DrawParticle(int param_1, short param_2, short param_3);
-    int IsExpired(int param_1);
+    void DrawParticle(int dest, short px, short py);
+    int IsExpired(int unused);
     void DrawIfVisible(void* dest, short px, short py)
     {
         short sx = posw.x - px + 0x80;

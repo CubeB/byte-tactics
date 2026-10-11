@@ -60,8 +60,8 @@ struct TimedSubParticle {
     int timer;                         // +0x1c
 
     void Step();
-    void DrawParticle(int param_1, short param_2, short param_3);
-    int IsExpired(int param_1);
+    void DrawParticle(int dest, short px, short py);
+    int IsExpired(int unused);
     void Draw(void* dest, short px, short py)
     {
         short sy = posw.z - (posw.y >> 1) - py + 0x20;

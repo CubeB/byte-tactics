@@ -2,7 +2,7 @@
 // Stays in its own file: its Grow needs the hand-written <vector> view of the
 // pool, which cannot share a file with the real <vector> (particles.cpp).
 // Grows the arena ObjectPool (vtable 0x4fd580, see 0x470a90.cpp and
-// 0x470ae0.cpp) to param_1 slots of param_2 bytes. The table of slot
+// 0x470ae0.cpp) to newCapacity slots of newSlotSize bytes. The table of slot
 // pointers is reallocated with GameReallocIgnoreTag, the raw memory for the new
 // slots comes from GameAllocShared, and the base of that block is pushed on
 // the vector of blocks that the destructor frees one by one (0x470e50).
@@ -110,32 +110,32 @@ public:
     int capacity;                              // +0x1c, the slot count
     int used;                                  // +0x20, slots handed out
 
-    int Grow(int param_1, int param_2);
+    int Grow(int newCapacity, int newSlotSize);
 };
 
 // FUNCTION: 0x470c10
-int ObjectPool::Grow(int param_1, int param_2)
+int ObjectPool::Grow(int newCapacity, int newSlotSize)
 {
     int result = 0;
-    if (param_1 > capacity) {
-        Elem_00470f00** table = (Elem_00470f00**)GameReallocIgnoreTag(slots, param_1 * 4);
+    if (newCapacity > capacity) {
+        Elem_00470f00** table = (Elem_00470f00**)GameReallocIgnoreTag(slots, newCapacity * 4);
         if (table != 0) {
             Elem_00470f00 block;
-            block.p = GameAllocShared((param_1 - capacity) * param_2);
+            block.p = GameAllocShared((newCapacity - capacity) * newSlotSize);
             slots = table;
             if (block.p != 0) {
                 int i = capacity;
-                if (i < param_1) {
+                if (i < newCapacity) {
                     int offset = 0;
                     do {
                         slots[i] = (Elem_00470f00*)((char*)block.p + offset);
-                        offset += param_2;
+                        offset += newSlotSize;
                         i++;
-                    } while (i < param_1);
+                    } while (i < newCapacity);
                 }
                 items.push_back(block);
-                capacity = param_1;
-                slotSize = param_2;
+                capacity = newCapacity;
+                slotSize = newSlotSize;
                 result = 1;
             }
         }

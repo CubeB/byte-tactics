@@ -30,11 +30,11 @@ public:
     void UpdateAll();
     void DrawAll(void* param);
     void DrawList(void* param, short index);
-    void AddTeleportParticles(int param_1, int param_2, int param_3, short index);
-    void AddNanoParticles(int param_1, int param_2, int param_3, short index);
-    void AddThrustParticles(int param_1, int param_2, int param_3, int param_4, short index);
-    void AddWakeParticles(int param_1, int param_2, int param_3, int param_4,
-                          short index, int param_6);
+    void AddTeleportParticles(int posA, int posB, int lifetime, short index);
+    void AddNanoParticles(int posA, int posB, int lifetime, short index);
+    void AddThrustParticles(int posA, int posB, int period, int lifetime, short index);
+    void AddWakeParticles(int posA, int posB, int period, int lifetime,
+                          short index, int isAscending);
 };
 
 #endif

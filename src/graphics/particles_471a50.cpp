@@ -93,17 +93,17 @@ public:
         lists[index].push_back(*(Elem_00473500*)&p);
     }
 
-    void AddTimedSubParticles(Vec3_00475150* param_1, int param_2, int param_3,
-                              int param_4, short index);
+    void AddTimedSubParticles(Vec3_00475150* pos, int emitPeriod, int holdPeriod,
+                              int lifetime, short index);
 };
 
 // FUNCTION: 0x471a50
-void ParticleLists::AddTimedSubParticles(Vec3_00475150* param_1, int param_2,
-                                        int param_3, int param_4, short index)
+void ParticleLists::AddTimedSubParticles(Vec3_00475150* pos, int emitPeriod,
+                                        int holdPeriod, int lifetime, short index)
 {
     TimedSubParticles* e = new TimedSubParticles;
     if (e) {
-        e->Init(param_1, param_2, param_3, param_4);
+        e->Init(pos, emitPeriod, holdPeriod, lifetime);
         Add(index, e);
     }
 }

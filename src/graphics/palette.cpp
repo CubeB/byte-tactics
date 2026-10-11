@@ -186,18 +186,18 @@ int __stdcall GetPaletteColors(unsigned char* dest, int first, int count)
 }
 
 // FUNCTION: 0x4ba590
-void __stdcall SetBrightness(int param_1)
+void __stdcall SetBrightness(int brightness)
 {
     DisplayContext* p = GetDisplay();
-    p->paletteBrightness = param_1;
+    p->paletteBrightness = brightness;
     SetPaletteColors((unsigned char*)p->entries, 0, 0x100);
 }
 
 // FUNCTION: 0x4ba5c0
-int __stdcall AllocAlphaTable(int param_1)
+int __stdcall AllocAlphaTable(int obj)
 {
     void* result = GameAllocIgnoreTag(g_alphaTableName, 0x10000);
-    *(void**)((int)param_1 + 0xc0) = result;
+    *(void**)((int)obj + 0xc0) = result;
     return 1;
 }
 
@@ -208,9 +208,9 @@ void __stdcall FreeAlphaTable(DisplayContext* param)
 }
 
 // FUNCTION: 0x4ba610
-int __stdcall AllocShadeTable(DisplayContext* param_1) {
+int __stdcall AllocShadeTable(DisplayContext* obj) {
     void* result = GameAllocIgnoreTag(g_shadeTableName, 0x2000);
-    param_1->shadeTable = result;
+    obj->shadeTable = result;
     return 1;
 }
 
@@ -228,9 +228,9 @@ int __stdcall AllocLightTable(DisplayContext* obj)
 }
 
 // FUNCTION: 0x4ba690
-void __stdcall FreeLightTable(int param_1)
+void __stdcall FreeLightTable(int obj)
 {
-    GameFreeThunk(*(void**)(param_1 + 0xc8));
+    GameFreeThunk(*(void**)(obj + 0xc8));
 }
 
 // FUNCTION: 0x4ba6b0
@@ -377,42 +377,42 @@ unsigned char __stdcall NearestColorInBand(PALETTEENTRY* palette, int* band, uns
 // Sibling of 0x4bab00 and 0x4bab60: copies a 64 KB table into the buffer at
 // +0xc0 when bit 5 of the flags word at +0xf0 is set.
 // FUNCTION: 0x4baad0
-void __stdcall SetAlphaTable(unsigned int* param_1)
+void __stdcall SetAlphaTable(unsigned int* table)
 {
     DisplayContext* obj = GetDisplay();
     if (obj->has_c0) {
-        memcpy(obj->alphaTable, param_1, 0x4000 * 4);
+        memcpy(obj->alphaTable, table, 0x4000 * 4);
     }
 }
 
 // FUNCTION: 0x4bab00
-void __stdcall SetShadeTable(unsigned int* param_1)
+void __stdcall SetShadeTable(unsigned int* table)
 {
     DisplayContext* obj = GetDisplay();
     if (obj->has_c4) {
-        memcpy(obj->shadeTable, param_1, 0x800 * 4);
+        memcpy(obj->shadeTable, table, 0x800 * 4);
     }
 }
 
 // Sibling of 0x4bab00: copies an 8 KB table into the buffer at +0xc8 when
 // bit 7 of the flags word at +0xf0 is set.
 // FUNCTION: 0x4bab30
-void __stdcall SetLightTable(unsigned int* param_1)
+void __stdcall SetLightTable(unsigned int* table)
 {
     DisplayContext* obj = GetDisplay();
     if (obj->has_c8) {
-        memcpy(obj->lightTable, param_1, 0x800 * 4);
+        memcpy(obj->lightTable, table, 0x800 * 4);
     }
 }
 
 // Sibling of 0x4bab00: copies a 256-byte table into the buffer at +0xcc
 // when bit 8 of the flags word at +0xf0 is set.
 // FUNCTION: 0x4bab60
-void __stdcall SetGrayTable(unsigned int* param_1)
+void __stdcall SetGrayTable(unsigned int* table)
 {
     DisplayContext* obj = GetDisplay();
     if (obj->has_cc) {
-        memcpy(obj->grayTable, param_1, 0x40 * 4);
+        memcpy(obj->grayTable, table, 0x40 * 4);
     }
 }
 
@@ -424,11 +424,11 @@ void __stdcall NopRetC(int, int, int)
 // Sibling of 0x4bab60: copies a 256-byte table into the buffer at +0xd0
 // when bit 9 of the flags word at +0xf0 is set.
 // FUNCTION: 0x4baba0
-void __stdcall SetBlueTable(unsigned int* param_1)
+void __stdcall SetBlueTable(unsigned int* table)
 {
     DisplayContext* obj = GetDisplay();
     if (obj->has_d0) {
-        memcpy(obj->blueTable, param_1, 0x40 * 4);
+        memcpy(obj->blueTable, table, 0x40 * 4);
     }
 }
 

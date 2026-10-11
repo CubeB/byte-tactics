@@ -25,14 +25,14 @@ public:
     int capacity;                       // +0x1c, the slot count
     int used;                           // +0x20, slots handed out
 
-    ObjectPool(int param_1, int param_2)
+    ObjectPool(int initialCapacity, int initialSlotSize)
     {
         slots = 0;
         slotSize = 0;
         capacity = 0;
         used = 0;
-        if (param_1 != 0 && param_2 != 0)
-            Grow(param_1, param_2);
+        if (initialCapacity != 0 && initialSlotSize != 0)
+            Grow(initialCapacity, initialSlotSize);
     }
     virtual ~ObjectPool()
     {
@@ -45,10 +45,10 @@ public:
         }
     }
     void FreeBlocks();
-    int Grow(int param_1, int param_2);
+    int Grow(int newCapacity, int newSlotSize);
     int AllocSlot(int unused);
-    void FreeSlot(int param_1);
-    ObjectPool* Construct(int param_1, int param_2);
+    void FreeSlot(int slot);
+    ObjectPool* Construct(int initialCapacity, int initialSlotSize);
     void Destroy();
 };
 

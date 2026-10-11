@@ -4,16 +4,16 @@ void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const
 int __stdcall HAPI_FileLengthByName(char* path);
 void* __stdcall HAPI_LoadFile(char* path, int flags);
 void __stdcall FatalError(char* path);
-void __stdcall SetAlphaTable(unsigned int* param_1);
-void __stdcall SetShadeTable(unsigned int* param_1);
-void __stdcall SetLightTable(unsigned int* param_1);
+void __stdcall SetAlphaTable(unsigned int* table);
+void __stdcall SetShadeTable(unsigned int* table);
+void __stdcall SetLightTable(unsigned int* table);
 void __cdecl GameFreeThunk(void* p);
 unsigned int* __stdcall BuildAlphaTable(void* palette);
 unsigned int* __stdcall BuildShadeTable(void* palette);
 unsigned int* __stdcall BuildLightTable(void* palette);
 int __stdcall WriteBufferToFile(char* filename, void* data, int size);
-void __stdcall BuildGrayTable(unsigned int param_1);
-void __stdcall BuildBlueTable(unsigned int param_1);
+void __stdcall BuildGrayTable(unsigned int palette);
+void __stdcall BuildBlueTable(unsigned int palette);
 
 // Loads palettes\PALETTE.ALP (a 0x10000-byte table) when it exists;
 // otherwise builds it from the palette with BuildAlphaTable and saves it.
@@ -82,13 +82,13 @@ unsigned int* __stdcall LoadLightTable(void* palette)
 }
 
 // FUNCTION: 0x42e2f0
-void __stdcall MakeGrayTable(unsigned int param_1)
+void __stdcall MakeGrayTable(unsigned int palette)
 {
-    BuildGrayTable(param_1);
+    BuildGrayTable(palette);
 }
 
 // FUNCTION: 0x42e300
-void __stdcall MakeBlueTable(unsigned int param_1)
+void __stdcall MakeBlueTable(unsigned int palette)
 {
-    BuildBlueTable(param_1);
+    BuildBlueTable(palette);
 }

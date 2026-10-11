@@ -190,9 +190,9 @@ struct Game {
     char unknown_37e37[0x37e9c - 0x37e37];
     unsigned short unitIndex;          // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
-    Orders_37ebe orders;               // +0x37ebe
+    Orders_37ebe ordersPanelFlags;     // +0x37ebe
     char unknown_37ec0[0x37f3d - 0x37ec0];
-    Name_0048d630 playerNames[5];      // +0x37f3d, one SideDef per side
+    Name_0048d630 sideDefs[5];         // +0x37f3d, one SideDef per side
 };
 #pragma pack(pop)
 
@@ -306,7 +306,7 @@ void SelectAllIdleUnits(void)
         } while (u <= pl->unitsEnd);
     }
     SelectStopOrder();
-    g_game->orders.byte |= 0x10;
+    g_game->ordersPanelFlags.byte |= 0x10;
 }
 
 // Builds a 512-entry bitmap of the type indices (+0xa6) of the local player's
@@ -358,7 +358,7 @@ void SelectUnitsOfSameTypes(void)
     }
     g_game->unitIndex = 0;
     SelectStopOrder();
-    g_game->orders.bit4 = 1;
+    g_game->ordersPanelFlags.bit4 = 1;
 }
 
 // Sets or clears flag 0x10 on every finished unit of the local player that
@@ -389,7 +389,7 @@ void __stdcall SelectUnitsByCategory(char* name, int param_2)
     }
     g_game->unitIndex = 0;
     SelectStopOrder();
-    g_game->orders.bit4 = 1;
+    g_game->ordersPanelFlags.bit4 = 1;
 }
 
 // Clears flag bit 5 (0x20) on every unit, then walks the selection list at
@@ -419,7 +419,7 @@ void SelectAllVisibleUnits(void)
     if (found) {
         SelectStopOrder();
         g_game->unitIndex = 0;
-        g_game->orders.byte |= 0x10;
+        g_game->ordersPanelFlags.byte |= 0x10;
     }
 }
 
@@ -549,7 +549,7 @@ int __stdcall SelectUnitsInBox(void* param_1)
             v->flags.state = 1;
     }
     if (found)
-        g_game->orders.byte |= 0x10;
+        g_game->ordersPanelFlags.byte |= 0x10;
     if (!count)
         return 0;
     if (count == 1) {
@@ -636,7 +636,7 @@ void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
         if (unit->flags.selected)
             QueueUnitSpeech(unit, 1, 0);
         g_game->unitIndex = 0;
-        g_game->orders.flags |= 0x10;
+        g_game->ordersPanelFlags.flags |= 0x10;
         return;
     }
 
@@ -651,7 +651,7 @@ void __stdcall ClickSelectHoverUnit(Param_0048c7f0* param)
     }
     unit->flags.raw |= 0x10;
     QueueUnitSpeech(unit, 1, 0);
-    g_game->orders.flags |= 0x10;
+    g_game->ordersPanelFlags.flags |= 0x10;
 }
 
 // FUNCTION: 0x48c9b0
@@ -663,7 +663,7 @@ void __stdcall DeselectIfIneligible(Unit* unit)
             || (unit->carrier != 0 && !(unit->carrier->flags.raw & 0x40000000))) {
             unit->flags.raw = flags & ~0x10;
             g_game->unitIndex = 0;
-            g_game->orders.byte |= 0x10;
+            g_game->ordersPanelFlags.byte |= 0x10;
         }
     }
 }
@@ -929,7 +929,7 @@ void __cdecl ClearCameraFollowState(void);
 void __stdcall FocusCommander(int param_1)
 {
     Player* team = &g_game->players[g_game->playerIndex];
-    char* playerName = g_game->playerNames[team->info->side].name;
+    char* playerName = g_game->sideDefs[team->info->side].name;
     Unit* last = team->unitsEnd;
     for (Unit* u = team->unitsBegin; u <= last; u++) {
         if (u->flags.done && u->buildLeft == 0.0f && u->postTransferHoldoff == 0
@@ -947,7 +947,7 @@ void __stdcall FocusCommander(int param_1)
                 }
                 PopUntilNamedLayout(0);
                 u->flags.selected = 1;
-                g_game->orders.bit4 = 1;
+                g_game->ordersPanelFlags.bit4 = 1;
                 return;
             }
         }
@@ -1006,7 +1006,7 @@ void __stdcall CycleSelection(void)
         found->flags.raw |= flag;
     }
 done:
-    g_game->orders.flags |= flag;
+    g_game->ordersPanelFlags.flags |= flag;
 }
 
 void __stdcall SetUnitSquad(Unit* unit, int arg);
@@ -1093,7 +1093,7 @@ select_units:
     }
     SelectStopOrder();
     g_game->unitIndex = 0;
-    g_game->orders.bit4 = 1;
+    g_game->ordersPanelFlags.bit4 = 1;
     return cnt > 0;
 }
 

@@ -362,7 +362,7 @@ struct Game {
     char unknown_37ec4[0x37eee - 0x37ec4];
     int difficulty;                    // +0x37eee (a guess)
     char unknown_37ef2[0x37f2f - 0x37ef2];
-    unsigned char flags_37f2f;         // +0x37f2f
+    unsigned char uiOptionFlags;       // +0x37f2f
     char unknown_37f30[0x37f5b - 0x37f30];
     // The side names and the scroll scale overlap: 0x41ce90 reads a dword
     // inside the side name table.
@@ -1651,7 +1651,7 @@ void __stdcall SetCameraPosition(int x, int y, int instant)
 // FUNCTION: 0x41c5e0
 void __stdcall StartScreenShake(int dx, int dy, int value)
 {
-    if ((g_game->flags_37f2f & 0x10) == 0) {
+    if ((g_game->uiOptionFlags & 0x10) == 0) {
         g_game->value_1432f = value;
         g_game->value_14333 = value;
         if (dx != 0) {
@@ -1669,7 +1669,7 @@ void __stdcall StartScreenShake(int dx, int dy, int value)
 // FUNCTION: 0x41c640
 void __stdcall AccumulateScreenShake(int dx, int dy, int value)
 {
-    if ((g_game->flags_37f2f & 0x10) == 0) {
+    if ((g_game->uiOptionFlags & 0x10) == 0) {
         if ((g_game->flags_1434e & 1) == 0) {
             g_game->sum_x = 0;
             g_game->sum_y = 0;

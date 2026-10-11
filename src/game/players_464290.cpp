@@ -219,7 +219,7 @@ struct Game {
             unsigned short bit6 : 1;
             unsigned short rest2 : 9;
         } b;
-    } flags_3923b;                     // +0x3923b
+    } endGameFlags;                    // +0x3923b
 };
 #pragma pack(pop)
 
@@ -699,7 +699,7 @@ void __stdcall ContinueWatchingCallback(Gadget* gadget)
     PlaySoundByName("BigButton", 0);
     if (IsGadgetNamed(screen, gadget->selected, "CHOICE1")) {
         BroadcastPlayerInfo();
-        g_game->flags_3923b.b.bit4 = 0;
+        g_game->endGameFlags.b.bit4 = 0;
         ReportGameEvent(4);
         return;
     }
@@ -707,8 +707,8 @@ void __stdcall ContinueWatchingCallback(Gadget* gadget)
         ClearSelectedGadget(gadget);
         return;
     }
-    g_game->flags_3923b.b.bit2 = 1;
-    g_game->flags_3923b.b.bit4 = 0;
+    g_game->endGameFlags.b.bit2 = 1;
+    g_game->endGameFlags.b.bit4 = 0;
 }
 
 extern char g_choice2GadgetName[];
@@ -860,9 +860,9 @@ void __stdcall UpdatePlayers()
                         } else {
                             g_game->endGameCountdown--;
                             if (g_game->endGameCountdown < 0) {
-                                g_game->flags_3923b.w |= 4;
-                                g_game->flags_3923b.w &= 0xffef;
-                                g_game->flags_3923b.b.bit6 = 1;
+                                g_game->endGameFlags.w |= 4;
+                                g_game->endGameFlags.w &= 0xffef;
+                                g_game->endGameFlags.b.bit6 = 1;
                             }
                         }
                     }
@@ -878,9 +878,9 @@ void __stdcall UpdatePlayers()
                     } else {
                         g_game->endGameCountdown--;
                         if (g_game->endGameCountdown < 0) {
-                            g_game->flags_3923b.w |= 4;
-                            g_game->flags_3923b.b.bit4 = 1;
-                            g_game->flags_3923b.b.bit5 = 1;
+                            g_game->endGameFlags.w |= 4;
+                            g_game->endGameFlags.b.bit4 = 1;
+                            g_game->endGameFlags.b.bit5 = 1;
                         }
                     }
                     goto skip508;
@@ -1006,7 +1006,7 @@ void __stdcall UpdatePlayers()
             if ((t == 1 || t == 2 || t == 3) && pi->team != 0xa) {
                 if ((pi->unitCount != 0 || pi->unitsCreated == 0) &&
                     (t == 1 || t == 2)) {
-                    if ((g_game->flags_3923b.w & 4) == 0 &&
+                    if ((g_game->endGameFlags.w & 4) == 0 &&
                         g_game->endGameCountdown < 0) {
                         UpdatePlayerEconomy(pi);
                     }
@@ -1057,7 +1057,7 @@ void __stdcall UpdatePlayers()
                     OpenMessageBox(&g_game->gui,
                                  Translate("You are placed in watch mode because you are hosting AI players which are still alive.  If you exit, they will be terminated."),
                                  500, 1, 1);
-                    g_game->flags_3923b.w &= 0xffef;
+                    g_game->endGameFlags.w &= 0xffef;
                     goto skip508;
                 }
                 goto skip508;
@@ -1065,10 +1065,10 @@ void __stdcall UpdatePlayers()
         }
 
     flags82e:
-        g_game->flags_3923b.w |= 4;
-        g_game->flags_3923b.w &= 0xffef;
+        g_game->endGameFlags.w |= 4;
+        g_game->endGameFlags.w &= 0xffef;
         if (pi->rejectReason == 0)
-            g_game->flags_3923b.b.bit6 = 1;
+            g_game->endGameFlags.b.bit6 = 1;
         goto skip508;
 
     check230:
@@ -1082,9 +1082,9 @@ void __stdcall UpdatePlayers()
         } else {
             g_game->endGameCountdown--;
             if (g_game->endGameCountdown < 0) {
-                g_game->flags_3923b.w |= 4;
-                g_game->flags_3923b.b.bit4 = 1;
-                g_game->flags_3923b.b.bit5 = 1;
+                g_game->endGameFlags.w |= 4;
+                g_game->endGameFlags.b.bit4 = 1;
+                g_game->endGameFlags.b.bit5 = 1;
             }
         }
         goto skip508;
@@ -1103,9 +1103,9 @@ void __stdcall UpdatePlayers()
         }
         g_game->endGameCountdown--;
         if (g_game->endGameCountdown < 0) {
-            g_game->flags_3923b.w |= 4;
-            g_game->flags_3923b.w &= 0xffef;
-            g_game->flags_3923b.b.bit6 = 1;
+            g_game->endGameFlags.w |= 4;
+            g_game->endGameFlags.w &= 0xffef;
+            g_game->endGameFlags.b.bit6 = 1;
         }
     }
 }

@@ -51,12 +51,12 @@ struct Game {
     char unknown_37ef2[0x38a47 - 0x37ef2];
     int gameTick;                      // +0x38a47
     char unknown_38a4b[0x38d7f - 0x38a4b];
-    unsigned short flags_38d7f;        // +0x38d7f
+    unsigned short allMissionsFlags;   // +0x38d7f
     int numSkirmishPlayers;            // +0x38d81
     char unknown_38d85[0x391ab - 0x38d85];
     int mission;                       // +0x391ab
     char unknown_391af[0x391cf - 0x391af];
-    char thumbs[0x19];                 // +0x391cf
+    char campaignMissionStatus[0x19];  // +0x391cf
     char unknown_391e8[0x391e9 - 0x391e8];
     Mission* mapInfo;                  // +0x391e9
     MissionConditions* victoryConditions;  // +0x391ed
@@ -220,7 +220,7 @@ int __stdcall SaveGameFile(char* path, char* description, int gameId)
     (&file)->SetIntegerItem(g_sideKey, g_game->players[g_game->localPlayer].info->side);
     (&file)->SetIntegerItem(g_playersKey, g_game->numPlayers);
     (&file)->SetIntegerItem(g_gameTypeKey, g_game->mapInfo->GetGameType());
-    (&file)->SetStringItem(g_thumbsKey, g_game->thumbs);
+    (&file)->SetStringItem(g_thumbsKey, g_game->campaignMissionStatus);
     if (g_game->mapInfo->GetGameType() == 2) {
         (&file)->SetIntegerItem(g_commanderDeathKey, g_game->options->commanderDeath);
         (&file)->SetIntegerItem(g_locationKey, g_game->options->location);
@@ -286,7 +286,7 @@ void __stdcall SaveCampaignRegistryName(int core, char* name)
 // FUNCTION: 0x432b60
 void SaveAllMissionsSetting()
 {
-    WriteRegistryDword("Total Annihilation", "AllMissions", g_game->flags_38d7f & 1);
+    WriteRegistryDword("Total Annihilation", "AllMissions", g_game->allMissionsFlags & 1);
 }
 
 // FUNCTION: 0x432b80

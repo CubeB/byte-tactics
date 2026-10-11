@@ -20,7 +20,7 @@ struct Game {
     char unknown_15[0x4e5 - 0x15];
     char* dplConnection;               // +0x4e5
     char unknown_4e9[0x39201 - 0x4e9];
-    char field_39201[16];              // +0x39201
+    char providerGuid[16];             // +0x39201
 };
 #pragma pack(pop)
 
@@ -190,14 +190,14 @@ int __stdcall LoadReporterDll(int* count, int names)
 
     net = g_game->dplConnection;
     if (net != 0) {
-        memcpy(g_game->field_39201, net + 0x10, 16);
+        memcpy(g_game->providerGuid, net + 0x10, 16);
     }
 
     if (DAT_00512c98[0] == 0) {
         // First two jump to the shared return 4, the third returns inline.
-        if (memcmp(g_game->field_39201, &g_dpspGuidIpx, 16) == 0) goto four;
-        if (memcmp(g_game->field_39201, &g_dpspGuidSerial, 16) == 0) goto four;
-        if (memcmp(g_game->field_39201, &g_dpspGuidModem, 16) == 0) {
+        if (memcmp(g_game->providerGuid, &g_dpspGuidIpx, 16) == 0) goto four;
+        if (memcmp(g_game->providerGuid, &g_dpspGuidSerial, 16) == 0) goto four;
+        if (memcmp(g_game->providerGuid, &g_dpspGuidModem, 16) == 0) {
             return 4;
         }
     }

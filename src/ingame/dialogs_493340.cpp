@@ -161,7 +161,7 @@ struct Game {
     unsigned short faster : 1;
     unsigned short rest : 13;
     char unknown_38a53[0x38d75 - 0x38a53];
-    volatile unsigned short netFlags;  // +0x38d75, 16-bit flags word (volatile: see below)
+    volatile unsigned short loadingFlags;  // +0x38d75, 16-bit flags word (volatile: see below)
     char unknown_38d77[0x38d85 - 0x38d77];
     FrameTimers profileTimingBars;     // +0x38d85
     char unknown_38dd5[0x391e9 - 0x38dd5];
@@ -1028,8 +1028,8 @@ void __stdcall DrawScorePanel(void* surface)
 // large it flips the network state g_lastCdActivityMode between 0 and 1 and resets the
 // counter g_cdActivityStableTicks.
 //
-// Matches with netFlags declared `volatile`. Without it, only the two tests
-// on g_game->netFlags at 0x494e8b differ. The original emits two memory-operand bit tests
+// Matches with loadingFlags declared `volatile`. Without it, only the two tests
+// on g_game->loadingFlags at 0x494e8b differ. The original emits two memory-operand bit tests
 // (`test byte ptr [eax+0x38d75],1` then `...,2`); this source makes MSVC load
 // the byte once (`mov al,[eax+0x38d75]; test al,1; test al,2`), 4 bytes
 // shorter. The same pair appears in 0x452800 and in 0x453d40 (at 0x4550c2).
@@ -1041,7 +1041,7 @@ void __stdcall DrawScorePanel(void* surface)
 // tests MSVC 5 shares the load across the two tests for every non-volatile
 // spelling (bitfields, masks, byte/word/dword union views, inline helpers
 // taking the object or a reference, ternaries, switch, separate ifs).
-// Adding `volatile` to the declaration of netFlags (a 16-bit flags word)
+// Adding `volatile` to the declaration of loadingFlags (a 16-bit flags word)
 // makes this function MATCH with no other change; adding `volatile` to
 // 0x452800's declaration of the field makes that function MATCH as well.
 // Evidence that Cavedog really declared this word volatile: every write to
@@ -1058,7 +1058,7 @@ void __stdcall DrawScorePanel(void* surface)
 void UpdateCdCategoryByActivity()
 {
     if ((g_game->flags_2a44 & 4)
-        && (!(g_game->netFlags & 1) || (g_game->netFlags & 2))
+        && (!(g_game->loadingFlags & 1) || (g_game->loadingFlags & 2))
         && GetTicks() > g_cdActivityLastSampleTick + 0x1e) {
         int state = g_game->sound->GetTrackCategory();
         if (++g_cdActivityStableTicks > 10) {

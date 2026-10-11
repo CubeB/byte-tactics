@@ -335,12 +335,12 @@ struct Game {
     };
     char unknown_38a53[0x38d6f - 0x38a53];
     union {
-        volatile unsigned char stages[6];    // +0x38d6f
+        volatile unsigned char progress[6];  // +0x38d6f
         struct {
             char unknown_38d6f[0x38d75 - 0x38d6f];
             union {
                 volatile unsigned char flags_38d75;   // +0x38d75
-                volatile unsigned short net_flags;
+                volatile unsigned short loadingFlags;
                 struct {
                     unsigned short : 2;
                     unsigned short net_bit2 : 1;
@@ -3380,12 +3380,12 @@ void __stdcall SendLoadProgress()
     // The type store must be the first statement, ahead of the prologue stores.
     packet.type = 0x2a;
     // Own int total, summed as a += chain in this order: sets the load order.
-    int total = g_game->stages[0];
-    total += g_game->stages[5];
-    total += g_game->stages[4];
-    total += g_game->stages[3];
-    total += g_game->stages[2];
-    total += g_game->stages[1];
+    int total = g_game->progress[0];
+    total += g_game->progress[5];
+    total += g_game->progress[4];
+    total += g_game->progress[3];
+    total += g_game->progress[2];
+    total += g_game->progress[1];
 
     packet.progress = total / 6;
     for (int i = 0; i < 10; i++) {

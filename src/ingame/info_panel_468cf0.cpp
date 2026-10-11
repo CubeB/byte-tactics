@@ -328,7 +328,7 @@ struct Game {
   int fontComix;                        // +0x391f9
   char unknown_391fd[0x3923b - 0x391fd];
   union {                               // +0x3923b
-    unsigned short flags_3923b;
+    unsigned short endGameFlags;
     unsigned char flagsByte_3923b;
     Bits8 bits_3923b;
   };
@@ -686,7 +686,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
     DrawParticleList((int)&ctx, 9);
   }
   ProfileMark(&g_game->profileTimingBars, 4);
-  if ((g_game->flags_3923b & 1) && (g_game->flags_3923b & 2) && param_1 != 0)
+  if ((g_game->endGameFlags & 1) && (g_game->endGameFlags & 2) && param_1 != 0)
     DrawSelectedGoal((int)&ctx, FindNextSelectedUnit(0, 0));
   if (param_1 != 0)
     DrawFogOfWar((int)&ctx);

@@ -65,9 +65,9 @@ struct Game {
     unsigned short dirty : 1;           // +0x2bee
     unsigned short dirty_rest : 15;
     char unknown_2bf0[0x38a47 - 0x2bf0];
-    int frame;                          // +0x38a47
+    int gameTick;                       // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Mission* map;                       // +0x391e9
+    Mission* mapInfo;                   // +0x391e9
 };
 #pragma pack(pop)
 
@@ -122,7 +122,7 @@ int __stdcall AreAllPlayersReady();
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int CheckMapCrc()
 {
-    if (!g_game->map->GetTerrainLength()) {
+    if (!g_game->mapInfo->GetTerrainLength()) {
         return 0;
     }
     unsigned char me = FindHostSlot();
@@ -138,7 +138,7 @@ int CheckMapCrc()
     if (!check) {
         return 1;
     }
-    if (g_game->map->ComputeMapChecksum() != data->mapCrc)
+    if (g_game->mapInfo->ComputeMapChecksum() != data->mapCrc)
         return 0;
     return 1;
 }
@@ -233,7 +233,7 @@ void UpdateBattleRoom()
     Player* pl;
     Gadget_0044a680* entries;
 
-    g_game->frame++;
+    g_game->gameTick++;
 
     if (HandleNetPackets())
         g_game->dirty = 1;
@@ -270,7 +270,7 @@ void UpdateBattleRoom()
             if (host != 10) {
                 if (IsScreenNamed(&g_game->gui, "LOUNGE2.GUI") != 0) {
                     PlayerInfo* info = g_game->players[host].info;
-                    g_game->map->LoadMissionByName(info);
+                    g_game->mapInfo->LoadMissionByName(info);
                     SetNamedSliderValue(&g_game->gui, "MAXUNITS", g_game->players[host].info->maxUnits - 0x14);
                     SetNamedSliderValue(&g_game->gui, "METAL", g_game->players[host].info->metal * 100);
                     SetNamedSliderValue(&g_game->gui, "ENERGY", g_game->players[host].info->energy * 100);
@@ -279,8 +279,8 @@ void UpdateBattleRoom()
                     UpdateMetalText(&g_game->gui, 0);
                 } else if (IsScreenNamed(&g_game->gui, "viewmap.gui") != 0) {
                     PlayerInfo* info = g_game->players[host].info;
-                    if (strcmp(g_game->map->GetMissionName(), info->map) != 0) {
-                        g_game->map->LoadMissionByName(g_game->players[host].info);
+                    if (strcmp(g_game->mapInfo->GetMissionName(), info->map) != 0) {
+                        g_game->mapInfo->LoadMissionByName(g_game->players[host].info);
                         ShowSelectedMapInfo();
                         MarkLayerChanged(&g_game->gui);
                     }

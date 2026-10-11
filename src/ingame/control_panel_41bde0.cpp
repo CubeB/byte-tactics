@@ -31,7 +31,7 @@ struct Game {
     char unknown_1435b[0x37e9c - 0x1435b];
     unsigned short unitIndex;            // +0x37e9c
     char unknown_37e9e[0x37ebe - 0x37e9e];
-    unsigned char flags;                 // +0x37ebe
+    unsigned char ordersPanelFlags;      // +0x37ebe
 };
 #pragma pack(pop)
 
@@ -64,7 +64,7 @@ void __stdcall StepBuildMenuPage(int toggle)
                     unit->page++;
                 unit->menuOpen = 1;
             }
-            g_game->flags |= 0x10;
+            g_game->ordersPanelFlags |= 0x10;
         }
     }
     PlaySoundByName("nextbuildmenu", 0);

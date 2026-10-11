@@ -82,7 +82,7 @@ struct Game {
     int cursorGrn;                     // +0x148c7
     int cursorNormal;                  // +0x148cb
     int cursorHourglass;               // +0x148cf
-    int pathIcon;                      // +0x148d3
+    int cursorPathIconSeq;             // +0x148d3
     void* logos;                       // +0x148d7
     void* logos32;                     // +0x148db
     int blockCount;                    // +0x148df
@@ -484,7 +484,7 @@ void LoadGameResources()
     g_game->cursorGrn = (int)FindGafEntry(gaf, "cursorgrn");
     g_game->cursorNormal = (int)FindGafEntry(gaf, "cursornormal");
     g_game->cursorHourglass = (int)FindGafEntry(gaf, "cursorhourglass");
-    g_game->pathIcon = (int)FindGafEntry(gaf, "pathicon");
+    g_game->cursorPathIconSeq = (int)FindGafEntry(gaf, "pathicon");
     g_game->cursorRevive = (int)FindGafEntry(gaf, "cursorrevive");
 
     // Declared here, not at the top: keeps the TdfFile constructor after the head.

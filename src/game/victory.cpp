@@ -153,7 +153,7 @@ struct Game {
     int battleCommanderDeath;          // +0x37ef6
     char unknown_37efa[0x37f3d - 0x37efa];
     union {
-        PlayerName names[5];           // +0x37f3d, one SideDef per side
+        PlayerName sideDefs[5];        // +0x37f3d, one SideDef per side
         struct {
             char unknown_37f3d[0x38a47 - 0x37f3d];
             unsigned int gameTick;     // +0x38a47
@@ -603,7 +603,7 @@ extern char g_celebratedKey[]; // "Celebrated"
 void VictoryKillEnemyCommander::OnUnitDied(Unit* unit)
 {
     if (unit->playerIndex == 1) {
-        if (_strcmpi(unit->def->name, g_game->names[unit->player->owner->side].commander) == 0) {
+        if (_strcmpi(unit->def->name, g_game->sideDefs[unit->player->owner->side].commander) == 0) {
             satisfied = 1;
             if (celebrated == 0) {
                 PlaySoundByName("Victory Condition", 0);
@@ -1085,7 +1085,7 @@ void VictoryTimerRunsOut::LoadState(HapiBank* obj)
 void DefeatCommanderKilled::OnUnitDied(Unit* unit)
 {
     if (unit->playerIndex == 0) {
-        if (_strcmpi(unit->def->name, g_game->names[unit->player->owner->side].commander) == 0) {
+        if (_strcmpi(unit->def->name, g_game->sideDefs[unit->player->owner->side].commander) == 0) {
             satisfied = 1;
         }
     }

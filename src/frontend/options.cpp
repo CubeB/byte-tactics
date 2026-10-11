@@ -315,7 +315,7 @@ struct Game {
     char unknown_1434e[0x1437b - 0x1434e];
     CMemoryCache* unitTable;           // +0x1437b
     char unknown_1437f[0x37e1b - 0x1437f];
-    void* screen;                      // +0x37e1b
+    void* offscreen;                   // +0x37e1b
     char unknown_37e1f[0x37e98 - 0x37e1f];
     int field_37e98;                   // +0x37e98
     char unknown_37e9c[0x37ebe - 0x37e9c];
@@ -361,7 +361,7 @@ struct Game {
                 unsigned short musicFlags; // +0x37f14
                 Flags37f14_0045cf60 flags_37f14;
                 struct {
-                    char f_37f14;      // +0x37f14
+                    char musicMode;    // +0x37f14
                     char unknown_37f15;
                 };
             };
@@ -381,13 +381,13 @@ struct Game {
     short effectiveGameSpeed;          // +0x38a4d
     char unknown_38a4f[0x38a51 - 0x38a4f];
     union {
-        unsigned char flags_38a51;     // +0x38a51
+        unsigned char pauseFlags;      // +0x38a51
         unsigned short orders;         // 4609b0 clears it as a word
     };
     char unknown_38a53[0x391e9 - 0x38a53];
     Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
-    unsigned char flags_3923b;         // +0x3923b
+    unsigned char endGameFlags;        // +0x3923b
     char unknown_3923c[0x39249 - 0x3923c];
     int restartMissionRequest;         // +0x39249
 };
@@ -1248,7 +1248,7 @@ void UpdateTrackGadgets()
     if (FindGadgetIndex(menu->holder->entries, "TRACKTYPE", 1) != -1) {
         int disc = g_musicUiSelectedTrack;
         SetGrayedOutByName(menu, "TRACKTYPE",
-                     ((g_game->f_37f14 & 1) && g_game->cdMode == 4) ? 0 : 1);
+                     ((g_game->musicMode & 1) && g_game->cdMode == 4) ? 0 : 1);
         SetButtonStageByName(menu, "TRACKTYPE", g_game->sound->GetCategoryOfTrack(disc));
         if (disc == 0)
             strcpy(buf, "NO DISC");
@@ -1256,7 +1256,7 @@ void UpdateTrackGadgets()
             sprintf(buf, "%d", disc);
         SetTranslatedTextByName(menu, "TRACKNUM", buf, 0);
     }
-    SetGadgetGrayedOutByName(menu, "TRACKNUM", (char)(~g_game->f_37f14) & 1);
+    SetGadgetGrayedOutByName(menu, "TRACKNUM", (char)(~g_game->musicMode) & 1);
     if (g_game->cdMode == 3) {
         // the track number is re-read from the global here, not taken from disc
         int track = g_musicUiSelectedTrack;
@@ -1501,7 +1501,7 @@ void BlitOptionsPanel()
     RenderLayer((Sub_0045cf60*)&g_game->gui, 0x40);
     MarkChanged((Sub_0045cf60*)&g_game->gui);
     BlitMenuLayers((Sub_0045cf60*)&g_game->gui, 0, 0);
-    SetOffscreenSurface(g_game->screen);
+    SetOffscreenSurface(g_game->offscreen);
     FlipScreen();
 }
 
@@ -1522,7 +1522,7 @@ int __cdecl OpenOptionsLayout()
     SetGrayedOutByName(&g_game->gui, "MUSIC", *(int*)g_game->sound == 0);
     EnableKeyCommands(&g_game->gui);
     if (g_game->bits_2a44.prefsWord.prefs && g_game->mapInfo->GetGameType() != 3) {
-        g_game->flags_38a51 |= 1;
+        g_game->pauseFlags |= 1;
     }
     return result;
 }
@@ -2467,7 +2467,7 @@ void ClearScreenWithHudPalette()
 
     memset(palette, 0, sizeof(palette));
     SetPaletteColors(palette, 0, 0x100);
-    SetOffscreenSurface((int)g_game->screen);
+    SetOffscreenSurface((int)g_game->offscreen);
     if (LockScreen(&screen)) {
         FillSurface(&screen, g_game->gui.colours[0]);
         UnlockScreen(&screen);
@@ -2497,7 +2497,7 @@ void __stdcall HandleOptionsPanelClick(Gui* gui)
             RenderLayer((char*)&g_game->gui, 0x40);
             MarkChanged((char*)&g_game->gui);
             BlitMenuLayers((char*)&g_game->gui, 0, 0);
-            SetOffscreenSurface((int)g_game->screen);
+            SetOffscreenSurface((int)g_game->offscreen);
             FlipScreen();
         }
         if (IsCurrentGadgetNamed(gui, "SPEEDS")) {
@@ -2756,7 +2756,7 @@ void __stdcall HandleSurrenderChoice(Gui* gui)
             SetGameMode(1);
             return;
         case 2:
-            g_game->flags_3923b |= 4;
+            g_game->endGameFlags |= 4;
             ShutdownIngameAndQuit();
             return;
         }
@@ -2953,7 +2953,7 @@ void OpenInGameOptions()
     SetKeyboardInput((Gui*)&g_game->gui, 1);
     RenderLayer((Gui*)&g_game->gui, 0x40);
     if (g_game->mapInfo->GetGameType() != 3) {
-        g_game->flags_38a51 |= 1;
+        g_game->pauseFlags |= 1;
     }
     g_game->sound->PauseCdAudio(1);
 }

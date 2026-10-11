@@ -211,10 +211,10 @@ struct Game {
     char unknown_2a45[0x1427f - 0x2a45];
     unsigned char seaLevel;            // +0x1427f
     char unknown_14280[0x14353 - 0x14280];
-    int f14353;                        // +0x14353
+    int activeUnitTickCount;           // +0x14353
     Unit* units;                       // +0x14357
     char unknown_1435b[0x14371 - 0x1435b];
-    short f14371;                      // +0x14371
+    short autoFollowTicks;             // +0x14371
     F14373 autoFollowFlags;            // +0x14373
     char unknown_14377[0x14393 - 0x14377];
     int unitDefCountBits;              // +0x14393, bit count for the type index
@@ -514,7 +514,7 @@ void __stdcall UpdateAllUnits(void)
     int off;
     // Declared after the locals, not at file scope: its symbol id must follow off's.
     extern Game* g_game;
-    cnt = &g_game->f14353;
+    cnt = &g_game->activeUnitTickCount;
     *cnt = 0;
     i = 0;
     off = 0;
@@ -606,9 +606,9 @@ void __stdcall UpdateAllUnits(void)
         }
     if (g_game->autoFollowFlags.bits.b1) {
         if (!IsKeyDown(0xf9)) {
-            g_game->f14371--;
-            if (g_game->f14371 <= 0) {
-                g_game->f14371 = 0x5a;
+            g_game->autoFollowTicks--;
+            if (g_game->autoFollowTicks <= 0) {
+                g_game->autoFollowTicks = 0x5a;
                 CycleSelection();
                 CycleCameraFollow(0);
             }

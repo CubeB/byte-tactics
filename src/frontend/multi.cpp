@@ -437,9 +437,9 @@ struct Game {
     char unknown_2c76[0x2cbe - 0x2c76]; // +0x2c76
     signed char cursorMode;            // +0x2cbe
     char unknown_2cbf[0x1438f - 0x2cbf]; // +0x2cbf
-    int count;                         // +0x1438f
+    int unitDefCount;                  // +0x1438f
     char unknown_14393[0x1439b - 0x14393]; // +0x14393
-    UnitType_00446f50* unitTypes;      // +0x1439b
+    UnitType_00446f50* unitDefs;       // +0x1439b
     char unknown_1439f[0x148d7 - 0x1439f]; // +0x1439f
     void* logos;                       // +0x148d7
     union {                            // +0x148db
@@ -447,16 +447,16 @@ struct Game {
         int field_148db;
     };
     char unknown_148df[0x37e1b - 0x148df]; // +0x148df
-    int screen;                        // +0x37e1b
+    int offscreen;                     // +0x37e1b
     char unknown_37e1f[0x37ebe - 0x37e1f]; // +0x37e1f
     unsigned short ordersPanelFlags;   // +0x37ebe
     char unknown_37ec0[0x37ee8 - 0x37ec0]; // +0x37ec0
     unsigned short lobbyInitScratch;   // +0x37ee8
-    unsigned short maxUnits;           // +0x37eea
-    unsigned short unitLimit;          // +0x37eec
+    unsigned short maxUnitsLobby;      // +0x37eea
+    unsigned short unitLimitIni;       // +0x37eec
     int difficulty;                    // +0x37eee
-    char unknown_37ef2[0x37ef6 - 0x37ef2]; // +0x37ef2
-    int commanderDeath;                // +0x37ef6
+    char side[0x37ef6 - 0x37ef2];          // +0x37ef2
+    int battleCommanderDeath;          // +0x37ef6
     char unknown_37efa[0x37f1b - 0x37efa]; // +0x37efa
     union {                            // +0x37f1b
         int displayWidth;
@@ -467,26 +467,26 @@ struct Game {
         unsigned short height;
     };
     char unknown_37f23[0x37f39 - 0x37f23]; // +0x37f23
-    int sides;                         // +0x37f39
+    int sideCount;                     // +0x37f39
     char unknown_37f3d[0x38a47 - 0x37f3d]; // +0x37f3d
-    int frame;                         // +0x38a47
+    int gameTick;                      // +0x38a47
     char unknown_38a4b[0x38a51 - 0x38a4b]; // +0x38a4b
     union {                            // +0x38a51
         unsigned short flag_38a51 : 1;
         unsigned short bits_38a51 : 15;
     };
     char unknown_38a53[0x38c6b - 0x38a53]; // +0x38a53
-    char save_38c6b[0x100];            // +0x38c6b
+    char saveName[0x100];              // +0x38c6b
     char unknown_38d6b[0x391e9 - 0x38d6b]; // +0x38d6b
-    Mission* map;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x39201 - 0x391ed]; // +0x391ed
     ConnInfo_443ff0 info;              // +0x39201
     char unknown_39219[0x39229 - 0x39219]; // +0x39219
-    int commander;                     // +0x39229
-    int mapping;                       // +0x3922d
-    int los;                           // +0x39231
-    int losType;                       // +0x39235
-    char unknown_39239[0x3923b - 0x39239]; // +0x39239
+    int multiCommanderDeath;           // +0x39229
+    int multiMapping;                  // +0x3922d
+    int multiLineOfSight;              // +0x39231
+    int multiLosTypeElev;              // +0x39235
+    char endGameCountdown[0x3923b - 0x39239]; // +0x39239
     struct {                           // +0x3923b
         unsigned short bits0_3923b : 2;
         unsigned short flag2_3923b : 1;
@@ -621,8 +621,8 @@ conn:
     msg = "Connecting  (ESC to abort)";
 shown:
     OpenMessageBox(&g_game->gui, Translate(msg), 0x96, 0, 1);
-    BlitMenuLayers(&g_game->gui, g_game->screen, 0);
-    SetOffscreenSurface(g_game->screen);
+    BlitMenuLayers(&g_game->gui, g_game->offscreen, 0);
+    SetOffscreenSurface(g_game->offscreen);
     FlipScreen();
     FlipScreen();
 
@@ -820,7 +820,7 @@ struct Record_00446f50 {
     int peerEnabled;                   // +0x5e
 };
 
-// One 0x249-byte unit type instance of g_game->unitTypes: the name and
+// One 0x249-byte unit type instance of g_game->unitDefs: the name and
 // description area, the costs and the bit at +0x245 that marks a type that
 // cannot be restricted.
 struct UnitType_00446f50 {
@@ -2023,7 +2023,7 @@ void __stdcall OpenReportDialog(unsigned int* count, char** names)
 // FUNCTION: 0x4436e0
 int InitScoreReporting(void)
 {
-    if (g_game->map->GetGameType() != 3)
+    if (g_game->mapInfo->GetGameType() != 3)
         return 0;
     int saved = g_game->cursorMode;
     SetCursorMode(0x14);
@@ -2036,7 +2036,7 @@ int InitScoreReporting(void)
             return 1;
         }
     } else if (r != 4) {
-        SetOffscreenSurface(g_game->screen);
+        SetOffscreenSurface(g_game->offscreen);
         OpenMessageBox(&g_game->gui, Translate("Unable to initialize scores reporting."), 0x190, 1, 0);
         LoadPictureCached("ReportError", 0, 1, 0);
         RunWhileScreenNamed(&g_game->gui, "MSGBOX.GUI");
@@ -2297,13 +2297,13 @@ void ShowSelectedMapInfo()
 
     if (FindGadgetIndex(g_game->gui.layer->entries, "MAPNAME", 5) != -1) {
         SetTranslatedTextByName(&g_game->gui, "MAPNAME",
-                     (char*)g_game->map->GetTranslatedName(), 0);
+                     (char*)g_game->mapInfo->GetTranslatedName(), 0);
     }
 
     sprintf(buffer, "%s  %s: %s",
-            (char*)g_game->map + 0xdc4,
+            (char*)g_game->mapInfo + 0xdc4,
             Translate("Players"),
-            (char*)g_game->map + 0xe44);
+            (char*)g_game->mapInfo + 0xe44);
     SetTranslatedTextByName(&g_game->gui, "SIZE", (char*)buffer, 0);
 
     Gadget* entry = FindGadgetChecked_E(g_game->gui.layer->entries, "MAPPIC");
@@ -2312,14 +2312,14 @@ void ShowSelectedMapInfo()
         entry->hotspotFrame = 0;
     }
     void* bmp = LoadRadarPic(
-        (char*)g_game->map->GetNameSlot(1), &outX, &outY);
+        (char*)g_game->mapInfo->GetNameSlot(1), &outX, &outY);
     entry->hotspotFrame = bmp;
     if (bmp != 0) {
         ResizeRadarPicture(bmp, entry->width, entry->height, outX << 4, outY << 4);
     }
 
     SetTranslatedTextByName(&g_game->gui, "DESCRIPTION",
-                 (char*)g_game->map->GetDescription(), 0);
+                 (char*)g_game->mapInfo->GetDescription(), 0);
     MarkChanged(&g_game->gui);
 }
 
@@ -2350,7 +2350,7 @@ void OpenViewMapDialog()
 void __stdcall UpdateMapSelection(Gui* menu, int unused)
 {
     Gadget* g = FindGadgetChecked(menu->layer->entries, "MAPNAMES");
-    if (g_game->map->LoadMissionByName(SkipTextLines(g->text_c2, g->selected)) == 0) {
+    if (g_game->mapInfo->LoadMissionByName(SkipTextLines(g->text_c2, g->selected)) == 0) {
         SetGadgetActiveByName(menu, "MAPPIC", 0);
     } else {
         SetGadgetActiveByName(menu, "MAPPIC", 1);
@@ -2380,14 +2380,14 @@ void __stdcall HandleMapSelectClick(Gui* param_1)
     if (IsCurrentGadgetNamed(param_1, "MAPNAMES") || IsCurrentGadgetNamed(param_1, "LOAD")) {
         PlaySoundByName("Multi", 0);
         Gadget* g = FindGadgetChecked(entries, "MAPNAMES");
-        g_game->map->LoadMissionByName(
+        g_game->mapInfo->LoadMissionByName(
             SkipTextLines(g->text_c2, g->selected));
 
         Player_00444930* player = &g_game->players[g_game->localPlayer];
         strcpy(player->data->map,
-               g_game->map->GetMissionName());
+               g_game->mapInfo->GetMissionName());
         player->data->mapCrc =
-            g_game->map->ComputeMapChecksum();
+            g_game->mapInfo->ComputeMapChecksum();
 
         BroadcastPlayerInfo();
         ReportGameEvent(5);
@@ -2404,7 +2404,7 @@ void __stdcall HandleMapSelectClick(Gui* param_1)
 
     if (IsCurrentGadgetNamed(param_1, "PREVMENU")) {
         PlaySoundByName("Previous", 0);
-        g_game->map->LoadMissionByName(g_oldMapName);
+        g_game->mapInfo->LoadMissionByName(g_oldMapName);
         BroadcastPlayerInfo();
         return;
     }
@@ -2430,7 +2430,7 @@ void OpenMultiMapSelector()
 {
     g_oldMapName = (char*)GameAllocIgnoreTag("OLDMAPNAME", 0xc8);
 
-    if (!g_game->map->HasMissionName()) {
+    if (!g_game->mapInfo->HasMissionName()) {
         OpenMessageBox(&g_game->gui,
                      Translate("There are no multiplayer maps to choose from"),
                      0x140, 1, 1);
@@ -2438,8 +2438,8 @@ void OpenMultiMapSelector()
     }
 
     strcpy(g_oldMapName,
-           g_game->map->GetMissionName());
-    g_game->map->RefreshMapList(0);
+           g_game->mapInfo->GetMissionName());
+    g_game->mapInfo->RefreshMapList(0);
 
     int n = LoadMapList(0, 0, 0);
     if (n == 0) {
@@ -2468,7 +2468,7 @@ void OpenMultiMapSelector()
 
     Gui* menu = &g_game->gui;
     Gadget* g = FindGadgetChecked(menu->layer->entries, "MAPNAMES");
-    if (g_game->map->LoadMissionByName(
+    if (g_game->mapInfo->LoadMissionByName(
             SkipTextLines(g->text_c2, g->selected)) == 0) {
         SetGadgetActiveByName(menu, "MAPPIC", 0);
     } else {
@@ -3716,7 +3716,7 @@ inline int FindUnusedLogo()
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int CheckMapCrc_00447b10()
 {
-    if (!g_game->map->GetTerrainLength()) {
+    if (!g_game->mapInfo->GetTerrainLength()) {
         return 0;
     }
     unsigned char me = FindHostSlot();
@@ -3733,7 +3733,7 @@ int CheckMapCrc_00447b10()
     if (!check) {
         return 1;
     }
-    if (g_game->map->ComputeMapChecksum() != data->mapCrc)
+    if (g_game->mapInfo->ComputeMapChecksum() != data->mapCrc)
         return 0;
     return 1;
 }
@@ -3828,7 +3828,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
                 p->info->side = 0;
             } else {
                 p->info->side++;
-                if (p->info->side >= g_game->sides) {
+                if (p->info->side >= g_game->sideCount) {
                     p->info->side = 0;
                     if (g_game->players[FindHostSlot()].info->watching
                         && p->active != 0 && p->type == 1) {
@@ -4009,7 +4009,7 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
                 return;
             }
         }
-        if (!g_game->map->HasMissionName()) {
+        if (!g_game->mapInfo->HasMissionName()) {
             PlaySoundByName("Multi", 0);
             OpenMultiMapSelector();
             // Emits no code, but keeps the gadget in esi for the button tests.
@@ -4025,11 +4025,11 @@ void __stdcall HandleBattleRoomClick(Gui* gadget)
         g_game->state = 0x11;
         me->info->started = 1;
         UpdateNetGameInfo();
-        g_game->los = me->info->los;
-        g_game->losType = me->info->losType;
-        g_game->commander = me->info->commander;
+        g_game->multiLineOfSight = me->info->los;
+        g_game->multiLosTypeElev = me->info->losType;
+        g_game->multiCommanderDeath = me->info->commander;
         g_game->options->fixedloc = me->info->fixedloc;
-        g_game->mapping = me->info->mapping;
+        g_game->multiMapping = me->info->mapping;
         SaveSettings();
         g_game->difficulty = 2;
         return;
@@ -4119,7 +4119,7 @@ static inline int IsLocal_00448c70(Player_00446f50* p)
 // The map check at 0x440cd0, which has no callers: /Ob2 inlined it.
 int CheckMapCrc_00448c70()
 {
-    if (!g_game->map->GetTerrainLength()) {
+    if (!g_game->mapInfo->GetTerrainLength()) {
         return 0;
     }
     unsigned char me = FindHostSlot();
@@ -4136,7 +4136,7 @@ int CheckMapCrc_00448c70()
     if (!check) {
         return 1;
     }
-    if (g_game->map->ComputeMapChecksum() != data->mapCrc)
+    if (g_game->mapInfo->ComputeMapChecksum() != data->mapCrc)
         return 0;
     return 1;
 }
@@ -4187,19 +4187,19 @@ void RefreshBattleRoomRows()
     output->list.count = count;
 
     Gadget* mapname = FindGadgetChecked_C(g_game->gui.layer->entries, "MAPNAME");
-    char* map = g_game->map->GetMissionName();
-    if (!g_game->map->HasMissionName()) {
+    char* map = g_game->mapInfo->GetMissionName();
+    if (!g_game->mapInfo->HasMissionName()) {
         mapname->colour = 0xc;
         SetTranslatedTextByName(&g_game->gui, "MAPNAME", "NOT SELECTED", 0);
     } else {
-        char* cur = g_game->map->GetTranslatedName();
+        char* cur = g_game->mapInfo->GetTranslatedName();
         str = mapname->text;
         int differs = strcmp(str, cur);
         if (differs) {
             if (IsScreenNamed(&g_game->gui, "viewmap.gui"))
                 ShowSelectedMapInfo();
             else
-                g_game->map->LoadMissionByName(map);
+                g_game->mapInfo->LoadMissionByName(map);
         }
         if (!CheckMapCrc_00448c70()) {
             mapname->colour = ((int)GetTicks() / 30 & 1) ? 0xc : 0;
@@ -4216,7 +4216,7 @@ void RefreshBattleRoomRows()
             mapname->colour = 0;
             SetGadgetGrayedOutByName(&g_game->gui, "MAP", 0);
         }
-        strcpy(str, g_game->map->GetTranslatedName());
+        strcpy(str, g_game->mapInfo->GetTranslatedName());
     }
 
     int i;
@@ -4384,11 +4384,11 @@ void RefreshBattleRoomRows()
             // Full tail in each arm, not shared: gives p and n their registers.
             if (!IsLocalHuman_00448c70(p) && !IsRemoteHuman_00448c70(p)) {
                 sprintf(e->text, "%s", "n/a");
-                e->colour = p->info->memory < g_game->map->GetTerrainSizeTier() ? 0xc : 0;
+                e->colour = p->info->memory < g_game->mapInfo->GetTerrainSizeTier() ? 0xc : 0;
                 e->visible = 1;
             } else {
                 sprintf(e->text, "%d", p->info->memory);
-                e->colour = p->info->memory < g_game->map->GetTerrainSizeTier() ? 0xc : 0;
+                e->colour = p->info->memory < g_game->mapInfo->GetTerrainSizeTier() ? 0xc : 0;
                 e->visible = 1;
             }
             sprintf(name, "READY%d", n);
@@ -4440,7 +4440,7 @@ void OpenEndMultiScreen()
     BlankScreen();
     image = LoadBitmapByName("Mission02WinBW", palette);
     SetPaletteColors(palette, 0, 0x100);
-    SetOffscreenSurface(g_game->screen);
+    SetOffscreenSurface(g_game->offscreen);
     DrawSurface(0, image, 0, 0);
     FreeSurface(image);
     FlipScreen();
@@ -4478,9 +4478,9 @@ void __stdcall LoadUnitRestrictListFile(char* name)
         int a, b;
         fread(&a, 4, 1, f);
         fread(&b, 4, 1, f);
-        int n = g_game->count;
+        int n = g_game->unitDefCount;
         for (int idx = 1; idx < n; idx++) {
-            if (g_game->unitTypes[idx].fbiChecksum == a) {
+            if (g_game->unitDefs[idx].fbiChecksum == a) {
                 for (int j = 0; j < n; j++) {
                     if (g_unitRestrictEntries[j].unitIndex == idx) {
                         g_unitRestrictEntries[j].max = b;
@@ -4499,14 +4499,14 @@ void __stdcall SaveUnitRestrictListFile(char* filename)
 {
     FILE* f = fopen(filename, "wb+");
 
-    int count = g_game->count - 1;
+    int count = g_game->unitDefCount - 1;
     fwrite(&count, 4, 1, f);
     count++;
 
     for (int i = 1; i < count; i++) {
-        for (int j = 0; j < g_game->count; j++) {
+        for (int j = 0; j < g_game->unitDefCount; j++) {
             if (*(int*)((char*)g_unitRestrictEntries + 0x52 + j * 0x62) == i) {
-                int v = g_game->unitTypes[i].fbiChecksum;
+                int v = g_game->unitDefs[i].fbiChecksum;
                 fwrite(&v, 4, 1, f);
                 v = *(int*)((char*)g_unitRestrictEntries + 0x5a + j * 0x62);
                 fwrite(&v, 4, 1, f);
@@ -4546,9 +4546,9 @@ void __stdcall HandleLoadListClick(Gui* menu)
     if (IsCurrentGadgetNamed(menu, "LOAD") || IsCurrentGadgetNamed(menu, "GAMES")) {
         PlaySoundByName("Options", 0);
         Gadget* games = FindGadgetChecked(gadgets, "GAMES");
-        sprintf(g_game->save_38c6b, "%s\\%s", g_savegameDir,
+        sprintf(g_game->saveName, "%s\\%s", g_savegameDir,
                 SkipTextLines(g_saveListFileNames, games->selected));
-        LoadUnitRestrictListFile(g_game->save_38c6b);
+        LoadUnitRestrictListFile(g_game->saveName);
         Layer_00446f50* inner = menu->layer;
         menu->layer = inner->next;
         UpdateUnitSliders(menu, 0);
@@ -4656,8 +4656,8 @@ void __stdcall HandleSaveGameClick(Gui* menu)
         int idx = FindGadgetIndex(entries, "GAMENAME", 3);
         char* name = entries[idx].text;
         if (strlen(name) != 0) {
-            BuildDataPath(g_game->save_38c6b, g_savegameDir, name, "LST");
-            SaveUnitRestrictListFile(g_game->save_38c6b);
+            BuildDataPath(g_game->saveName, g_savegameDir, name, "LST");
+            SaveUnitRestrictListFile(g_game->saveName);
         }
     } else if (menu->hotGadgetIndex != -1) {
         ClearSelectedGadget(menu);
@@ -4786,7 +4786,7 @@ void __stdcall HandleUnitCountSlider(void* obj, char* gadget)
     }
     g_unitRestrictEntries[n + desc->firstRow].max = value;
     g_game->sync->SetUnitLimit(
-        &g_game->unitTypes[g_unitRestrictEntries[n + desc->firstRow].unitIndex], value);
+        &g_game->unitDefs[g_unitRestrictEntries[n + desc->firstRow].unitIndex], value);
     desc->flags[n + desc->firstRow] = g_unitRestrictEntries[n + desc->firstRow].peerEnabled == 0;
     desc->flags[n + desc->firstRow] |= g_unitRestrictEntries[n + desc->firstRow].max == 0 ? 2 : 0;
     SetTranslatedTextByName(obj, count, (char*)buf, 0);
@@ -4839,9 +4839,9 @@ void LoadUnitPortrait()
         g_unitRestrictPicCursor = (int)g_unitRestrictPics;
     }
     int i = g_unitRestrictPicLoadIndex++;
-    if (i < g_game->count) {
+    if (i < g_game->unitDefCount) {
         int type = g_unitRestrictEntries[i].unitIndex;
-        UnitType_00446f50* defs = g_game->unitTypes;
+        UnitType_00446f50* defs = g_game->unitDefs;
         if (defs[type].name && ((unsigned char)(defs[type].flags2.raw >> 15) & 1) == 0) {
             // Indexed by the reloaded entry field, not defs[type].name.
             BuildDataPath(path, "unitpics", defs[g_unitRestrictEntries[i].unitIndex].name, "PCX");
@@ -4879,7 +4879,7 @@ void UnitRestrictDialogFrame()
     while (g_game->sync->PopChangedEntry(&event) != 0) {
         n++;
         for (int i = 0; i < entry->list.count; i++) {
-            if (event.fbiChecksum == g_game->unitTypes[g_unitRestrictEntries[i].unitIndex].fbiChecksum) {
+            if (event.fbiChecksum == g_game->unitDefs[g_unitRestrictEntries[i].unitIndex].fbiChecksum) {
                 entry->flags[i] = (event.peerEnabled == 0);
                 g_unitRestrictEntries[i].peerEnabled = event.peerEnabled;
                 g_unitRestrictEntries[i].max = event.max;
@@ -4898,7 +4898,7 @@ void UnitRestrictDialogFrame()
 void __stdcall ShowSelectedUnitCosts(void* panel, Gadget* unit)
 {
     char buf[20];
-    UnitType_00446f50* def = &g_game->unitTypes[unit->records[unit->field_ba].unitIndex];
+    UnitType_00446f50* def = &g_game->unitDefs[unit->records[unit->field_ba].unitIndex];
     sprintf(buf, "%d", (int)def->energyCost);
     SetTranslatedTextByName(panel, "ENERGYTEXT", (char*)buf, 0);
     sprintf(buf, "%d", (int)def->metalCost);
@@ -4956,7 +4956,7 @@ void OpenUnitRestrictions()
     LoadPictureCached("UnitRestrict5x", 0, 0, 0);
 
     entries = layer->entries;
-    flags = (char*)GameAllocIgnoreTag("FLAGS", g_game->count);
+    flags = (char*)GameAllocIgnoreTag("FLAGS", g_game->unitDefCount);
     desc = FindGadgetChecked(entries, "DESCLIST");
     desc->callback = ShowSelectedUnitCosts;
     desc->flags = flags;
@@ -4968,37 +4968,37 @@ void OpenUnitRestrictions()
     pic->attribs |= 0x180;
     pic->scroll = desc->scroll;
 
-    pics = (int*)GameAllocIgnoreTag("UNITPICARRAY", g_game->count * 0x18);
-    memset(pics, 0, g_game->count * 0x18);
-    text = (char*)GameAllocIgnoreTag("UNITTEXTARRAY", g_game->count << 5);
+    pics = (int*)GameAllocIgnoreTag("UNITPICARRAY", g_game->unitDefCount * 0x18);
+    memset(pics, 0, g_game->unitDefCount * 0x18);
+    text = (char*)GameAllocIgnoreTag("UNITTEXTARRAY", g_game->unitDefCount << 5);
     *(int*)text = 0;
 
-    g_unitRestrictEntries = (Record_00446f50*)GameAllocIgnoreTag("UNITSRESTRICTINFO", g_game->count * 0x62);
+    g_unitRestrictEntries = (Record_00446f50*)GameAllocIgnoreTag("UNITSRESTRICTINFO", g_game->unitDefCount * 0x62);
     desc->records = g_unitRestrictEntries;
-    for (i = 0; i < g_game->count; i++)
+    for (i = 0; i < g_game->unitDefCount; i++)
         g_unitRestrictEntries[i].unitIndex = 0;
 
-    g_unitRestrictPics = (int*)GameAllocIgnoreTag("UNITSPICS", g_game->count << 2);
-    memset(g_unitRestrictPics, 0, g_game->count << 2);
-    memset(g_unitRestrictEntries, 0, g_game->count * 0x62);
-    g_unitRestrictOldCounts = (int*)GameAllocIgnoreTag("OLDCOUNTS", g_game->count << 2);
+    g_unitRestrictPics = (int*)GameAllocIgnoreTag("UNITSPICS", g_game->unitDefCount << 2);
+    memset(g_unitRestrictPics, 0, g_game->unitDefCount << 2);
+    memset(g_unitRestrictEntries, 0, g_game->unitDefCount * 0x62);
+    g_unitRestrictOldCounts = (int*)GameAllocIgnoreTag("OLDCOUNTS", g_game->unitDefCount << 2);
 
     n = 0;
-    for (i = 1; i < g_game->count; i++) {
+    for (i = 1; i < g_game->unitDefCount; i++) {
         // continue on the bit, an int bitfield tested positively.
-        if (g_game->unitTypes[i].flags2.bits.flag)
+        if (g_game->unitDefs[i].flags2.bits.flag)
             continue;
-        if (!g_game->unitTypes[i].name)
+        if (!g_game->unitDefs[i].name)
             continue;
         {
-            UnitType_00446f50* type = &g_game->unitTypes[i];
+            UnitType_00446f50* type = &g_game->unitDefs[i];
             Info_0044c7e0 info;
             int count;
             sprintf(g_unitRestrictEntries[n].name, "%s\r%s %dM  %dE",
-                    g_game->unitTypes[i].unitName, Translate(type->description),
+                    g_game->unitDefs[i].unitName, Translate(type->description),
                     (int)type->metalCost, (int)type->energyCost);
             g_unitRestrictEntries[n].unitIndex = i;
-            g_game->sync->GetUnitEntry(&g_game->unitTypes[i], &info);
+            g_game->sync->GetUnitEntry(&g_game->unitDefs[i], &info);
             // One ternary: the if-statement form swaps the ebx/ebp registers.
             count = info.max == -1 ? 0x65 : info.max;
             g_unitRestrictEntries[n].max = count;
@@ -5011,7 +5011,7 @@ void OpenUnitRestrictions()
     qsort(g_unitRestrictEntries, n, 0x62, (int (__cdecl*)(const void*, const void*))CompareUnitRestrictEntries);
 
     dst = text;
-    for (i = 0; i < g_game->count; i++) {
+    for (i = 0; i < g_game->unitDefCount; i++) {
         strcpy(dst, g_unitRestrictEntries[i].name);
         dst += strlen(g_unitRestrictEntries[i].name) + 1;
     }
@@ -5034,7 +5034,7 @@ void OpenUnitRestrictions()
 
     {
         Gui* gui = &g_game->gui;
-        UnitType_00446f50* type = &g_game->unitTypes[desc->records[desc->field_ba].unitIndex];
+        UnitType_00446f50* type = &g_game->unitDefs[desc->records[desc->field_ba].unitIndex];
         char buf[0x14];
         sprintf(buf, "%d", (int)type->energyCost);
         SetTranslatedTextByName(gui, "ENERGYTEXT", buf, 0);

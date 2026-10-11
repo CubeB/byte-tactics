@@ -39,7 +39,7 @@ struct WeaponDef {
     char pad0[0xdc]; int range;
 };
 struct Unit {
-    UnitMotion* type;
+    UnitMotion* motion;
     char pad4[0x10 - 4]; WeaponDef* weapon;   // +0x10, weapons[0].def
     char pad14[0x6a - 0x14]; Vec3 pos;
     char pad76[8]; Point footprint;
@@ -133,8 +133,8 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->flags & 3) == 1) {
-        unit->type->SetFlightMode(unit, 2);
+    if ((unit->motion->flags & 3) == 1) {
+        unit->motion->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
@@ -176,7 +176,7 @@ int __stdcall VtolLandingOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags1 & 0x800)) {
+        if (unit->motion && (unit->def->flags1 & 0x800)) {
             order->AnnounceStatusIfFlagged("Landing");
             PrepVtolClimb(unit, order, 0);
             order->angle = RandomInt(0x10000);

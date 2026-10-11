@@ -66,20 +66,20 @@ struct Unit_459200 {
     int pos_y;
     int pos_z;
     char unknown_76[0x8a-0x76];
-    Unit_459200* list_head;
-    Unit_459200* list_next;
+    Unit_459200* cargo;
+    Unit_459200* cargoNext;
     UnitDef_459200* def;
     char unknown_96[8];
-    Model_459200* sprites;
+    Model_459200* state;
     char unknown_a2[4];
     short unitDefIndex;
     char unknown_a8[0xff-0xa8];
-    unsigned char kind;
+    unsigned char playerIndex;
     char unknown_100[4];
-    float intensity;
+    float buildLeft;
     char unknown_108[6];
     unsigned char activateFlags;
-    char unknown_10f;
+    char cobStateFlags;
     int flags;
 };
 
@@ -270,21 +270,21 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
         for (int i = model->count - 1; i >= 0; i--) {
             if ((1 & model->pieces[i].flags) && !(model->pieces[i].flags & 2)) {
                     DrawPiece(model, param_2, &cv, model->pieces[i].field_0,
-                                 model->pieces[i].field_22, model->owner->kind, useColor);
+                                 model->pieces[i].field_22, model->owner->playerIndex, useColor);
                 }
         }
-        Unit_459200* unit = model->owner->list_head;
+        Unit_459200* unit = model->owner->cargo;
         while (unit) {
             if (!(unit->flags & 0x20000)) {
-                for (int i = unit->sprites->count - 1; i >= 0; i--) {
-                    Piece_459200* piece = &unit->sprites->pieces[i];
+                for (int i = unit->state->count - 1; i >= 0; i--) {
+                    Piece_459200* piece = &unit->state->pieces[i];
                     if (piece->flags & 1) {
-                        DrawPiece(unit->sprites, param_2, &cv, piece->field_0, piece->field_22,
-                                     unit->sprites->owner->kind, useColor);
+                        DrawPiece(unit->state, param_2, &cv, piece->field_0, piece->field_22,
+                                     unit->state->owner->playerIndex, useColor);
                     }
                 }
             }
-            unit = unit->list_next;
+            unit = unit->cargoNext;
         }
         return;
     }
@@ -328,14 +328,14 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
             bmp = model->bitmap;
         }
         MergeIntoComposite(bmp, model);
-        if ((model->owner->flags & 0x20000000) == 0 || model->owner->intensity == DAT_004fd4c0)
-            this->DrawPieces(this->bitmap,model,model->owner->kind,0);
-        Unit_459200* unit = model->owner->list_head;
+        if ((model->owner->flags & 0x20000000) == 0 || model->owner->buildLeft == DAT_004fd4c0)
+            this->DrawPieces(this->bitmap,model,model->owner->playerIndex,0);
+        Unit_459200* unit = model->owner->cargo;
         while (unit) {
             if (!(unit->flags & 0x20000)) {
-                this->BuildObjectPicture(unit->sprites,1,-1);
-                if (unit->sprites->bitmap) {
-                    ShadeByIntensity(unit->sprites->bitmap,unit->sprites);
+                this->BuildObjectPicture(unit->state,1,-1);
+                if (unit->state->bitmap) {
+                    ShadeByIntensity(unit->state->bitmap,unit->state);
                     // Owner position read through int* op.
                     int* op = &model->owner->pos_x;
                     d.v[0] = unit->pos_x - op[0];
@@ -343,15 +343,15 @@ void CMemoryCache::DrawObjectPicture(int param_2, Model_459200* model, Vec3_4592
                     d.v[2] = unit->pos_z - op[2];
                     int ddy = d.p.y.whole;
                     int ddz = d.p.z.whole;
-                    DrawFrameDepth(unit->sprites->bitmap, this->bitmap, d.p.x.whole, ddz - (ddy >> 1), ddy);
+                    DrawFrameDepth(unit->state->bitmap, this->bitmap, d.p.x.whole, ddz - (ddy >> 1), ddy);
                 }
             }
-            unit = unit->list_next;
+            unit = unit->cargoNext;
         }
         int diff = g_game->seaLevel - dx;
         if (diff > 0) {
             diff += shade_bias(model);
-            if ((model->owner->flags & 0x200) == 0 && model->owner->kind != g_game->playerIndex) {
+            if ((model->owner->flags & 0x200) == 0 && model->owner->playerIndex != g_game->playerIndex) {
                 CutFrameBelow(this->bitmap, diff);
             } else {
                 TintFrameBelow(this->bitmap, diff);

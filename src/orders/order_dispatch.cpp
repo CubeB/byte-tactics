@@ -84,26 +84,26 @@ struct Limits_0043e490 {
 };
 
 struct Unit_0043e490 {
-    int moving; // +0x0
+    int motion; // +0x0
     char unknown_4[0x10 - 0x4];
     Node_0043e490* f10; // +0x10
     char unknown_14[0x48 - 0x14];
     Limits_0043e490* f48; // +0x48
     char unknown_4c[0x6a - 0x4c];
     char f6a[0x86 - 0x6a]; // +0x6a
-    Unit_0043e490* f86; // +0x86
+    Unit_0043e490* carrier; // +0x86
     char unknown_8a[0x92 - 0x8a];
     UnitDef* def;            // +0x92
     Player* player; // +0x96
     char unknown_9a[0xec - 0x9a];
     Stats_0043e490* fec; // +0xec
     char unknown_f0[0xfb - 0xf0];
-    int ffb;             // +0xfb
-    unsigned char owner; // +0xff
+    int postTransferHoldoff; // +0xfb
+    unsigned char playerIndex; // +0xff
     char unknown_100[0x104 - 0x100];
-    float f104; // +0x104
+    float buildLeft; // +0x104
     char unknown_108[0x110 - 0x108];
-    unsigned int f110; // +0x110
+    unsigned int flags; // +0x110
 };
 
 struct Pos_0043e490 {
@@ -222,7 +222,7 @@ struct Size_0043f0e0 {
 };
 
 struct Unit_0043f0e0 {
-    int moving; // +0x0
+    int motion; // +0x0
     char unknown_4[0x10 - 0x4];
     Node_0043f0e0* f10; // +0x10
     char unknown_14[0x2c - 0x14];
@@ -232,19 +232,19 @@ struct Unit_0043f0e0 {
     char unknown_3c[0x70 - 0x3c];
     short f70; // +0x70
     char unknown_72[0x86 - 0x72];
-    Unit_0043f0e0* f86; // +0x86
+    Unit_0043f0e0* carrier; // +0x86
     char unknown_8a[0x92 - 0x8a];
     Def_0043f0e0* def;       // +0x92
     Player* player; // +0x96
     char unknown_9a[0xfb - 0x9a];
-    int ffb; // +0xfb
+    int postTransferHoldoff; // +0xfb
     unsigned char unknown_ff[1];
     char unknown_100[0x104 - 0x100];
-    float f104; // +0x104
-    short f108; // +0x108
+    float buildLeft; // +0x104
+    short health; // +0x108
     char unknown_10a[0x110 - 0x10a];
     union {
-        unsigned int f110; // +0x110
+        unsigned int flags; // +0x110
         Flags110_0043f0e0 f110bits;
     };
 };
@@ -350,8 +350,8 @@ static inline Feature_0043e490* GetFeature(Cell* cell) {
     } while (0)
 
 static inline int Selectable(Unit_0043e490* t) {
-    return t && t->owner == g_game->localPlayer && (t->f110 & 0x20) && t->f104 == 0.0f && t->ffb == 0 &&
-           (t->f86 == 0 || (t->f86->f110 & 0x40000000));
+    return t && t->playerIndex == g_game->localPlayer && (t->flags & 0x20) && t->buildLeft == 0.0f && t->postTransferHoldoff == 0 &&
+           (t->carrier == 0 || (t->carrier->flags & 0x40000000));
 }
 
 int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e490* target,
@@ -376,7 +376,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return 2;
         if (def->f245b.b4) {
             node = unit->f10;
-            if (unit->moving)
+            if (unit->motion)
                 return 1;
             if (target)
                 return WeaponCanReachUnit(unit, target, 0) ? 1 : 3;
@@ -411,7 +411,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
     case 5:
         return def->f245b.b8 ? 0xd : 0x13;
     case 14:
-        if (def->f156 == 0 || unit->moving == 0)
+        if (def->f156 == 0 || unit->motion == 0)
             break;
         return 0x10;
     case 4:
@@ -429,13 +429,13 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
         if (!(def->f245 & 0x80))
             break;
         RECLAIM_CHECK(def, unit, pos, 0x800, 0xa);
-        if (!target || !unit->moving)
+        if (!target || !unit->motion)
             return 0xe;
         if ((def->f245 & 0x1000) && enemy)
             return 4;
         if (enemy && ((Unit*)unit)->CanReclaim(target))
             return 0xb;
-        if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
+        if (friendly && ((Unit*)unit)->CanRepair(target) && target->buildLeft != 0.0f)
             return 6;
         if (friendly && ((Unit*)unit)->CanRepair(target))
             return 6;
@@ -462,7 +462,7 @@ int __stdcall GetOrderCursor(unsigned char mode, Unit_0043e490* unit, Unit_0043e
             return GetOrderCursor(3, unit, target, pos);
         if ((def->f245 & 0x400) && enemy)
             return GetOrderCursor(0xc, unit, target, pos);
-        if (target && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
+        if (target && ((Unit*)unit)->CanRepair(target) && target->buildLeft != 0.0f)
             return 6;
         if (Selectable(target))
             return 0xf;
@@ -519,7 +519,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
     int friendly = 0;
     int enemy = 0;
     if (target) {
-        if (!(target->f110 & 0x10000000))
+        if (!(target->flags & 0x10000000))
             goto none;
         if (unit->player->allied[target->player->index] != 0)
             friendly = 1;
@@ -532,7 +532,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
         if (!(def->f245 & 0x10))
             break;
         Flags110_0043f0e0 flags;
-        flags.raw = unit->f110;
+        flags.raw = unit->flags;
         if (flags.flag_31) {
             Node_0043f0e0* node = unit->f10;
             if (!enemy) {
@@ -544,7 +544,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                     return MissionType("AIRSTRIKE");
                 return MissionType("AIRTOGROUND");
             }
-            if ((target->f110 & 3) != 2) {
+            if ((target->flags & 3) != 2) {
                 if (node->f111 & 0x20000)
                     break;
             }
@@ -578,7 +578,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                     return MissionType("AIRTOGROUNDHOVER");
                 break;
             }
-            if (unit->moving != 0)
+            if (unit->motion != 0)
                 return MissionType("ATTACK_CHASE");
             if (flags.raw & 0x20000000)
                 return MissionType("ATTACK_NOMOVE");
@@ -589,7 +589,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
     }
     case 9:
         if (def->f245 & 0x40) {
-            if (unit->moving == 0)
+            if (unit->motion == 0)
                 return MissionType("QPATROL");
             if (def->f245bits.flag_9) {
                 if (def->f241bits.flag_11)
@@ -604,7 +604,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
     case 8:
         if (!((Unit*)unit)->CanRepair(target))
             break;
-        if (target->f104 != 0.0f)
+        if (target->buildLeft != 0.0f)
             return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
         return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
     case 7:
@@ -643,7 +643,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
             return Pick(def, "VTOL_UNLOAD", "GROUND_UNLOAD");
         break;
     case 14:
-        if (def->f156 == 0 || unit->moving == 0)
+        if (def->f156 == 0 || unit->motion == 0)
             break;
         return Pick(def, "VTOL_MOBILEBUILD", "MOBILEBUILD");
     case 4:
@@ -657,7 +657,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
     case 2:
         if (!(def->f245 & 0x80))
             break;
-        if (unit->moving == 0)
+        if (unit->motion == 0)
             return MissionType("QMOVE");
         if (!target)
             return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
@@ -665,10 +665,10 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
             return MissionType("CAPTURE");
         if ((def->f245 & 0x400) && enemy)
             return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
-        if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
+        if (friendly && ((Unit*)unit)->CanRepair(target) && target->buildLeft != 0.0f)
             return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
         if (friendly && ((Unit*)unit)->CanRepair(target) &&
-            (unsigned int)target->f108 < target->def->f1fa)
+            (unsigned int)target->health < target->def->f1fa)
             return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
         if ((def->f241 & 0x800) && friendly && (target->def->f241 & 0x200))
             return MissionType("VTOL_LANDING");
@@ -684,7 +684,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                 return GetOrderType(3, unit, target, pos);
             if ((def->f245 & 0x400) && enemy)
                 return Pick(def, "VTOL_RECLAIMUNIT", "RECLAIMUNIT");
-            if (friendly && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
+            if (friendly && ((Unit*)unit)->CanRepair(target) && target->buildLeft != 0.0f)
                 return Pick(def, "VTOL_HELPBUILD", "HELPBUILD");
             if (friendly && ((Unit*)unit)->CanRepair(target))
                 return Pick(def, "VTOL_REPAIRUNIT", "REPAIRUNIT");
@@ -696,7 +696,7 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                 return Pick(def, "VTOL_FOLLOW", "FOLLOW_GROUND");
             FEATURE_CHECK(def, unit, pos, 0x800, MissionType("RESURRECT"));
             FEATURE_CHECK(def, unit, pos, 0x400, Pick(def, "VTOL_RECLAIM", "RECLAIM"));
-            if (!(def->f245 & 0x80) || unit->moving == 0)
+            if (!(def->f245 & 0x80) || unit->motion == 0)
                 break;
             return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
         } else {
@@ -704,15 +704,15 @@ MissionType __stdcall GetOrderType(unsigned char mode, Unit_0043f0e0* unit,
                 return GetOrderType(3, unit, target, pos);
             if ((def->f245 & 0x400) && enemy)
                 return GetOrderType(0xc, unit, target, pos);
-            if (target && ((Unit*)unit)->CanRepair(target) && target->f104 != 0.0f)
+            if (target && ((Unit*)unit)->CanRepair(target) && target->buildLeft != 0.0f)
                 return GetOrderType(8, unit, target, pos);
-            if (target && target->unknown_ff[0] == g_game->localPlayer && (target->f110 & 0x20) &&
-                target->f104 == 0.0f && target->ffb == 0 &&
-                (!target->f86 || (target->f86->f110 & 0x40000000)))
+            if (target && target->unknown_ff[0] == g_game->localPlayer && (target->flags & 0x20) &&
+                target->buildLeft == 0.0f && target->postTransferHoldoff == 0 &&
+                (!target->carrier || (target->carrier->flags & 0x40000000)))
                 break;
             FEATURE_CHECK(def, unit, pos, 0x800, MissionType("RESURRECT"));
             FEATURE_CHECK(def, unit, pos, 0x400, Pick(def, "VTOL_RECLAIM", "RECLAIM"));
-            if (!(def->f245 & 0x80) || unit->moving == 0)
+            if (!(def->f245 & 0x80) || unit->motion == 0)
                 break;
             return Pick(def, "VTOL_MOVE", "MOVE_GROUND");
         }

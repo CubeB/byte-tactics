@@ -62,7 +62,7 @@ struct Struct_Unit96 {
     char pad0[0x146]; unsigned char slotIndex;
 };
 struct Unit {
-    UnitMotion* type;
+    UnitMotion* motion;
     char pad4[0x66 - 4]; short heading;
     char pad68[2];
     union {
@@ -157,8 +157,8 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->flags & 3) == 1) {
-        unit->type->SetFlightMode(unit, 2);
+    if ((unit->motion->flags & 3) == 1) {
+        unit->motion->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
@@ -189,7 +189,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             order->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             return 1;
@@ -240,7 +240,7 @@ int __stdcall AirStrikeOrder(Unit* unit, Order* order, unsigned int flags)
         // Float local x: keeps the constant multiply from moving outermost.
         float x = (float)sqrt(size * 2.0 / rate) * 30.0f;
         // attackrunlength is added in a second statement: one sum changes the x87 order.
-        int time = (int)(x * unit->type->field_22) + 1;
+        int time = (int)(x * unit->motion->field_22) + 1;
         time += def->attackrunlength;
         Class_0044e2d0* obj;
         if (order->target.owner)

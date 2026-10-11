@@ -66,7 +66,7 @@ struct Unit {
     float buildLeft;                   // +0x104
     char unknown_108[0x10e - 0x108];
     unsigned char activateFlags;       // +0x10e
-    char unknown_10f;
+    char cobStateFlags;
     union {
         unsigned int flags;            // +0x110
         struct {

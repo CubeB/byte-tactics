@@ -141,7 +141,7 @@ struct Unit {
     unsigned char lastDamageType;
     unsigned char healthPercent;
     unsigned char prevHealthPercent;
-    unsigned char b_f8;
+    unsigned char losSightFrameIdx;
     unsigned char transportPiece;
     unsigned char recentlyDamagedTimer;
     char gap_fb[4];
@@ -295,7 +295,7 @@ Unit* __stdcall LoadUnit(unsigned short id, HapiBank* file)
     unit->healthPercent = rec.bac;
     unit->prevHealthPercent = rec.bad;
     unit->netDirtyFlags = rec.bae;
-    unit->b_f8 = rec.bb0;
+    unit->losSightFrameIdx = rec.bb0;
     unit->recentlyDamagedTimer = rec.bb1;
     unit->activateFlags = rec.bb2;
 
@@ -451,7 +451,7 @@ void __stdcall SaveUnits(HapiBank* file)
             rec.bac = unit->healthPercent;
             rec.fa7 = unit->buildLeft;
             rec.bab = unit->lastDamageType;
-            rec.bb0 = unit->b_f8;
+            rec.bb0 = unit->losSightFrameIdx;
             rec.bad = unit->prevHealthPercent;
             rec.bae = unit->netDirtyFlags;
             rec.fa3 = unit->workTime;

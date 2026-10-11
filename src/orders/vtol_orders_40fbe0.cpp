@@ -17,9 +17,9 @@ struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
-    UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* order;
-    char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;
-    char pad8a[8]; UnitDef* def; Owner* owner; char pad9a[12]; unsigned short category;
+    UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* list;
+    char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int spatialBucket; int carrier;
+    char pad8a[8]; UnitDef* def; Owner* player; char pad9a[12]; unsigned short unitDefIndex;
     char pada8[0xf0-0xa8]; Unit* attacker; char padf4[0x108-0xf4]; short health;
     char pad10a[6]; unsigned int flags;
     void ReleaseWeapons(int);
@@ -78,7 +78,7 @@ static inline Unit* OrderTarget(Order*order) { return order->target; }
 int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
 {
     if (order->target && !(flags&0x48)) {
-        if (unit->terrain==g_game->overflowBucket) {
+        if (unit->spatialBucket==g_game->overflowBucket) {
             Vec3 center;
             center.x=(g_game->width/2)<<16;
             center.z=(g_game->height/2)<<16;
@@ -98,7 +98,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             if (unit->motion && (unit->def->flags1&0x800)) {
                 order->AnnounceStatusIfFlagged("Guarding");
                 unit->ClaimWeapons(3);
-                if (unit->busy) AttachUnitToPiece(unit,0,-1,2);
+                if (unit->carrier) AttachUnitToPiece(unit,0,-1,2);
                 unit->SetStateBits(1,1);
                 if ((unit->motion->flags&3)==1) {
                     unit->motion->SetFlightMode(unit,2);
@@ -117,9 +117,9 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
             return 1;
         case 2: {
             Unit* attacker=order->target->attacker;
-            if (attacker && !attacker->owner->allied[unit->owner->index]) {
+            if (attacker && !attacker->player->allied[unit->player->index]) {
                 if (flags & 0x10) {
-                    if (!Contains(unit->def->categories,attacker->category)) {
+                    if (!Contains(unit->def->categories,attacker->unitDefIndex)) {
                         if (IssueAttackOrder(unit,attacker,1)) { order->flags=0; return 3; }
                         if (unit->flags & 0x300000) {
                             unsigned char i=0;
@@ -131,7 +131,7 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                                 if (!((weapon->flags&2) && weapon->flags&0x10 && ((unsigned char)(weapon->def->flags >> 26)&1) == 0)) {
                                 } else {
                                     Unit* target=GetWeaponTargetUnit(unit,i);
-                                    if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->category))
+                                    if (!target || !WeaponCanReachUnit(unit,target,i) || Contains(unit->def->weaponCategories[i],target->unitDefIndex))
                                         SetWeaponTargetUnit(unit,attacker,i);
                                 }
                                 ++i;
@@ -149,31 +149,31 @@ int __stdcall VtolFollowOrder(Unit* unit, Order* order, int flags)
                     order->flags=0; return 3;
                 }
             }
-            // `order->target->order` is spelled out at every use, with no
+            // `order->target->list` is spelled out at every use, with no
             // local for it: that is what makes MSVC reload it after each
             // MissionType constructor call, and what frees the callee-saved
             // register the block's zero constant ends up in.
-            if (order->target->order && order->target->order->kind.index && (unit->def->flags1&0x40) &&
-                unit->CanRepair(order->target->order->target) &&
-                (order->target->def->flags1&0x40) && order->target->order &&
-                (order->target->order->capabilities&0x100000) && unit!=order->target->order->target) {
-                int building = order->target->order->kind=="MobileBuild" || order->target->order->kind=="BuildingBuild" || order->target->order->kind=="VTOL_MobileBuild";
-                int actionable = ((order->target->order->capabilities&0x200) && order->target->order->target) || (order->target->order->capabilities&0x400);
+            if (order->target->list && order->target->list->kind.index && (unit->def->flags1&0x40) &&
+                unit->CanRepair(order->target->list->target) &&
+                (order->target->def->flags1&0x40) && order->target->list &&
+                (order->target->list->capabilities&0x100000) && unit!=order->target->list->target) {
+                int building = order->target->list->kind=="MobileBuild" || order->target->list->kind=="BuildingBuild" || order->target->list->kind=="VTOL_MobileBuild";
+                int actionable = ((order->target->list->capabilities&0x200) && order->target->list->target) || (order->target->list->capabilities&0x400);
                 MissionType kind;
                 if (!building && actionable) {
-                    kind=order->target->order->kind;
+                    kind=order->target->list->kind;
                     if (kind=="REPAIRUNIT") kind=MissionType("VTOL_REPAIRUNIT");
                     if (kind=="RECLAIM") kind=MissionType("VTOL_RECLAIM");
                     if (kind=="RECLAIMUNIT") kind=MissionType("VTOL_RECLAIMUNIT");
                     if (kind=="HELPBUILD") kind=MissionType("VTOL_HELPBUILD");
                     order->SetAttachedFx(0);
-                    AppendOrder(unit,new Order(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
+                    AppendOrder(unit,new Order(kind,OrderTarget(order)->list->target,&order->target->list->pos,0,0,0));
                     order->flags=0; return 3;
                 }
-                if (building && order->target->order->target) {
+                if (building && order->target->list->target) {
                     order->SetAttachedFx(0);
                     kind=MissionType("VTOL_HelpBuild");
-                    AppendOrder(unit,new Order(kind,OrderTarget(order)->order->target,&order->target->order->pos,0,0,0));
+                    AppendOrder(unit,new Order(kind,OrderTarget(order)->list->target,&order->target->list->pos,0,0,0));
                     order->flags=0; return 3;
                 }
             }

@@ -59,7 +59,7 @@ struct Unit {
     unsigned char playerIndex;            // +0xff
     char unknown_100[0x10e - 0x100];
     unsigned char activateFlags;           // +0x10e
-    char unknown_10f;
+    char cobStateFlags;
     unsigned int flags;                // +0x110
     char unknown_114[0x118 - 0x114];
 };

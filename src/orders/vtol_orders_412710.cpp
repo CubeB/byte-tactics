@@ -52,7 +52,7 @@ struct Weapon;
 struct Feature;
 #include "../network/player.h"
 struct Unit {
-    UnitMotion* type;
+    UnitMotion* motion;
     char pad4[0x10 - 4]; WeaponDef* weapon;   // +0x10, weapons[0].def
     char pad14[0x66 - 0x14]; short heading;
     char pad68[2];
@@ -158,8 +158,8 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->flags & 3) == 1) {
-        unit->type->SetFlightMode(unit, 2);
+    if ((unit->motion->flags & 3) == 1) {
+        unit->motion->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
@@ -200,7 +200,7 @@ int __stdcall AirToGroundOrder(Unit* unit, Order* order, int flags)
     state = order->state;
     switch (state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             order->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             return 1;

@@ -30,9 +30,9 @@ struct Weapon { char pad0[8]; WeaponDef* def; char padc[11]; unsigned char flags
 struct Owner { char pad0[0x108]; unsigned char allied[0x3e]; unsigned char index; };
 class UnitMotion { public: char pad0[0x2e]; unsigned char flags; void SetFlightMode(Unit*, int); };
 struct Unit {
-    UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* order;
-    char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int terrain; int busy;
-    char pad8a[8]; UnitDef* def; Owner* owner; char pad9a[12]; unsigned short category;
+    UnitMotion* motion; char pad4[4]; Weapon weapons[3]; Order* list;
+    char pad60[10]; Vec3 pos; char pad76[8]; short width; short depth; int spatialBucket; int carrier;
+    char pad8a[8]; UnitDef* def; Owner* player; char pad9a[12]; unsigned short unitDefIndex;
     char pada8[0xf0-0xa8]; Unit* attacker; char padf4[0x108-0xf4]; short health;
     char pad10a[6]; unsigned int flags;
     void ReleaseWeapons(int);
@@ -98,7 +98,7 @@ void __stdcall VisitObjectsInRange(Vec3*, int, const GroundAllyVisitor&);
 // IsDamaged, FindPads and SearchRange stay small helpers: the vector calls
 // inline or not according to the original.
 static inline int IsDamaged(Unit* u) { return (unsigned int)u->health < (u->def->maxHealth>>2)*3; }
-static inline void FindPads(Unit* u, std::vector<Unit*>* pads) { GetFactoriesInRadius(u->owner->index,&u->pos,0xf00,pads); }
+static inline void FindPads(Unit* u, std::vector<Unit*>* pads) { GetFactoriesInRadius(u->player->index,&u->pos,0xf00,pads); }
 static inline int SearchRange(Unit* u) { return u->def->range<<16; }
 static inline int Patrol(Unit* unit, Order* order, int flags)
 {
@@ -115,7 +115,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
     }
     UnitList units;
     int range=SearchRange(unit);
-    GroundAllyVisitor visitor(unit->owner,&units,unit);
+    GroundAllyVisitor visitor(unit->player,&units,unit);
     VisitObjectsInRange(&unit->pos,range,visitor);
     if (!units.empty()) {
         order->SetAttachedFx(0);
@@ -138,7 +138,7 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
 int __stdcall VtolSeekGuardOrder(Unit* unit, Order* order, int flags)
 {
     if (flags&0x40) return 5;
-    if (unit->terrain==g_game->overflowBucket) {
+    if (unit->spatialBucket==g_game->overflowBucket) {
         Vec3 center;
         center.x=(g_game->width/2)<<16;
         center.z=(g_game->height/2)<<16;

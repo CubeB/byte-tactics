@@ -174,7 +174,7 @@ struct Unit {
     unsigned char lastDamageType;      // +0xf5
     unsigned char healthPercent;       // +0xf6
     unsigned char prevHealthPercent;   // +0xf7
-    char unknown_f8;                   // +0xf8
+    char losSightFrameIdx;             // +0xf8
     signed char transportPiece;        // +0xf9
     unsigned char recentlyDamagedTimer;  // +0xfa
     int postTransferHoldoff;           // +0xfb

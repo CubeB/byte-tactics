@@ -50,13 +50,13 @@ struct UnitFlags_0041b2e0 {
 
 struct Unit_0041b2e0 {
     char unknown_0[0x92];
-    UnitType_0041b2e0* type;           // +0x92
+    UnitType_0041b2e0* def;            // +0x92
     char unknown_96[0xa6 - 0x96];
-    unsigned short typeIndex;          // +0xa6
+    unsigned short unitDefIndex;       // +0xa6
     unsigned short id;                 // +0xa8
     char unknown_aa[0x10e - 0xaa];
-    unsigned char onOff;               // +0x10e
-    char unknown_10f;
+    unsigned char activateFlags;       // +0x10e
+    char cobStateFlags;
     UnitFlags_0041b2e0 flags;          // +0x110
     char unknown_114[0x118 - 0x114];
 };
@@ -120,7 +120,7 @@ void __stdcall OpenGeneratorDialog(Unit_0041b2e0* unit);
 static inline Unit_0041b2e0* GetUnit(unsigned short index)
 {
     Unit_0041b2e0* u = &g_game->units[index];
-    if (u->typeIndex == 0)
+    if (u->unitDefIndex == 0)
         u = 0;
     return u;
 }
@@ -163,14 +163,14 @@ void RefreshSelectionOrders()
         count = 0;
         Unit_0041b2e0* last = (Unit_0041b2e0*)player->unitsEnd;
         for (u = (Unit_0041b2e0*)player->unitsBegin; u <= last; u++) {
-            if (u->typeIndex == 0)
+            if (u->unitDefIndex == 0)
                 continue;
             UnitFlags_0041b2e0 flags = u->flags;
             if (!flags.selected)
                 continue;
             if (first == 0)
                 first = u;
-            UnitType_0041b2e0* type = u->type;
+            UnitType_0041b2e0* type = u->def;
             if (type->canFireOrder) {
                 if (fireOrder == 4)
                     fireOrder = flags.fireOrder;
@@ -185,8 +185,8 @@ void RefreshSelectionOrders()
             }
             if (type->canOnOff) {
                 if (onOff == 3)
-                    onOff = u->onOff & 1;
-                else if (onOff != (u->onOff & 1))
+                    onOff = u->activateFlags & 1;
+                else if (onOff != (u->activateFlags & 1))
                     onOff = 2;
             }
             if (type->canCloak) {
@@ -236,12 +236,12 @@ void RefreshSelectionOrders()
     if (count == 0) {
         PopUntilNamedLayout(0);
         g_game->orders.refresh = 0;
-    } else if (count == 1 && first->type->buildMenuPageCount) {
+    } else if (count == 1 && first->def->buildMenuPageCount) {
         int page = first->flags.buildPage ? first->flags.page : 0;
-        if (page > 0 || (first->type->flags1 & 0x80000000)) {
+        if (page > 0 || (first->def->flags1 & 0x80000000)) {
             char name[256];
             char gui[256];
-            strncpy(name, g_game->unitDefs[first->typeIndex].unitname, 0x20);
+            strncpy(name, g_game->unitDefs[first->unitDefIndex].unitname, 0x20);
             name[0x1f] = 0;
             sprintf(gui, "%s%d.GUI", name, page);
             if ((IsScreenNamed(&g_game->menu, gui) == 0 || g_game->unitIndex != first->id)

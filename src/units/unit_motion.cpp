@@ -73,12 +73,12 @@ struct Unit_458810 {
     char unknown_4[0x1c];
     int field_20;                 // +0x20
     char unknown_24[0xff - 0x24];
-    unsigned char kind;           // +0xff
+    unsigned char playerIndex;    // +0xff
     char unknown_100[4];
-    float intensity;              // +0x104
+    float buildLeft;              // +0x104
     char unknown_108[6];
     unsigned char activateFlags;  // +0x10e
-    char unknown_10f;
+    char cobStateFlags;
     unsigned int flags;           // +0x110
     unsigned char zBufferFlag;    // +0x114
     char unknown_115[3];
@@ -166,7 +166,7 @@ void CMemoryCache::DrawObjectPieces(Vec3_458810* result, List_458810* list, Vec3
     for (int i = list->pieceCount - 1; i >= 0; i--) {
         if (list->pieces[i].flags & 1) {
             DrawPiece(list, result, &v, list->pieces[i].info,
-                list->pieces[i].vertices, list->owner->kind, visible);
+                list->pieces[i].vertices, list->owner->playerIndex, visible);
         }
     }
 }
@@ -439,7 +439,7 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3_458810* result)
         if (list->bitmap == 0)
             rebuild = 1;
         // The last conjunct goes through `bitmap`, the one before it through `list->bitmap`.
-        else if (owner->intensity != 0.0f
+        else if (owner->buildLeft != 0.0f
                 && (owner->flags & 0x2000) != 0
                 && list->bitmap->scratch == 0
                 && bitmap->scratch == 0)

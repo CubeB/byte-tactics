@@ -304,27 +304,27 @@ public:
 #pragma pack(push, 1)
 struct Unit_459200 {
     char unknown_0[0x64];
-    Vector3s pos;                      // +0x64
+    Vector3s angles;                   // +0x64
     int pos_x;                         // +0x6a
     int pos_y;                         // +0x6e
     int pos_z;                         // +0x72
     char unknown_76[0x86 - 0x76];
     int carrier;                       // +0x86
-    Unit_459200* list_head;            // +0x8a
-    Unit_459200* list_next;            // +0x8e
+    Unit_459200* cargo;                // +0x8a
+    Unit_459200* cargoNext;            // +0x8e
     UnitDef_459200* def;               // +0x92
     char unknown_96[8];
-    Model_459200* sprites;             // +0x9e
+    Model_459200* state;               // +0x9e
     char unknown_a2[4];
     short unitDefIndex;                // +0xa6
-    unsigned short palette;            // +0xa8
+    unsigned short id;                 // +0xa8
     char unknown_aa[0xff - 0xaa];
-    unsigned char kind;                // +0xff
+    unsigned char playerIndex;         // +0xff
     char unknown_100[4];
-    float intensity;                   // +0x104
+    float buildLeft;                   // +0x104
     char unknown_108[6];
     unsigned char activateFlags;       // +0x10e
-    char unknown_10f;
+    char cobStateFlags;
     unsigned int flags;                // +0x110
     unsigned char zBufferFlag;         // +0x114
 };
@@ -507,7 +507,7 @@ int UnitTable::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
     int ox;
     Unit_459200* owner = list->owner;
     MeasureModel(&w, &h, &oy, &ox, list, 0);
-    if (param_2 == 0 && (owner->zBufferFlag & 1) == 0 && owner->intensity == 0.0f) {
+    if (param_2 == 0 && (owner->zBufferFlag & 1) == 0 && owner->buildLeft == 0.0f) {
         this->AllocBitmap(&list->bitmap, w, h);
     } else {
         this->AllocTwoPlaneBitmap(&list->bitmap, w, h);
@@ -519,9 +519,9 @@ int UnitTable::BuildObjectPicture(Model_459200* list, int param_2, int param_3)
         // kind is an int parameter so the byte at owner+0xff is pushed zero-extended.
         if ((owner->flags & 0x20000000) != 0
             && (*(unsigned char*)&g_game->visualFlags & 0x20) != 0) {
-            DrawLitPieces(bitmap, list, owner->kind, param_3);
+            DrawLitPieces(bitmap, list, owner->playerIndex, param_3);
         } else {
-            DrawPieces(bitmap, list, owner->kind, param_3);
+            DrawPieces(bitmap, list, owner->playerIndex, param_3);
         }
         return 1;
     }
@@ -566,7 +566,7 @@ void UnitTable::DrawPieces(GafFrame* bitmap, Model_459200* list,
         // Flags tested as positive nested ifs on the bitfield, not via a piece pointer.
         if (list->pieces[p].flags.bits.visible) {
             if (useColor == -1 || useColor == list->pieces[p].flags.bits.colored
-                    || list->owner->intensity != 0.0f) {
+                    || list->owner->buildLeft != 0.0f) {
                 Object3do* info = list->pieces[p].object;
                 int n = list->pieces[p].object->vertexCount;
                 Vec3* verts = list->pieces[p].points;
@@ -699,7 +699,7 @@ void CMemoryCache::DrawObjectPieces(int param_1, Model_459200* list, Vec3 v, int
     for (int i = list->count - 1; i >= 0; i--) {
         if (list->pieces[i].flags.bits.visible) {
             DrawPiece(list, (void*)param_1, &v, list->pieces[i].object,
-                                                  list->pieces[i].points, list->owner->kind, param_6);
+                                                  list->pieces[i].points, list->owner->playerIndex, param_6);
         }
     }
 }
@@ -744,14 +744,14 @@ void CMemoryCache::MergeIntoComposite(GafFrame* bmp, Model_459200* model)
     int maxY = 0;
 
     AddModelBounds(&minX, &maxX, &minY, &maxY, model, origin);
-    Unit_459200* child = model->owner->list_head;
+    Unit_459200* child = model->owner->cargo;
     while (child != 0) {
         if ((child->flags & 0x20000) == 0) {
             int cminX = 0;
             int cminY = 0;
             int cmaxX = 0;
             int cmaxY = 0;
-            AddModelBounds(&cminX, &cmaxX, &cminY, &cmaxY, child->sprites, origin);
+            AddModelBounds(&cminX, &cmaxX, &cminY, &cmaxY, child->state, origin);
             // The y projection goes through a Fixed temporary.
             struct Vec { Fixed x, y, z; };
             int* op = &model->owner->pos_x;
@@ -776,7 +776,7 @@ void CMemoryCache::MergeIntoComposite(GafFrame* bmp, Model_459200* model)
             if (cminY < minY) minY = cminY;
             if (cmaxY > maxY) maxY = cmaxY;
         }
-        child = child->list_next;
+        child = child->cargoNext;
     }
     int x0 = -bmp->dx;
     int x1 = bmp->width - bmp->dx;
@@ -877,11 +877,11 @@ int CMemoryCache::ShadeByIntensity(GafFrame* image, Model_459200* model)
         return 0;
 
     Unit_459200* owner = model->owner;
-    if (owner->intensity == 0.0f)
+    if (owner->buildLeft == 0.0f)
         return 0;
 
     int b = 0;
-    b = owner->palette;
+    b = owner->id;
     int a = b;
     b ^= 9;
     a ^= 5;
@@ -899,7 +899,7 @@ int CMemoryCache::ShadeByIntensity(GafFrame* image, Model_459200* model)
     else
         palette2 = (b & 0xf) + 0xa0;
 
-    int alpha = (int)(owner->intensity * 255.0f);
+    int alpha = (int)(owner->buildLeft * 255.0f);
     if (alpha > 0xeb) {
         RecolorByShade(image, Scale(alpha - 0xeb, 255, 20), -2, -2, palette1);
     } else if (alpha > 200) {
@@ -1136,20 +1136,20 @@ static inline int FarFrom(Model_459200* state, const Vector3s* pos)
 // FUNCTION: 0x45ab10
 void __stdcall UpdateObjectState(Unit_459200* unit)
 {
-    Model_459200* state = unit->sprites;
-    if (FarFrom(state, &unit->pos)) {
+    Model_459200* state = unit->state;
+    if (FarFrom(state, &unit->angles)) {
         // One 6-byte struct copy.
-        state->pos = unit->pos;
+        state->pos = unit->angles;
         state->animDirty = 1;
         state->root->modified = 0;
         if (state->root->flags.bits.colored) {
             state->cacheDrawCount = 0;
         }
     }
-    if (unit->sprites->animDirty != 0) {
-        RestorePieceVertices(unit->sprites->root, 0);
-        PoseModel(unit->sprites, unit->sprites->root, 0);
-        unit->sprites->animDirty = 0;
+    if (unit->state->animDirty != 0) {
+        RestorePieceVertices(unit->state->root, 0);
+        PoseModel(unit->state, unit->state->root, 0);
+        unit->state->animDirty = 0;
     }
 }
 
@@ -1157,40 +1157,40 @@ void __stdcall UpdateObjectState(Unit_459200* unit)
 void __stdcall DrawUnit(void* context, Unit_459200* unit)
 {
     if (unit->carrier == 0) {
-        Model_459200* state = unit->sprites;
-        if (FarFrom(state, &unit->pos)) {
+        Model_459200* state = unit->state;
+        if (FarFrom(state, &unit->angles)) {
             // One 6-byte struct copy.
-            state->pos = unit->pos;
+            state->pos = unit->angles;
             state->animDirty = 1;
             state->root->modified = 0;
             if (state->root->flags.bits.colored) {
                 state->cacheDrawCount = 0;
             }
         }
-        if (unit->sprites->animDirty != 0) {
-            RestorePieceVertices(unit->sprites->root, 0);
-            PoseModel(unit->sprites, unit->sprites->root, 0);
-            unit->sprites->animDirty = 0;
+        if (unit->state->animDirty != 0) {
+            RestorePieceVertices(unit->state->root, 0);
+            PoseModel(unit->state, unit->state->root, 0);
+            unit->state->animDirty = 0;
         }
-        for (Unit_459200* u = unit->list_head; u; u = u->list_next) {
+        for (Unit_459200* u = unit->cargo; u; u = u->cargoNext) {
             if (!(u->flags & 0x20000)) {
-                Model_459200* child = u->sprites;
-                if (FarFrom(child, &u->pos)) {
-                    child->pos = u->pos;
+                Model_459200* child = u->state;
+                if (FarFrom(child, &u->angles)) {
+                    child->pos = u->angles;
                     child->animDirty = 1;
                     child->root->modified = 0;
                     if (child->root->flags.bits.colored) {
                         child->cacheDrawCount = 0;
                     }
                 }
-                if (u->sprites->animDirty != 0) {
-                    RestorePieceVertices(u->sprites->root, 0);
-                    PoseModel(u->sprites, u->sprites->root, 0);
-                    u->sprites->animDirty = 0;
+                if (u->state->animDirty != 0) {
+                    RestorePieceVertices(u->state->root, 0);
+                    PoseModel(u->state, u->state->root, 0);
+                    u->state->animDirty = 0;
                 }
             }
         }
-        g_game->unitTable->DrawObjectState(unit->sprites, context);
+        g_game->unitTable->DrawObjectState(unit->state, context);
     }
 }
 

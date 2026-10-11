@@ -38,7 +38,7 @@ struct UnitDef {
     char pad21e[0x241 - 0x21e]; unsigned int flags;
 };
 struct Unit {
-    UnitMotion* type;
+    UnitMotion* motion;
     char pad4[0x66 - 4]; short heading;
     char pad68[2];
     union {
@@ -135,8 +135,8 @@ void __stdcall PrepVtolClimb(Unit* unit, Order* order, unsigned int flags)
     if (unit->carrier)
         AttachUnitToPiece(unit, 0, -1, 2);
     unit->SetStateBits(1, 1);
-    if ((unit->type->flags & 3) == 1) {
-        unit->type->SetFlightMode(unit, 2);
+    if ((unit->motion->flags & 3) == 1) {
+        unit->motion->SetFlightMode(unit, 2);
         Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
         obj->SetAltitude(unit->def->altitude / 2);
         order->SetAttachedFx((int)obj);
@@ -184,7 +184,7 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
         return 5;
     switch (order->state) {
     case 0:
-        if (unit->type && (unit->def->flags & 0x800)) {
+        if (unit->motion && (unit->def->flags & 0x800)) {
             order->AnnounceStatusIfFlagged("Attacking");
             PrepVtolClimb(unit, order, 0);
             order->SetDeadlineTicks(1);
@@ -217,10 +217,10 @@ int __stdcall AirToAirOrder(Unit* unit, Order* order, int flags)
             d.v = (int)_hypot(unit->pos.x - order->target->pos.x, unit->pos.z - order->target->pos.z);
             if (d.p.whole > 0xa0) {
                 Vec3 p = order->target->pos;
-                p.x += order->target->type->velocity.x * 45;
-                p.z += order->target->type->velocity.z * 45;
+                p.x += order->target->motion->velocity.x * 45;
+                p.z += order->target->motion->velocity.z * 45;
                 order->SetAttachedFx((int)new AirManeuverOrder(order, p,
-                    Sum(order->target->type->velocity, Offset(order->target->heading, order->target->def->maxvelocity / 2))));
+                    Sum(order->target->motion->velocity, Offset(order->target->heading, order->target->def->maxvelocity / 2))));
             }
             order->SetDeadlineTicks(0x2d);
             order->flags |= 0x100e8;

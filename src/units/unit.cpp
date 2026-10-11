@@ -148,7 +148,7 @@ public:
     short health;                      // +0x108
     char unknown_10a[0x10e - 0x10a];
     unsigned char activateFlags;       // +0x10e
-    char unknown_10f;
+    char cobStateFlags;
     int flags;                         // +0x110
 
     unsigned char GetState() { return activateFlags; }

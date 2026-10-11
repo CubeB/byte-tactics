@@ -303,8 +303,8 @@ struct Projectile_0049c880 {
 // that weapon_def.h no longer declares (docs/c2-regalloc.md).
 void DrawDashedCircle(void*, int, int, int, int, int, int);
 int HAPINET_createnewgame(void*, char*, int, int, int, int, int);
-int LowerBoundOrderTypes(int, int, int, int, int, int);
-int MedianOrderTypes(int, int, int, int, int, int);
+int __stdcall SquashPack(Chunk*, int*, char*, int, int, int);
+int HAPINET_enumconnections(void*, void*, unsigned long, void*, unsigned long, void*);
 int PickRandomReclaimableResourcesInRadius(int, int, int, int, int, int);
 int CreateUnit(int, int, int, int, int, int);
 
@@ -2647,7 +2647,7 @@ int __stdcall SpawnProjectile(WeaponDef* weapon, Vec3* a, Vec3* b, int flag)
     if (flag) {
         // Read into a local first: only then does MSVC hoist the byte load
         // above the g_game->flags_2a44 test, into the low byte of the register
-        // that held `unit`, which is what leaves al free for the `lea` and
+        // that held `weapon`, which is what leaves al free for the `lea` and
         // pushes the +0xd store and the type store in their original places.
         unsigned char team = weapon->index;
         if (g_game->flags_2a44 & 1) {

@@ -2061,7 +2061,7 @@ void Player::SetType(int newType)
 {
     type = (char)newType;
     if (newType != 3) {
-        *((char*)info + 0x94) = (char)newType;
+        info->kind = (char)newType;
     }
 }
 

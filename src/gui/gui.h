@@ -54,7 +54,9 @@ struct Gui {
     int animTimer;                      // +0x9a
     int inputEnabled;                   // +0x9e
     int dirty;                          // +0xa2 (nonzero = selection active)
-    char unknown_a6[0x8b2 - 0xa6];
+    char unknown_a6[0xb2 - 0xa6];
+    unsigned int palette[0x100];        // +0xb2, the GUI palette copy (dialogs.cpp dest)
+    char unknown_4b2[0x8b2 - 0x4b2];
     unsigned char colours[0x100];       // +0x8b2
     char unknown_9b2[0x9b6 - 0x9b2];
     char str_9b6[0x100];                // +0x9b6

@@ -895,6 +895,7 @@ void __stdcall CmdGive(CommandArgs* args)
 // FUNCTION: 0x416cf0
 void __stdcall CmdScrollSpeed(void* args)
 {
+    // The void* parameter stays: retyping it moves the window of 0x4181d0 (docs/c2-regalloc.md).
     unsigned char result = ((CommandArgs*)args)->GetIntArg(1, 0);
     g_game->scrollSpeed = result;
     SaveSettings();
@@ -903,6 +904,7 @@ void __stdcall CmdScrollSpeed(void* args)
 // FUNCTION: 0x416d20
 void __stdcall CmdIFace(void* args)
 {
+    // The void* parameter stays: retyping it moves the window of 0x4181d0 (docs/c2-regalloc.md).
     int result = ((CommandArgs*)args)->GetIntArg(1, 0);
     g_game->interfaceType = result;
     SaveSettings();
@@ -1185,6 +1187,7 @@ void __stdcall CmdNetStats(int)
 // FUNCTION: 0x4175e0
 void __stdcall CmdMusicMode(void* args)
 {
+    // The void* parameter stays: retyping it moves the window of 0x4181d0 (docs/c2-regalloc.md).
     CommandArgs* obj = (CommandArgs*)args;
     int result = obj->GetIntArg(1, 0);
     void* p = *(void**)((char*)g_game + 0x10);

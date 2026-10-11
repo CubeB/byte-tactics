@@ -157,7 +157,7 @@ struct Gadget {
 
 struct Game {
     char unknown_0[0xc];
-    Map* map;                          // +0x0c
+    Map* displayContext;               // +0x0c
     char unknown_10[0x519 - 0x10];
     Menu gui;                          // +0x519
     char unknown_559[0x1a3f - 0x559];
@@ -258,7 +258,7 @@ void __stdcall SetupPlayerSlot(int player, char type)
     p->rejectReason = 0;
 
     if (p->active != 0 && (p->type == 1 || p->type == 2)) {
-        p->info->memory = g_game->map->field_620 / 0x100000 + 1;
+        p->info->memory = g_game->displayContext->field_620 / 0x100000 + 1;
     }
 
     if (g_game->mapInfo->GetGameType() == 1) {

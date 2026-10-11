@@ -279,7 +279,7 @@ struct Game {
     unsigned short cellFeature;         // +0x2cbc
     unsigned char cursorMode;           // +0x2cbe
     char unknown_2cbf[0x2cc6 - 0x2cbf];
-    Flags_00498da0 flags;               // +0x2cc6
+    Flags_00498da0 inputFlags;          // +0x2cc6
     char unknown_2cc7[0x14223 - 0x2cc7];
     int mapWidthWorld;                  // +0x14223
     int mapHeightWorld;                 // +0x14227
@@ -1191,19 +1191,19 @@ void __stdcall UpdateCursorWorldPos(View_00498da0* r)
 {
     int mx, my;
 
-    if (PointInRect(&g_game->minimapHitRect, r->x, r->y) && !(g_game->flags.value & 8)) {
+    if (PointInRect(&g_game->minimapHitRect, r->x, r->y) && !(g_game->inputFlags.value & 8)) {
         mx = (r->x - g_game->originX) * g_game->worldW / g_game->screenW;
         my = (r->y - g_game->originY) * g_game->worldH / g_game->screenH;
-        g_game->flags.value |= 1;
-        g_game->flags.value &= ~2;
+        g_game->inputFlags.value |= 1;
+        g_game->inputFlags.value &= ~2;
     } else {
         Rect_00498da0* lim = &g_game->lim;
         mx = g_game->scrollX + MIN(MAX(r->x, lim->left), lim->right) - lim->left;
         my = g_game->scrollY + MIN(MAX(r->y, lim->top), lim->bottom) - lim->top;
-        g_game->flags.value &= ~1;
-        g_game->flags.bits.b1 = PointInRect(lim, r->x, r->y);
+        g_game->inputFlags.value &= ~1;
+        g_game->inputFlags.bits.b1 = PointInRect(lim, r->x, r->y);
     }
-    g_game->flags.bits.b2 = g_game->flags.bits.b0 || g_game->flags.bits.b1;
+    g_game->inputFlags.bits.b2 = g_game->inputFlags.bits.b0 || g_game->inputFlags.bits.b1;
     ClampWorldPosToTerrain(mx, my, &g_game->pos);
     {
         Pos_00498da0* p = &g_game->pos;

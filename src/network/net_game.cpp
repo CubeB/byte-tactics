@@ -290,7 +290,7 @@ struct Game {
         char nickname[0x11];           // +0x2bd2
     };
     union {
-        char passWord[0x11];           // +0x2be3
+        char password[0x11];           // +0x2be3
         struct {
             char password[0x2bee - 0x2be3];
             union {
@@ -1113,7 +1113,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     player->joinTime = GetTicks();
     PlayerInfo* info = player->info;
     info->flags = (info->flags ^ ((g_game->numPlayersSigned ^ info->flags) & 0xf)) & 0x7fff;
-    info->hasPassword = (strlen(g_game->passWord) != 0);
+    info->hasPassword = (strlen(g_game->password) != 0);
     info->maxUnits = 0x64;
     info->width = g_game->displayWidth;
     info->height = g_game->displayHeight;
@@ -1121,7 +1121,7 @@ int __stdcall CreateLocalPlayer(unsigned char playerIndex, int flag)
     info->versionMinor = g_game->versionMinor;
 
     int r = HAPINET_addplayer(g_game->net, (unsigned long*)&player->id,
-                         buf, buf, g_game->passWord, 0, 0x50);
+                         buf, buf, g_game->password, 0, 0x50);
     if (r == 0) {
         g_game->players[playerIndex].SetType(0);
         unsigned char i = FindPlayerInUse();

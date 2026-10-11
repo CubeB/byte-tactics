@@ -355,8 +355,8 @@ struct Game {
     };
     Gui gui;                           // +0x519
     char unknown_120f[0x12ef - 0x120f]; // +0x120f
-    char messages[30][0x48];           // +0x12ef
-    char unknown_1b5f[0x1b63 - 0x1b5f]; // +0x1b5f
+    char chatHudRing[30][0x48];        // +0x12ef
+    char lobbySyncTick[0x1b63 - 0x1b5f]; // +0x1b5f
     Player_00444930 players[10];       // +0x1b63
     char unknown_2851[0x29a0 - 0x2851]; // +0x2851
     Options_00446f50* options;         // +0x29a0
@@ -402,7 +402,7 @@ struct Game {
     };
     char buffer[0xb9];                 // +0x2ab1
     char game_info[0x54];              // +0x2b6a
-    char unknown_2bbe[0x2bbf - 0x2bbe]; // +0x2bbe
+    char frontendMenuState[0x2bbf - 0x2bbe]; // +0x2bbe
     unsigned char frontendSubstate;    // +0x2bbf
     union {                            // +0x2bc0
         unsigned char frontendSubstateRequest;
@@ -4176,7 +4176,7 @@ void RefreshBattleRoomRows()
     if (g_game->chatHudWriteIdx != g_game->chatHudReadIdx) {
         for (int i = g_game->chatHudReadIdx; g_game->chatHudWriteIdx != i; ) {
             char* line = SkipTextLines(g_game->chatter, count);
-            strcpy(line, g_game->messages[i]);
+            strcpy(line, g_game->chatHudRing[i]);
             count++;
             i++;
             if (i == 30)

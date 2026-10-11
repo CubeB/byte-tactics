@@ -48,13 +48,13 @@ class Sound;
 struct Game {
     char unknown_0[0xc];
     Display_00491a70* displayContext;  // +0xc
-    Sound* cd;  // +0x10
+    Sound* sound; // +0x10
     char unknown_14[0x519 - 0x14];
     Gui_00491d70 gui;   // +0x519
     char unknown_535[0x589 - 0x535];
     int field_589;   // +0x589
     char unknown_58d[0x12ef - 0x58d];
-    char field_12ef[4];   // +0x12ef
+    char chatHudRing[4];  // +0x12ef
     char unknown_12f3[0x1b63 - 0x12f3];
     Player_004917d0 players[10];   // +0x1b63
     char unknown_2851[0x29a0 - 0x2851];
@@ -429,8 +429,8 @@ void __stdcall WriteGameRegistryValue(void* key, void* buf, int value);
 // FUNCTION: 0x490f80
 void SaveCdLists()
 {
-    for (int i = 0; i < g_game->cd->GetTrackCount(); i++) {
-        g_cdListsDiscEntries.tracks[i] = g_game->cd->GetCategoryOfTrack(i + 1);
+    for (int i = 0; i < g_game->sound->GetTrackCount(); i++) {
+        g_cdListsDiscEntries.tracks[i] = g_game->sound->GetCategoryOfTrack(i + 1);
     }
     WriteGameRegistryValue("CDLISTS", &g_cdListsDiscEntries, sizeof(g_cdListsDiscEntries));
 }
@@ -456,15 +456,15 @@ void ReopenCdAudio()
     char tracks[16] = {1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     char buf[0x88];
 
-    int saved = g_game->cd->GetTrackCategory();
+    int saved = g_game->sound->GetTrackCategory();
     mciSendStringA("stop cdaudio", 0, 0, 0);
     mciSendStringA("close cdaudio", 0, 0, 0);
     mciSendStringA("open cdaudio", 0, 0, 0);
-    g_game->cd->EnableCdAudio(g_game->musicMode & 1);
-    g_game->cd->SetPlaybackOrder(g_game->cdMode);
-    g_game->cd->SetTrackCategory(saved);
+    g_game->sound->EnableCdAudio(g_game->musicMode & 1);
+    g_game->sound->SetPlaybackOrder(g_game->cdMode);
+    g_game->sound->SetTrackCategory(saved);
 
-    int id = g_game->cd->GetDiscSerial();
+    int id = g_game->sound->GetDiscSerial();
     int index = 0;
     int* slot = &DAT_0051e848;
     // Test *slot != id first, with the break as its own block: else the loop is rotated.
@@ -484,13 +484,13 @@ void ReopenCdAudio()
             memcpy((char*)&g_cdListsDiscEntries + j * 0x88,
                    (char*)&g_cdListsDiscEntries + (j - 1) * 0x88, 0x88);
         memcpy(&g_cdListsDiscEntries, buf, 0x88);
-        g_game->cd->CopyTrackTypeTable(&g_cachedCdTrackTypes);
+        g_game->sound->CopyTrackTypeTable(&g_cachedCdTrackTypes);
     }
 newdisc:
     if (index == 0x14) {
-        if (g_game->cd->GetTrackCount() == 0x10) {
-            if (g_game->cd->IsFirstTrackData() != 0) {
-                g_game->cd->CopyTrackTypeTable(tracks);
+        if (g_game->sound->GetTrackCount() == 0x10) {
+            if (g_game->sound->IsFirstTrackData() != 0) {
+                g_game->sound->CopyTrackTypeTable(tracks);
             }
         }
         // Downward pointer walk against the addresses, not an index loop.
@@ -504,9 +504,9 @@ newdisc:
         DAT_0051e848 = id;
     }
     if ((g_game->flags_2a44 & 4) != 0 && g_game->frontendState == 6)
-        g_game->cd->PlayNextTrack();
+        g_game->sound->PlayNextTrack();
     else
-        g_game->cd->StopCdAudio();
+        g_game->sound->StopCdAudio();
 }
 
 extern const char g_skirmishInfoTag[];     // "SkirmishInfo"
@@ -592,7 +592,7 @@ void InitGame()
     LoadGameResources();
     InitSound();
     ResetFrontendState();
-    InitPacketTables(g_game->field_12ef);
+    InitPacketTables(g_game->chatHudRing);
     RegisterAllOrderTypes();
     LoadGameFonts();
     LoadDefaultPalette();
@@ -608,11 +608,11 @@ void InitGame()
     int ok = ReadGameRegistryValue(g_cdListsKey, &g_cdListsDiscEntries, &size);
     if (ok == 0)
         memset(&g_cdListsDiscEntries, 0, 0xaa0);
-    g_game->cd->EnableCdAudio(g_game->musicMode & 1);
-    g_game->cd->SetPlaybackOrder(g_game->cdMode);
-    g_game->cd->SetCdCallback(ReopenCdAudio);
+    g_game->sound->EnableCdAudio(g_game->musicMode & 1);
+    g_game->sound->SetPlaybackOrder(g_game->cdMode);
+    g_game->sound->SetCdCallback(ReopenCdAudio);
     ReopenCdAudio();
-    g_game->cd->SetTrackCategory(0);
+    g_game->sound->SetTrackCategory(0);
     ApplyBrightnessAndVolume();
     LoadSideData();
     LoadLogos();
@@ -678,8 +678,8 @@ void FreeOtaEnumCacheAndMission();
 // FUNCTION: 0x4916a0
 void ShutdownGame(void)
 {
-    for (int i = 0; i < g_game->cd->GetTrackCount(); i++) {
-        g_cdListsDiscEntries.tracks[i] = g_game->cd->GetCategoryOfTrack(i + 1);
+    for (int i = 0; i < g_game->sound->GetTrackCount(); i++) {
+        g_cdListsDiscEntries.tracks[i] = g_game->sound->GetCategoryOfTrack(i + 1);
     }
     WriteGameRegistryValue("CDLISTS", &g_cdListsDiscEntries, 0xaa0);
     FreePictureCache();
@@ -700,7 +700,7 @@ void ShutdownGame(void)
     GameFreeThunk((int*)g_game->options);
     g_game->options = 0;
     FreeUnitInfo();
-    ReleasePacketData((Class_00452370*)g_game->field_12ef);
+    ReleasePacketData((Class_00452370*)g_game->chatHudRing);
     FreeOtaEnumCacheAndMission();
 }
 
@@ -851,8 +851,8 @@ void CloseNetSession();
 void ShutdownIngameSystems()
 {
     g_game->flags_2a44w &= 0xfffb;
-    g_game->cd->StopCdAudio();
-    g_game->cd->SetTrackCategory(4);
+    g_game->sound->StopCdAudio();
+    g_game->sound->SetTrackCategory(4);
     CollectEndGameStats();
     EmptyShutdownPreCleanup();
     FreeUnitMemory();

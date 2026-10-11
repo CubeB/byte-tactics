@@ -18,7 +18,7 @@ struct Game {
     char unknown_0[0x14];
     char session[1];                   // +0x14
     char unknown_15[0x4e5 - 0x15];
-    char* net;                         // +0x4e5
+    char* dplConnection;               // +0x4e5
     char unknown_4e9[0x39201 - 0x4e9];
     char field_39201[16];              // +0x39201
 };
@@ -188,7 +188,7 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
 
     ShutdownScoreTables();
 
-    net = g_game->net;
+    net = g_game->dplConnection;
     if (net != 0) {
         memcpy(g_game->field_39201, net + 0x10, 16);
     }

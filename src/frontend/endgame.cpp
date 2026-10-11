@@ -211,8 +211,8 @@ public:
 
 struct Game {
     int unknown_0;
-    const char* build_date;            // +0x4
-    const char* build_time;            // +0x8
+    const char* buildDate;             // +0x4
+    const char* buildTime;             // +0x8
     char unknown_c[0x10 - 0xc];
     Sound* sound;                      // +0x10
     char unknown_14[0x519 - 0x14];
@@ -298,7 +298,7 @@ struct Game {
     unsigned short bits5_3923b : 11;
     char unknown_3923d[0x3924d - 0x3923d];
 
-    Game() : build_date("Jul 30 1998"), build_time("11:16:36"),
+    Game() : buildDate("Jul 30 1998"), buildTime("11:16:36"),
         field_142af(0), field_142b3(0) {}
 };
 #pragma pack(pop)

@@ -179,7 +179,7 @@ struct Game {
     };
     char unknown_2851[0x29a0 - 0x2851];
     union {
-        TeamDef_00496ee0* teams;               // +0x29a0
+        TeamDef_00496ee0* options;             // +0x29a0
         Slot_00497080* slots;
     };
     char unknown_29a4[0x2a3c - 0x29a4];
@@ -585,11 +585,11 @@ void __stdcall SetStartingStorageBonus(Struct_00496e90* obj, int height, int wid
 // FUNCTION: 0x496ee0
 void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
 {
-    g_game->players[team].player->side = g_game->teams[team].nameIndex;
-    g_game->players[team].player->color = g_game->teams[team].index2;
+    g_game->players[team].player->side = g_game->options[team].nameIndex;
+    g_game->players[team].player->color = g_game->options[team].index2;
     Player* p = &g_game->players[team];
-    int w = g_game->teams[team].size2;
-    int v = g_game->teams[team].size1;
+    int w = g_game->options[team].size2;
+    int v = g_game->options[team].size1;
     p->started = 1;
     p->size1 = (float)(w >= 200 ? w : 200);
     p->size2 = (float)(v >= 200 ? v : 200);

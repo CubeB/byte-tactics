@@ -103,7 +103,7 @@ struct Display_0047c3a0 {
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x10];
-    Display_0047bdf0* display;          // +0x10
+    Display_0047bdf0* sound;            // +0x10
     char unknown_14[0x37e1b - 0x14];
     Display_0047c3a0* screen;           // +0x37e1b
     char unknown_37e1f[0x39241 - 0x37e1f];
@@ -200,7 +200,7 @@ MoviePlayer::MoviePlayer(char* path, int a, int b, int c, int d, int e)
     frame = 0;
     if (a)
         SmackSoundEnable((HWND)b);
-    void* sound = g_game->display->sound;
+    void* sound = g_game->sound->sound;
     SmackSoundUseDirectSound(sound);
     smack = SmackOpen(path, 0xfe100, -1);
     if (!smack)

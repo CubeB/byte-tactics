@@ -146,7 +146,7 @@ struct Game {
     char unknown_0[0x10];
     Sound* sound;                      // +0x10
     char unknown_14[0x4e5 - 0x14];
-    int net;                           // +0x4e5
+    int dplConnection;                 // +0x4e5
     char unknown_4e9[0x519 - 0x4e9];
     Sub_004263b0 gui;                  // +0x519
     char unknown_535[0xdda - 0x535];
@@ -158,7 +158,7 @@ struct Game {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[1];
-    Bits_00426e80 flags;               // +0x2a44
+    Bits_00426e80 flags_2a44;          // +0x2a44
     char unknown_2a46[0x2aaf - 0x2a46];
     Bits_00426e80 dplayAddressDialogFlags;  // +0x2aaf
     char unknown_2ab1[0x2b4c - 0x2ab1];
@@ -893,8 +893,8 @@ void __stdcall LoadWarpLevel(int param_1)
     SetMissionType(1);
     g_game->mapInfo->LoadCampaign(value);
     if (g_game->mapInfo->SelectMission(n)) {
-        g_game->flags.b3 = 1;
-        g_game->flags.b2 = 1;
+        g_game->flags_2a44.b3 = 1;
+        g_game->flags_2a44.b2 = 1;
     }
 }
 
@@ -939,8 +939,8 @@ void HandleFrontendDebugKey(void)
             SetMissionType(1);
             g_game->mapInfo->LoadCampaign(buf);
             if (g_game->mapInfo->SelectMission(n)) {
-                g_game->flags.b3 = 1;
-                g_game->flags.b2 = 1;
+                g_game->flags_2a44.b3 = 1;
+                g_game->flags_2a44.b2 = 1;
             }
         }
         return;
@@ -972,7 +972,7 @@ int ConnectToService(void)
     char buf[256];
 
     if (InitNetConnection()) {
-        g_game->flags.b0 = 1;
+        g_game->flags_2a44.b0 = 1;
         return 1;
     }
     strncpy(g_frontendErrorText, "An error occurred trying to use this service", 0xf9);
@@ -1060,7 +1060,7 @@ static void UpdateSubState()
 static int UseService(void)
 {
     if (InitNetConnection()) {
-        g_game->flags.b0 = 1;
+        g_game->flags_2a44.b0 = 1;
         return 1;
     }
     SetFrontendErrorText(g_serviceErrorMessage);
@@ -1072,7 +1072,7 @@ static int UseService(void)
 static int UseServiceCalls(void)
 {
     if (InitNetConnection()) {
-        g_game->flags.b0 = 1;
+        g_game->flags_2a44.b0 = 1;
         return 1;
     }
     SetFrontendErrorText(g_serviceErrorMessage);
@@ -1115,7 +1115,7 @@ void RunFrontendStateMachine(void)
         switch ((unsigned char)g_game->frontendSubstate) {
         case 0:
             if (InitLobbiedConnection()) {
-                g_game->flags.b0 = 1;
+                g_game->flags_2a44.b0 = 1;
                 g_game->lobbyUiDirtyFlags.b4 = 1;
                 SetState(0x10, 0x403, g_frontendSourceFile);
                 SetSubState(0x12, 0x404, g_frontendSourceFile);
@@ -1138,11 +1138,11 @@ void RunFrontendStateMachine(void)
             return;
         case 6:
             SetMissionType(3);
-            g_game->flags.b3 = 0;
+            g_game->flags_2a44.b3 = 0;
             SetState(0xf, 0x41c, g_frontendSourceFile);
             return;
         case 5:
-            g_game->flags.b3 = 1;
+            g_game->flags_2a44.b3 = 1;
             SetState(7, 0x421, g_frontendSourceFile);
             return;
         case 7:
@@ -1176,7 +1176,7 @@ void RunFrontendStateMachine(void)
         case 1:
             PlayMovie(g_zrbMovie3);
             PlayMovie(g_zrbMovie5);
-            g_game->flags.b2 = 0;
+            g_game->flags_2a44.b2 = 0;
             SetState(2, 0x44a, g_frontendSourceFile);
             SetGameMode(2);
             return;
@@ -1191,7 +1191,7 @@ void RunFrontendStateMachine(void)
         case 1:
             PlayMovie(g_zrbMovie4);
             PlayMovie(g_zrbMovie5);
-            g_game->flags.b2 = 0;
+            g_game->flags_2a44.b2 = 0;
             SetState(2, 0x45b, g_frontendSourceFile);
             SetGameMode(2);
             return;
@@ -1277,7 +1277,7 @@ void RunFrontendStateMachine(void)
             PresentFrontendFrame();
             return;
         case 2:
-            g_game->flags.b2 = 1;
+            g_game->flags_2a44.b2 = 1;
             return;
         case 3:
             SetState(7, 0x4e5, g_frontendSourceFile);
@@ -1299,7 +1299,7 @@ void RunFrontendStateMachine(void)
             PresentFrontendFrame();
             return;
         case 2:
-            g_game->flags.b2 = 1;
+            g_game->flags_2a44.b2 = 1;
             return;
         case 3:
             switch ((unsigned char)g_game->frontendMenuState) {
@@ -1336,7 +1336,7 @@ void RunFrontendStateMachine(void)
             g_game->dplayAddressDialogFlags.b1 = 0;
             g_game->dplayAddressDialogFlags.b0 = 0;
             if (InitLobbiedConnection()) {
-                g_game->flags.b0 = 1;
+                g_game->flags_2a44.b0 = 1;
                 SetState(0x10, 0x52d, g_frontendSourceFile);
                 SetSubState(0x12, 0x52e, g_frontendSourceFile);
                 return;
@@ -1456,7 +1456,7 @@ void RunFrontendStateMachine(void)
             PresentFrontendFrame();
             return;
         case 21: {
-            int unit = g_game->net;
+            int unit = g_game->dplConnection;
             if (unit)
                 g_game->players[(unsigned char)g_game->localPlayer].info->host = *(unsigned int*)(unit + 4) >> 1;
             else
@@ -1474,7 +1474,7 @@ void RunFrontendStateMachine(void)
                             AddNetPlayer(g_game->players[i].id);
                     }
                 }
-                g_game->flags.b2 = 1;
+                g_game->flags_2a44.b2 = 1;
                 return;
             }
             SetStateLogged(0x11, 0x5ea, g_frontendSourceFile);
@@ -1490,7 +1490,7 @@ void RunFrontendStateMachine(void)
     case 17:
         switch ((unsigned char)g_game->frontendSubstate) {
         case 0:
-            if (!g_game->flags.b2) {
+            if (!g_game->flags_2a44.b2) {
                 OpenBattleRoom();
                 ReportGameEvent(1);
                 ReportGameEvent(2);
@@ -1505,7 +1505,7 @@ void RunFrontendStateMachine(void)
         case 1:
             UpdateBattleRoom();
             PresentFrontendFrame();
-            if (g_game->flags.b2) {
+            if (g_game->flags_2a44.b2) {
                 FinishUnitSync();
                 CloseTopScreen(&g_game->gui);
                 SetSubStateLogged(0x11, 0x613, g_frontendSourceFile);
@@ -1519,11 +1519,11 @@ void RunFrontendStateMachine(void)
                 p++;
             }
             FinishUnitSync();
-            g_game->flags.b2 = 1;
+            g_game->flags_2a44.b2 = 1;
             return;
         }
         case 3:
-            g_game->flags.b0 = 1;
+            g_game->flags_2a44.b0 = 1;
             HAPINET_quitgame((int)((char*)g_game + 0x14));
             InitPacketManager(2, 100);
             DeleteUnitSync();

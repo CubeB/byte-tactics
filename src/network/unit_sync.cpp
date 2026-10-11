@@ -190,7 +190,7 @@ struct UnitSync;
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x14];
-    Net_4c97b0 net;                     // +0x14
+    Net_4c97b0 session;                 // +0x14
     char unknown_25[0x1b67 - 0x14 - sizeof(Net_4c97b0)];
     PlayerEntry_0046d6c0 players[10];   // +0x1b67
     char unknown_283d[0x2a30 - 0x1b67 - sizeof(PlayerEntry_0046d6c0) * 10];
@@ -240,11 +240,11 @@ int __stdcall ReportGameEvent(int msg)
     if (!g_onlineReportPlayers || !g_onlineReportScoreBoards || !g_onlineReportScores)
         return 1;
 
-    Rect_0046c620 rect = *GetSessionGuidInstance(&g_game->net);
-    int thing = GetCreatedLobbyInterface(&g_game->net);
+    Rect_0046c620 rect = *GetSessionGuidInstance(&g_game->session);
+    int thing = GetCreatedLobbyInterface(&g_game->session);
 
     if (msg == 1) {
-        g_reportPlayerName = g_game->net.name;
+        g_reportPlayerName = g_game->session.name;
         char* p = g_reportPlayerName.text + 15;
         while (p > g_reportPlayerName.text && *p == ' ')
             *p-- = 0;

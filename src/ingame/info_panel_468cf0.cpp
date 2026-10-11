@@ -243,11 +243,11 @@ struct Game {
   int boxEndHeight;                     // +0x2ca2
   int boxEndZ;                          // +0x2ca6
   char unknown_2caa[2];
-  short field_2cac;                     // +0x2cac
+  short xWhole;                         // +0x2cac
   char unknown_2cae[2];
-  short field_2cb0;                     // +0x2cb0
+  short yWhole;                         // +0x2cb0
   char unknown_2cb2[2];
-  short field_2cb4;                     // +0x2cb4
+  short zWhole;                         // +0x2cb4
   char unknown_2cb6[0x2cc3 - 0x2cb6];
   char orderMode;                       // +0x2cc3
   char unknown_2cc4[0x2cc6 - 0x2cc4];
@@ -475,12 +475,12 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
   ProfileMark(&g_game->profileTimingBars, 8);
   DrawMapTiles((int)&ctx);
   DrawMapDebugOverlay((int)&ctx);
-  x = g_game->field_2cac - g_game->scrollX + 0x80;
+  x = g_game->xWhole - g_game->scrollX + 0x80;
   // Compiler state, not meaning: reading viewY through this char* alias of
   // g_game is what makes MSVC subtract (h >> 1) first, as the original does.
   char *&game = *(char**)&g_game;
   int *viewY = &((Game *)game)->scrollY;
-  y = g_game->field_2cb4 - (g_game->field_2cb0 >> 1) - *viewY + 0x20;
+  y = g_game->zWhole - (g_game->yWhole >> 1) - *viewY + 0x20;
   if (g_game->debugMode == '\x02') {
     DrawLine((int)&ctx, x - 2, y, x + 2, y, colors[0xf]);
     DrawLine((int)&ctx, x, y - 2, x, y + 2, colors[0xf]);

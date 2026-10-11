@@ -19,8 +19,8 @@ public:
     char* GetNameSlot(int index);
     int GetMissionIndex();
     int MissionExists(int index);
-    int SelectMission(int param_1);
-    int BuildMissionList(int* param_1);
+    int SelectMission(int index);
+    int BuildMissionList(int* out);
     // Unused here: the symbol ids these declarations take keep the allocation
     // after the Sound join grew sound.h (docs/c2-regalloc.md).
     void LoadBriefing();
@@ -320,7 +320,7 @@ void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const
 int __stdcall HAPI_FileLengthByName(char* path);
 void* __stdcall LoadBitmapByName(char* name, unsigned char* palette);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
-void __stdcall FillSurface(void* param_1, int param_2);
+void __stdcall FillSurface(void* surface, int colour);
 void BlankScreen();
 void FlipScreen();
 void __stdcall FreeSurface(void* image);
@@ -337,10 +337,10 @@ void __stdcall SetCursorMode(int n);
 void Force640x480Surfaces();
 void ApplyDifficultyButtons();
 void StartGlamourSound();
-char __stdcall FindGameCdDrive(int param_1);
+char __stdcall FindGameCdDrive(int side);
 const char* __stdcall Translate(const char* text);
-void __stdcall OpenMessageBox(Gui* menu, const char* text, int param_3, int param_4, int param_5);
-void __stdcall PlaySoundByName(const char* name, int param_2);
+void __stdcall OpenMessageBox(Gui* menu, const char* text, int wrapWidth, int centre, int autoHeight);
+void __stdcall PlaySoundByName(const char* name, int broadcast);
 int __stdcall IsCurrentGadgetNamed(Gui* gadget, char* name);
 int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
@@ -357,16 +357,16 @@ void __stdcall ConfigureListBoxByName(Gui* menu, char* name, void* items, int co
 Gadget* __stdcall FindGadgetChecked_D(char* entries, char* name);
 void __stdcall SetListBoxScrollByName(Gui* menu, char* name, int index);
 void __stdcall SetGadgetActiveByName(Gui* menu, const char* name, int value);
-void __stdcall SetTranslatedTextByName(Gui* menu, char* name, char* text, int param_4);
-int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
-void __stdcall DrawFrame(void* param_1, int param_2, int x, int y);
+void __stdcall SetTranslatedTextByName(Gui* menu, char* name, char* text, int value);
+int __stdcall GetGafFrame(unsigned short* gaf, int frame);
+void __stdcall DrawFrame(void* dst, int bmp, int x, int y);
 void __stdcall SetKeyboardInput(Gui* menu, int value);
 void __stdcall RenderLayer(Gui* menu, int value);
 void __stdcall MarkLayerChanged(Gui* menu);
 void __stdcall MarkChanged(Gui* menu);
 void __stdcall EnableKeyCommands(Gui* menu);
 void __stdcall UpdateMenu(Gui* menu);
-void __stdcall BlitMenuLayers(Gui* menu, void* param_2, void* param_3);
+void __stdcall BlitMenuLayers(Gui* menu, void* dest, void* clip);
 void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 void __stdcall DrawMessages(void* surface);
 void __stdcall SetOffscreenSurface(void* surface);
@@ -398,9 +398,9 @@ void CreateGameObject()
 }
 
 // FUNCTION: 0x41d9f0
-void __stdcall SetEndGameState(unsigned int param_1)
+void __stdcall SetEndGameState(unsigned int state)
 {
-    unsigned int v = param_1 & 0xff;
+    unsigned int v = state & 0xff;
     g_game->state = v;
 }
 

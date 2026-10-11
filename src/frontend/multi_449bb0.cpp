@@ -174,7 +174,7 @@ extern char* g_battleRoomGadgetNames[];
 #include "ta_protos.h"
 
 char __stdcall FindGameCdDrive(int side);
-int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int param_4);
+int __stdcall LoadPictureCached(const char* name, int clear, int setPalette, int cacheOnly);
 void OrLabelAttribs();
 void __stdcall UpdateMaxUnitsText(Gui_00449bb0* gui, int index);
 void __stdcall UpdateMetalText(Gui_00449bb0* gui, int index);

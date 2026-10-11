@@ -71,16 +71,16 @@ extern char DAT_004fcfb8[];
 
 void __stdcall CloseTopScreen(void* menu);
 void __stdcall SetPaletteColors(unsigned char* palette, int first, int count);
-void __stdcall RemapPaletteToClosestIndices(void* menu, void* palette, void* param_3);
+void __stdcall RemapPaletteToClosestIndices(void* menu, void* palette, void* copy);
 Gadget_00444580* __stdcall LoadGuiLayer(void* menu, char* name, int size);
 void __stdcall HandleSelectProviderClick(void* menu);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
-void __stdcall HAPINET_uninitmultiplay(void* param_1);
-void __stdcall HAPINET_getconnections(void* param_1, void* guids, void* conns, void* descriptions, void* param_5);
+void __stdcall HAPINET_uninitmultiplay(void* net);
+void __stdcall HAPINET_getconnections(void* net, void* guids, void* conns, void* descriptions, void* application);
 int __stdcall FindGadgetIndex(void* entries, const char* name, int flag);
 unsigned int __stdcall OnlineGetLinkInfo(LinkInfo* links);
-void __stdcall SetTranslatedText(void* menu, int index, int param_3, int param_4);
+void __stdcall SetTranslatedText(void* menu, int index, int source, int value);
 void __stdcall ConfigureListBoxByName(void* menu, char* name, void* items, int count, int flag);
 void OrLabelAttribs();
 void __stdcall SetKeyboardInput(void* menu, int value);
@@ -91,11 +91,11 @@ void __stdcall RenderLayer(void* menu, int value);
 // this spelling (one local, `index`) also matches 0x4444d0 itself, and it is
 // the one that gives this function's frame (two more locals add two slots).
 // It is static here so that the object does not define 0x4444d0 a second time.
-static int __stdcall CloneServiceSlot(Entry_00444580* entries, int from, short y, int param_4, char* name)
+static int __stdcall CloneServiceSlot(Entry_00444580* entries, int from, short y, int source, char* name)
 {
     int index = ++entries[0].count;
     entries[index] = entries[from];
-    SetTranslatedText(&g_game->menu, index, param_4, 0);
+    SetTranslatedText(&g_game->menu, index, source, 0);
     strcpy(entries[index].name, name);
     entries[index].y = y;
     entries[index].active = 1;

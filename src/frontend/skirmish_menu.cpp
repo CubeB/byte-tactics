@@ -343,7 +343,7 @@ struct Rec2 {                          // 0xcc bytes
 #pragma pack(pop)
 
 GafEntry* __stdcall FindGafEntry(Gaf* gaf, const char* name);
-int __stdcall GetGafFrame(unsigned short* param_1, int param_2);
+int __stdcall GetGafFrame(unsigned short* gaf, int frame);
 
 // FUNCTION: 0x479bf0
 void __stdcall BindGadgetAnimSequence(Rec1* obj, char* name)
@@ -688,7 +688,7 @@ void __cdecl CycleCurrentPlayerSide()
 #include "../map/mission.h"
 
 void __cdecl GameFreeThunk(void* ptr);
-void __stdcall PlaySoundByName(const char* name, int param_2);
+void __stdcall PlaySoundByName(const char* name, int broadcast);
 int __stdcall IsCurrentGadgetNamed(Gui* menu, char* name);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 Gadget* __stdcall FindGadgetChecked_E(Gadget* entries, char* name);
@@ -828,7 +828,7 @@ static inline int color_taken(int me)
 }
 
 // FUNCTION: 0x47acd0
-void __stdcall CyclePlayerColor(int param_1)
+void __stdcall CyclePlayerColor(int reverse)
 {
     char buf[0x40];
     Gadget* entries = g_game->gui.layer->entries;
@@ -836,7 +836,7 @@ void __stdcall CyclePlayerColor(int param_1)
 
     do {
         g_game->options->players[current].color =
-            (g_game->options->players[current].color + (param_1 ? -1 : 1)) % *g_game->logos32;
+            (g_game->options->players[current].color + (reverse ? -1 : 1)) % *g_game->logos32;
         if (g_game->options->players[current].color == -1)
             g_game->options->players[current].color = *g_game->logos32 - 1;
     } while (color_taken(current));
@@ -875,11 +875,11 @@ struct Frame {
 #pragma pack(pop)
 
 void __stdcall GetGadgetName(Gadget* entries, char* text, int id);
-char __stdcall FindGameCdDrive(int param_1);
+char __stdcall FindGameCdDrive(int side);
 void RegisterDataArchives();
 void InitMissionStatus();
 void SaveSettings();
-void __stdcall UpdateHelpText(Gui* param_1);
+void __stdcall UpdateHelpText(Gui* gui);
 void __stdcall GetCurrentMouseEvent(int* out);
 
 // FUNCTION: 0x47ae60
@@ -1277,7 +1277,7 @@ void OpenSkirmishMenu(void)
 
 extern char* g_forcesDestroyedTexts[];
 
-void __stdcall AddMessage(char* text, int param_2, int param_3, unsigned char param_4);
+void __stdcall AddMessage(char* text, int key, int value, unsigned char last);
 
 // Announces that a player's forces were destroyed: "<Core|Arm> <random
 // message>", using one of three (translated) messages.

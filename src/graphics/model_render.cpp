@@ -81,7 +81,7 @@ struct Vector3s {
 // 16.16 polygon.
 struct Poly_459c70 { int x; int y; int z; int shade; };
 
-struct Point_4584d0 { int x; int y; };
+#include "../util/point.h"
 
 // A 12-byte 16.16 position with its constructor.
 struct Pos_4589c0 {
@@ -373,8 +373,8 @@ void __stdcall FillFlatPolygon(GafFrame* surface, void* poly, int count, int fla
 void __stdcall DrawTexturedPolygon(GafFrame* surface, void* pic, void* poly, int flag);
 void __stdcall FillShadedPolygon(GafFrame* surface, void* poly, int count, int flag);
 void __stdcall DrawLitTexturedPolygon(GafFrame* surface, void* pic, void* poly, int flag);
-void __stdcall FillPolygon(void* surface, Point_4584d0* points, int count, int flags);
-void __stdcall DrawFrameQuad(void* surface, void* pic, Point_4584d0* points, void* src);
+void __stdcall FillPolygon(void* surface, Point* points, int count, int flags);
+void __stdcall DrawFrameQuad(void* surface, void* pic, Point* points, void* src);
 void __stdcall DrawPolygonEdges(GafFrame* view, Vec3* points, int count, int color);
 void __stdcall SurfaceFromFrame(Surface_4589c0* dst, GafFrame* src);
 void __stdcall DrawFrame(Surface* dst, GafFrame* bmp, int x, int y);
@@ -1332,8 +1332,8 @@ void CMemoryCache::DrawPiece(Model_459200* model, void* surface, Vec3* camera,
     void* pic;
     int i;
     int unit;
-    Point_4584d0 projected[2000];
-    Point_4584d0 poly[25];
+    Point projected[2000];
+    Point poly[25];
     Unit_459200* view = model->owner;
     struct Off_4584d0 { int a; int y; int b; };
     Off_4584d0 off;

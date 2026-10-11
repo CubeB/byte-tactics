@@ -731,7 +731,7 @@ address,size,file,symbol,status,similarity
 0x4388d0,89,src/orders/order_queue_4384a0.cpp,?SetAttachedFx@Order@@QAEXPAVOrderFx@@@Z,matched,100.0
 0x438930,196,src/orders/order_queue_4384a0.cpp,?AttachApproachRadiusGoal@Order@@QAEXPAHH@Z,matched,100.0
 0x438a00,205,src/orders/order_queue_4384a0.cpp,?AttachRingApproachGoal@Order@@QAEXPAUVec3_0043a1f0@@HH@Z,matched,100.0
-0x438ad0,191,src/orders/order_queue_4384a0.cpp,?AttachBuildFootprintMarker@Order@@QAEXUPoint_00438ad0@@0@Z,matched,100.0
+0x438ad0,191,src/orders/order_queue_4384a0.cpp,?AttachBuildFootprintMarker@Order@@QAEXUPoint16@@0@Z,matched,100.0
 0x438b90,69,src/orders/order_queue_4384a0.cpp,?MergeFlagsFromTable@Order@@QAEXH@Z,matched,100.0
 0x438be0,27,src/orders/order_queue_4384a0.cpp,?GetOrderFlags@@YGHPAX@Z,matched,100.0
 0x438c00,660,src/ingame/markers.cpp,?DrawBuildFootprint@@YGXPAXPAUView@@PAUOrder@@PAUPos@@H@Z,matched,100.0
@@ -2681,7 +2681,7 @@ address,size,file,symbol,status,similarity
 0x4c0070,301,src/graphics/draw.cpp,?DrawCircle@@YGXPAUSurface@@HHHH@Z,matched,100.0
 0x4c01a0,353,src/graphics/draw.cpp,?DrawDashedCircle@@YGXPAUSurface@@HHHHHH@Z,matched,100.0
 0x4c0310,28,src/graphics/draw.cpp,?FillPolygon@@YGXPAUSurface@@PAUPoint@@HE@Z,matched,100.0
-0x4c0330,932,src/graphics/draw_4c0330.cpp,?ScanFillPolygon@@YGHPAUSurface@@PAUPoint_004c0330@@HE@Z,matched,100.0
+0x4c0330,932,src/graphics/draw_4c0330.cpp,?ScanFillPolygon@@YGHPAUSurface@@PAUPoint@@HE@Z,matched,100.0
 0x4c06e0,200,src/graphics/draw.cpp,?FillFlatSpan@@YGXHPAUSpan@@PAUGafFrame@@E@Z,matched,100.0
 0x4c07b0,106,src/graphics/draw.cpp,?DrawPolygon@@YGHPAUSurface@@PAUVec3@@HH@Z,matched,100.0
 0x4c0820,613,src/graphics/draw.cpp,?DrawPolygonEdges@@YGHPAUGafFrame@@PAUVec3@@HH@Z,matched,100.0

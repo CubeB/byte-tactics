@@ -364,7 +364,7 @@ static inline HandlerSlot_004b7900* Find_004b7900(const char* key)
 
 // Runs the command in obj: takes its first argument, lowercases it, looks the
 // name up in the file-local sorted handler table and calls the handler whose
-// mask matches mask, or else the global default handler registered by
+// mask matches the given mask, or else the global default handler registered by
 // 0x4b78e0. Returns the mask of the handler that ran, or 0.
 //
 // The handler is called through a reinterpreted HandlerSlot view of the two

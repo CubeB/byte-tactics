@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "cob_script.h"
+#include "../util/angles.h"
 
 class Unit;
 class UnitRef;
@@ -99,9 +100,7 @@ public:
     char unknown_58[0x5c - 0x58];
     Order* list;                       // +0x5c
     char unknown_60[0x64 - 0x60];
-    unsigned short bank;               // +0x64
-    unsigned short heading;            // +0x66
-    unsigned short pitch;              // +0x68
+    Angles16 angles;                   // +0x64
     struct {
         int x;                         // +0x6a
         union {
@@ -813,7 +812,7 @@ void __stdcall AlignUnitToGround(Unit* u)
             int vz = v->z;
             t.z = vz;
             pts[k].z = vz;
-            FUN_004b7173(u->heading, &t);
+            FUN_004b7173(u->angles.heading, &t);
             // wx before hz, fx before fz, and gz declared before fz.
             int wx = (short)((t.x + u->pos.x) >> 16);
             int hz = (short)((u->pos.z - t.z) >> 16);
@@ -871,7 +870,7 @@ void __stdcall AlignUnitToGround(Unit* u)
         int a = (h0 + h1) / 2;
         int b = (h2 + h3) / 2;
         u->pos.roll = (a + b) / 2;
-        u->pitch = FUN_004b715a(b - a, (short)(abs(pts[0].z - pts[3].z) >> 16));
-        u->bank = FUN_004b715a(h0 - h1, (short)(abs(pts[0].x - pts[1].x) >> 16));
+        u->angles.pitch = FUN_004b715a(b - a, (short)(abs(pts[0].z - pts[3].z) >> 16));
+        u->angles.bank = FUN_004b715a(h0 - h1, (short)(abs(pts[0].x - pts[1].x) >> 16));
     }
 }

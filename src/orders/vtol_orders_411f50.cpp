@@ -290,5 +290,5 @@ static inline void AttachMove(Order* order, const Vec3& dest, short radius)
 {
     Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
     obj->SetApproachRadius(radius);
-    ((Order*)order)->SetAttachedFx((int)obj);
+    order->SetAttachedFx((int)obj);
 }

@@ -62,10 +62,10 @@ int __stdcall RectsOverlap(Rect_004b6750* a, Rect_004b6750* b)
 }
 
 // FUNCTION: 0x4b6820
-int __stdcall CompareByte1Equal(int param_1, int param_2)
+int __stdcall CompareByte1Equal(int a, int b)
 {
-    int cl = *(char*)(param_1 + 1);
-    int bl = *(char*)(param_2 + 1);
+    int cl = *(char*)(a + 1);
+    int bl = *(char*)(b + 1);
     return cl == bl ? 1 : 0;
 }
 
@@ -137,32 +137,32 @@ close:
 }
 
 // FUNCTION: 0x4b69b0
-int __stdcall ReadRegistryData(void* param_1, void* param_2, void* param_3, void* param_4)
+int __stdcall ReadRegistryData(void* subKey, void* valueName, void* data, void* size)
 {
-    return AccessRegistryValue((char*)param_1, (char*)param_2, (LPBYTE)param_3, (LPDWORD)param_4, 0, 1);
+    return AccessRegistryValue((char*)subKey, (char*)valueName, (LPBYTE)data, (LPDWORD)size, 0, 1);
 }
 
 // Reads a 4-byte value through AccessRegistryValue (same family as 0x4b69b0).
 // FUNCTION: 0x4b69d0
-int __stdcall ReadRegistryDword(void* param_1, void* param_2, void* param_3)
+int __stdcall ReadRegistryDword(void* subKey, void* valueName, void* value)
 {
     int size = 4;
-    return AccessRegistryValue((char*)param_1, (char*)param_2, (LPBYTE)param_3, (LPDWORD)&size, 0, 1);
+    return AccessRegistryValue((char*)subKey, (char*)valueName, (LPBYTE)value, (LPDWORD)&size, 0, 1);
 }
 
 // FUNCTION: 0x4b6a00
-void __stdcall WriteRegistryBinary(void* param_1, void* param_2, void* param_3, int unused)
+void __stdcall WriteRegistryBinary(void* subKey, void* valueName, void* data, int unused)
 {
-    AccessRegistryValue((char*)param_1, (char*)param_2, (LPBYTE)param_3, (LPDWORD)&unused, 3, 0);
+    AccessRegistryValue((char*)subKey, (char*)valueName, (LPBYTE)data, (LPDWORD)&unused, 3, 0);
 }
 
 // Stores a string value (type 1) through AccessRegistryValue, passing its length
 // including the terminator.
 // FUNCTION: 0x4b6a20
-void __stdcall WriteRegistryString(void* param_1, void* param_2, char* value)
+void __stdcall WriteRegistryString(void* subKey, void* valueName, char* value)
 {
     unsigned int size = strlen(value) + 1;
-    AccessRegistryValue((char*)param_1, (char*)param_2, (LPBYTE)value, (LPDWORD)&size, 1, 0);
+    AccessRegistryValue((char*)subKey, (char*)valueName, (LPBYTE)value, (LPDWORD)&size, 1, 0);
 }
 
 // Stores a DWORD value (type 4) through AccessRegistryValue, compare 0x4b6a20.
@@ -221,9 +221,9 @@ char* __stdcall SkipTextLines(char* text, int n)
 extern unsigned int __cdecl _beginthread(void* start, unsigned int stack, void* param);
 
 // FUNCTION: 0x4b6b20
-int __stdcall StartThread(void* param_1, unsigned int param_2, void* param_3)
+int __stdcall StartThread(void* start, unsigned int stack, void* param)
 {
-    unsigned int result = _beginthread(param_1, param_2, param_3);
+    unsigned int result = _beginthread(start, stack, param);
     if (result != (unsigned int)-1) {
         return 1;
     }
@@ -231,15 +231,15 @@ int __stdcall StartThread(void* param_1, unsigned int param_2, void* param_3)
 }
 
 // FUNCTION: 0x4b6b50
-void __stdcall SleepMilliseconds(unsigned int param_1)
+void __stdcall SleepMilliseconds(unsigned int milliseconds)
 {
-    Sleep(param_1);
+    Sleep(milliseconds);
 }
 
 extern void* g_display;
 
 // FUNCTION: 0x4b6b60
-void __stdcall SetMediaNotifyCallback(int param_1)
+void __stdcall SetMediaNotifyCallback(int callback)
 {
-    *(int*)((char*)g_display + 0x80) = param_1;
+    *(int*)((char*)g_display + 0x80) = callback;
 }

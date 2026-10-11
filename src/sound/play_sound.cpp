@@ -6,7 +6,7 @@ extern char* g_loopingWav;
 extern int* g_diskWav;
 
 void* __stdcall HAPI_LoadFile(char* path, int flags);
-void __cdecl GameFreeThunk(int* param_1);
+void __cdecl GameFreeThunk(int* p);
 
 // FUNCTION: 0x49f610
 int IsWindowsSoundAvailable(void)
@@ -41,10 +41,10 @@ void __stdcall PlayWavMemory(const char* sound)
 }
 
 // FUNCTION: 0x49f6a0
-void __stdcall PlayLoopingWavMemory(char* param_1)
+void __stdcall PlayLoopingWavMemory(char* sound)
 {
-    g_loopingWav = param_1;
-    PlaySoundA(param_1, 0, 0xd);
+    g_loopingWav = sound;
+    PlaySoundA(sound, 0, 0xd);
 }
 
 // Loads a sound file into memory, plays it asynchronously from memory and

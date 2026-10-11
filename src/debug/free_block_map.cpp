@@ -101,8 +101,8 @@ size_t __cdecl GetBlockSize(void* p);
 void* __cdecl GameAlloc(unsigned int size);
 void __cdecl GameFree(void* p);
 void* __cdecl GameCalloc(unsigned int count, unsigned int size);
-int __cdecl SetOutOfMemoryHandler(int param_1);
-void* __cdecl GameRealloc(void* param_1, unsigned int param_2);
+int __cdecl SetOutOfMemoryHandler(int handler);
+void* __cdecl GameRealloc(void* block, unsigned int size);
 char* __cdecl GameStrdup(char* s);
 void __cdecl ProtectBlock(void* p, int protect);
 

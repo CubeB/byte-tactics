@@ -44,8 +44,8 @@ extern char DAT_005119b8[];
 extern char g_sayChoiceArrayName[];
 extern SoundInfo_005086fc g_speechCategories[];
 
-int __cdecl GameReallocTagged(int param_1, char* param_2, int param_3);
-void __cdecl GameFreeThunk(int* param_1);
+int __cdecl GameReallocTagged(int block, char* name, int size);
+void __cdecl GameFreeThunk(int* p);
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
 int __stdcall ReadSoundEntry(Source_0042f450* source, char* key, int* out);
@@ -55,21 +55,21 @@ void FreeSoundCategories();
 void __stdcall FreeSoundSet(IDirectSoundBuffer** set);
 
 // FUNCTION: 0x42f450
-int __stdcall ReadSoundEntry(Source_0042f450* param_1, char* param_2, int* param_3)
+int __stdcall ReadSoundEntry(Source_0042f450* source, char* key, int* out)
 {
-    char local_180[0x40];
-    char local_140[0x40];
-    char local_100[0x100];
+    char text[0x40];
+    char value[0x40];
+    char textKey[0x100];
 
-    if (param_1->tdf->GetFieldString(local_140, param_2, 0x40, DAT_005119b8) != 0) {
-        sprintf(local_100, "%s%s", param_2, "text");
-        if (param_1->tdf->GetFieldString(local_180, local_100, 0x40, DAT_005119b8) == 0)
-            local_180[0] = 0;
-        param_3[1] = GameReallocTagged(param_3[1], g_sayChoiceArrayName, (param_3[0] + 1) * 0x40);
-        param_3[2] = GameReallocTagged(param_3[2], g_sayChoiceArrayName, (param_3[0] + 1) * 0x40);
-        strcpy((char*)(param_3[1] + param_3[0] * 0x40), local_140);
-        strcpy((char*)(param_3[2] + param_3[0] * 0x40), local_180);
-        param_3[0]++;
+    if (source->tdf->GetFieldString(value, key, 0x40, DAT_005119b8) != 0) {
+        sprintf(textKey, "%s%s", key, "text");
+        if (source->tdf->GetFieldString(text, textKey, 0x40, DAT_005119b8) == 0)
+            text[0] = 0;
+        out[1] = GameReallocTagged(out[1], g_sayChoiceArrayName, (out[0] + 1) * 0x40);
+        out[2] = GameReallocTagged(out[2], g_sayChoiceArrayName, (out[0] + 1) * 0x40);
+        strcpy((char*)(out[1] + out[0] * 0x40), value);
+        strcpy((char*)(out[2] + out[0] * 0x40), text);
+        out[0]++;
         return 1;
     }
     return 0;

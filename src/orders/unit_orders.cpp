@@ -253,7 +253,7 @@ struct Order {
     void SetAttachedFx(int param);
     Order(MissionType type, Unit* target, Vec3* pos, int c, int d, int e);
     void MergeFlagsFromTable(MissionType kind);
-    void AttachRingApproachGoal(Vec3* pos, int param, int param_3);
+    void AttachRingApproachGoal(Vec3* pos, int radius1, int radius2);
     void AttachBuildFootprintMarker(Point16 cell, Point16 size);
     char unknown_4e[0x8];
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
@@ -380,7 +380,7 @@ void __stdcall QueueUnitSpeech(Unit* unit, int kind, const char* text);
 void __stdcall DamageUnit(Unit* unit, Unit* target, int n, int kind, int flag);
 void __stdcall SetWeaponTargetUnit(Unit* unit, Unit* target, int weapon);
 Unit* __stdcall GetWeaponTargetUnit(Unit* unit, int index);
-int __stdcall WeaponCanReachUnit(Unit* unit, Unit* target, int param_3);
+int __stdcall WeaponCanReachUnit(Unit* unit, Unit* target, int weapon);
 void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit);
 void __stdcall FinishConstruction(Unit* unit, Unit* target);
 int __stdcall WaitIfNotInBuildStance(Unit* unit, Order* order, int flags);
@@ -390,7 +390,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short type, Vec3 pos,
                            int a, int b, int c);
 void __stdcall AttachUnitToPiece(Unit* unit, Unit* builder, char piece, char p4);
 void __stdcall AddOrder(MissionType kind, int remove, Unit* owner, Unit* id, void* pos,
-                        int param_6, int param_7);
+                        int typeId, int amount);
 int __stdcall AddRepairProgress(Unit* builder, Unit* unit, float amount);
 int __stdcall AddBuildProgress(Unit* unit, Unit* target, float amount);
 void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
@@ -955,19 +955,19 @@ int __stdcall BeCarriedOrder(Unit* unit, Order* order, int unused)
 }
 
 // FUNCTION: 0x403010
-int __stdcall ActivateOrder(Unit* param_1, int unused1, int unused2)
+int __stdcall ActivateOrder(Unit* unit, int unused1, int unused2)
 {
-    if (((Sub_403010*)param_1->def)->flag) {
-        param_1->SetStateBits(1, 1);
+    if (((Sub_403010*)unit->def)->flag) {
+        unit->SetStateBits(1, 1);
     }
     return 5;
 }
 
 // FUNCTION: 0x403040
-int __stdcall DeactivateOrder(Unit* param_1, int unused1, int unused2)
+int __stdcall DeactivateOrder(Unit* unit, int unused1, int unused2)
 {
-    if (((Sub_403010*)param_1->def)->flag) {
-        param_1->SetStateBits(1, 0);
+    if (((Sub_403010*)unit->def)->flag) {
+        unit->SetStateBits(1, 0);
     }
     return 5;
 }
@@ -1015,9 +1015,9 @@ int __stdcall StandingFireOrder(Unit* unit, Order* order, int unused)
 }
 
 // FUNCTION: 0x403160
-int __stdcall QMoveQPatrolOrder(int param_1, void* param_2, int param_3)
+int __stdcall QMoveQPatrolOrder(int unused1, void* order, int unused3)
 {
-    ((Order*)param_2)->SetDeadlineTicks(0x3c);
+    ((Order*)order)->SetDeadlineTicks(0x3c);
     return 6;
 }
 

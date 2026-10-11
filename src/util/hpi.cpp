@@ -302,12 +302,12 @@ long __stdcall HAPI_SeekFile(FileHandle* file, long pos)
 }
 
 // FUNCTION: 0x4bb7a0
-long __stdcall HAPI_TellFile(FileHandle* param_1)
+long __stdcall HAPI_TellFile(FileHandle* file)
 {
-    if (param_1->shared != 0) {
-        return param_1->pos;
+    if (file->shared != 0) {
+        return file->pos;
     }
-    return ftell(param_1->fp);
+    return ftell(file->fp);
 }
 
 int __stdcall SquashUnpack(unsigned char* dst, unsigned char* src);
@@ -420,17 +420,17 @@ done:
 }
 
 // FUNCTION: 0x4bbbe0
-unsigned int __stdcall HAPI_WriteFile(FileHandle* param_1, void* param_2, unsigned int param_3)
+unsigned int __stdcall HAPI_WriteFile(FileHandle* file, void* buf, unsigned int size)
 {
-    if (param_1->shared != 0)
+    if (file->shared != 0)
         return 0xffffffff;
-    return fwrite(param_2, 1, param_3, param_1->fp);
+    return fwrite(buf, 1, size, file->fp);
 }
 
 // FUNCTION: 0x4bbc10
-void __stdcall RenameFile(const char* param_1, const char* param_2)
+void __stdcall RenameFile(const char* oldName, const char* newName)
 {
-    rename(param_1, param_2);
+    rename(oldName, newName);
 }
 
 // __stdcall wrapper around the CRT's remove (delete a file), like its
@@ -446,9 +446,9 @@ void __stdcall RemoveFile(const char* path)
 // Closes a file handle opened by HAPI_OpenFile and returns its size.
 // Sibling of 0x4bbd00, which reports the size without closing.
 // FUNCTION: 0x4bbc40
-long __stdcall HAPI_FileLengthByName(char* param_1)
+long __stdcall HAPI_FileLengthByName(char* name)
 {
-    FileHandle* h = (FileHandle*)HAPI_OpenFile(param_1, "rb");
+    FileHandle* h = (FileHandle*)HAPI_OpenFile(name, "rb");
     if (h == 0)
         return 0;
 
@@ -480,12 +480,12 @@ long __stdcall HAPI_FileLengthByName(char* param_1)
 }
 
 // FUNCTION: 0x4bbd00
-long __stdcall HAPI_FileLength(FileHandle* param_1)
+long __stdcall HAPI_FileLength(FileHandle* file)
 {
-    if (param_1->shared != 0)
-        return param_1->info->size;
-    if (param_1->fp != 0)
-        return _filelength(param_1->fp->_file);
+    if (file->shared != 0)
+        return file->info->size;
+    if (file->fp != 0)
+        return _filelength(file->fp->_file);
     return 0;
 }
 
@@ -693,9 +693,9 @@ void* __stdcall HAPI_LoadOpenFile(char* name, FileHandle* file, unsigned int* ou
 // succeeds; a read of zero bytes frees it and returns null. On any failure the
 // file is closed and null is returned.
 // FUNCTION: 0x4bc120
-int* __stdcall HAPI_LoadFileInto(char* param_1, int* param_2)
+int* __stdcall HAPI_LoadFileInto(char* name, int* buf)
 {
-    FileHandle* file = HAPI_OpenFile(param_1, "rb");
+    FileHandle* file = HAPI_OpenFile(name, "rb");
     long size;
     if (file == 0)
         goto fail;
@@ -709,7 +709,7 @@ int* __stdcall HAPI_LoadFileInto(char* param_1, int* param_2)
         goto fail;
     if (HAPI_SeekFile(file, 0) < 0)
         goto fail;
-    size = HAPI_readfromfile(file, (unsigned char*)param_2, size);
+    size = HAPI_readfromfile(file, (unsigned char*)buf, size);
     if (size < 0)
         goto fail;
     if (file->shared != 0) {
@@ -727,10 +727,10 @@ int* __stdcall HAPI_LoadFileInto(char* param_1, int* param_2)
         GameFreeThunk(file->buffer2);
     GameFreeThunk(file);
     if (size <= 0) {
-        GameFreeThunk(param_2);
+        GameFreeThunk(buf);
         return 0;
     }
-    return param_2;
+    return buf;
 fail:
     if (file != 0) {
         if (file->shared != 0) {
@@ -773,12 +773,12 @@ void __stdcall GetCurrentDriveLetter(char* buf)
 }
 
 // FUNCTION: 0x4bc300
-int __stdcall ChangeDrive(char* param_1)
+int __stdcall ChangeDrive(char* drive)
 {
-    if (param_1 == 0) {
+    if (drive == 0) {
         return -1;
     }
-    return _chdrive(*param_1 - 0x40);
+    return _chdrive(*drive - 0x40);
 }
 
 // Gets the current directory of a drive ("C:..." or the current drive when
@@ -1050,16 +1050,16 @@ public:
 typedef std::vector<StringRef> FileList;
 
 // FUNCTION: 0x4bca30
-void __stdcall ListDirectory(const char* path, int param_2, FileList* param_3)
+void __stdcall ListDirectory(const char* path, int dirsOnly, FileList* list)
 {
     struct _finddata_t fd;
     int h = HAPI_FindFirst(path, &fd, -1, 1);
     if (h != -1) {
         do {
             if (strcmp(fd.name, ".") != 0 && strcmp(fd.name, "..") != 0
-                && (param_2 == 0 || (fd.attrib & 0x10) != 0)) {
+                && (dirsOnly == 0 || (fd.attrib & 0x10) != 0)) {
                 StringRef key(fd.name);
-                param_3->insert(param_3->_Last, 1, key);
+                list->insert(list->_Last, 1, key);
             }
         } while (HAPI_FindNext((FindFiles*)h, &fd) != -1);
         if (h != 0) {
@@ -1655,19 +1655,19 @@ void __stdcall HAPI_CloseArchive(OPENHAPIFILE* f)
 extern char g_hapiFileArrayName[];     // "HAPIFILE array"
 
 // FUNCTION: 0x4be0b0
-void* __stdcall HAPI_AddArchive(LPCSTR param_1, int param_2)
+void* __stdcall HAPI_AddArchive(LPCSTR name, int mode)
 {
     DisplayContext* display = GetDisplay();
     char fullPath[0x100];
     char* filePart;
-    GetFullPathNameA(param_1, 0x100, fullPath, &filePart);
+    GetFullPathNameA(name, 0x100, fullPath, &filePart);
 
     for (int i = 0; i < display->count; i++) {
         if (_strcmpi(fullPath, display->files[i]->name) == 0)
             return 0;
     }
 
-    void* file = HAPI_OpenArchive(param_1, param_2);
+    void* file = HAPI_OpenArchive(name, mode);
     if (!file)
         return 0;
 

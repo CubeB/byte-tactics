@@ -236,7 +236,7 @@ class TdfFile {
 public:
     TdfRecord* root;                   // +0x0
     TdfRecord* current;                // +0x4
-    int field_8;                       // +0x8
+    int flags;                         // +0x8
 
     // The functions that delete the root section each destroy its entries a
     // different way (inline, through ReleasePair, ~TdfField or
@@ -264,7 +264,7 @@ TdfFile::TdfFile()
 {
     root = 0;
     current = 0;
-    field_8 = 0;
+    flags = 0;
 }
 
 // Frees the TDF section tree hanging off root and zeroes the 12-byte object,
@@ -281,7 +281,7 @@ void TdfFile::Unload()
         delete root;
     root = 0;
     current = 0;
-    field_8 = 0;
+    flags = 0;
 }
 
 // Blanks out C and C++ style comments in a text buffer, in place. A method

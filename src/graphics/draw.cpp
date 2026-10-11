@@ -110,7 +110,7 @@ struct App_004c0b10 {
 // The display object's grey table at +0xcc and its flags at +0xf1.
 struct Game_004bfe10 {
     char unknown_0[0xcc];
-    int field_cc;                      // +0xcc
+    int grayTable;                     // +0xcc
     char unknown_d0[0xf1 - 0xd0];
     unsigned char flags;               // +0xf1
 };
@@ -930,14 +930,14 @@ int __stdcall GrayRectangle(Surface* surface, Rect* rect)
             if (ClipRectangle(&screen, &r))
                 RemapRect(r.top * screen.pitch + r.left + (int)screen.pixels,
                              screen.pitch, r.right - r.left + 1,
-                             r.bottom - r.top + 1, g->field_cc);
+                             r.bottom - r.top + 1, g->grayTable);
             UnlockScreen(&screen);
         }
     } else {
         if (ClipRectangle(surface, &r))
             RemapRect((int)surface->pixels + r.top * surface->pitch + r.left,
                          surface->pitch, r.right - r.left + 1,
-                         r.bottom - r.top + 1, g->field_cc);
+                         r.bottom - r.top + 1, g->grayTable);
         result = status;
     }
     return result;

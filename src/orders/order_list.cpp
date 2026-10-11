@@ -131,7 +131,7 @@ struct Player_0043b7c0 {
 // The unit's target: the object at unit+0x96, whose +0xe4 is the divisor
 // 0x439d20 uses.
 struct Target_0043d6d0 {
-    int field_0;                       // +0x0
+    int active;                        // +0x0
     char unknown_4[0x73 - 0x4];
     unsigned char type;                // +0x73
     char unknown_74[0xe4 - 0x74];
@@ -155,23 +155,23 @@ struct UnitType_0043cd20 {           // 0x249 bytes
     char unknown_40[0x192 - 0x40];
     int maxvelocity;                   // +0x192, the range
     char unknown_196[0x19a - 0x196];
-    int field_19a;                     // +0x19a, the rate (top speed)
-    int field_19e;                     // +0x19e, the long-step distance (acceleration)
-    int field_1a2;                     // +0x1a2
-    int field_1a6;                     // +0x1a6
+    int brakerate;                     // +0x19a
+    int acceleration;                  // +0x19e
+    int bankscale;                     // +0x1a2
+    int pitchscale;                    // +0x1a6
     char unknown_1aa[0x1ae - 0x1aa];
-    int field_1ae;                     // +0x1ae
-    int field_1b2;                     // +0x1b2
-    int field_1b6;                     // +0x1b6
+    int moverate1;                     // +0x1ae
+    int moverate2;                     // +0x1b2
+    int movementclass;                 // +0x1b6
     unsigned short max_turn;           // +0x1ba
     char unknown_1bc[0x202 - 0x1bc];
     short range;                       // +0x202
     char unknown_204[0x214 - 0x204];
-    unsigned short field_214;          // +0x214
+    unsigned short maneuverleashlength; // +0x214
     char unknown_216[0x22c - 0x216];
     unsigned char draft;               // +0x22c
     char unknown_22d[0x230 - 0x22d];
-    unsigned char field_230;           // +0x230
+    unsigned char defaultmissiontype;  // +0x230
     char unknown_231[0x241 - 0x231];
     union {
         int flags1;                    // +0x241
@@ -902,8 +902,8 @@ void __stdcall AddOrder(int kind, int remove, Unit* owner, void* id,
 class MissionOrderTable {
 public:
     char unknown_0[0x4];
-    int field_4;
-    int field_8;
+    int first;
+    int last;
 
     int GetCount(void);
 };
@@ -924,9 +924,9 @@ typedef int(__stdcall* Pred_0043c390)(const Elem_0043c390&, const Elem_0043c390&
 struct Record_0043dd70 {
     Vec3 velocity;                     // +0x00
     Vec3 p2;                           // +0x0c
-    int field_20;                      // +0x18
-    short field_24;                    // +0x1c
-    int field_26;                      // +0x1e
+    int speed;                         // +0x18
+    short turn;                        // +0x1c
+    int pathLockStamp;                 // +0x1e
     unsigned char mode : 2;            // +0x22 bits 0-1
     unsigned char flag : 1;            // +0x22 bit 2
 };
@@ -1169,7 +1169,7 @@ int __stdcall IssueAttackOrder(Unit* unit, Unit* target, int param_3)
         MissionType kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->def->field_214);
+        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->def->maneuverleashlength);
         cmd2->start.x = PosXWhole(unit);
         cmd2->start.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
@@ -1209,7 +1209,7 @@ int __stdcall IssueRepairOrder(Unit* unit, Unit* target, int param_3)
         MissionType kind2 = GetOrderType(2, unit, 0, &unit->pos);
         Order* cmd = new Order(kind2, 0, &unit->pos, 0, 0, 0);
         Insert(unit, cmd, (cmd->flags & 0x40000) ? unit->list2 : unit->list);
-        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->def->field_214);
+        Order* cmd2 = new Order(kind, target, 0, 0, 0, unit->def->maneuverleashlength);
         cmd2->start.x = PosXWhole(unit);
         cmd2->start.y = PosZWhole(unit);
         Insert(unit, cmd2, (cmd2->flags & 0x40000) ? unit->list2 : unit->list);
@@ -1350,9 +1350,9 @@ void __stdcall RunOrders(Unit* unit)
     char state = unit->player->state;
     if (state != 1 && state != 2)
         return;
-    if (unit->def->field_230 == 0)
+    if (unit->def->defaultmissiontype == 0)
         return;
-    InsertCommand(unit, unit->def->field_230);
+    InsertCommand(unit, unit->def->defaultmissiontype);
 }
 
 // Takes the node out of the parent's list and frees it. The search can fail,
@@ -1576,7 +1576,7 @@ void ClearOrderTypeTable()
 // FUNCTION: 0x43c360
 int MissionOrderTable::GetCount(void)
 {
-    return field_4 == 0 ? 0 : (field_8 - field_4) / 0x19;
+    return first == 0 ? 0 : (last - first) / 0x19;
 }
 
 // std::vector<Elem_0043c390>::_Destroy(first, last) from MSVC 5's <vector>:
@@ -1722,7 +1722,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     if (obj->v5() == 0) {
         turn = 0;
         // Bound temporary: loads unit before the turn store and keeps the rate in eax.
-        const int& amount = -unit->def->field_19a;
+        const int& amount = -unit->def->brakerate;
         UpdateVelocityFromHeading(unit, amount);
         return;
     }
@@ -1781,7 +1781,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
     // multiply; otherwise it becomes _allmul instead of a one-operand imul.
     int turned = (int)((((__int64)(adiff & 0xffff) * (__int64)speed)
                         / unit->def->max_turn));
-    int rate = unit->def->field_19a;
+    int rate = unit->def->brakerate;
     int spd = speed;
     int t = (int)(((__int64)spd * spd) >> 16);
     int q = (int)(((__int64)t << 16) / (2 * rate));
@@ -1790,7 +1790,7 @@ void UnitMotion::SteerGroundUnit(Unit* unit)
 
     // UpdateVelocityFromHeading stays defined above this function so the two calls cross-jump.
     if (d1 > lim && d2 > r)
-        UpdateVelocityFromHeading(unit, unit->def->field_19e);
+        UpdateVelocityFromHeading(unit, unit->def->acceleration);
     else
         UpdateVelocityFromHeading(unit, -rate);
 }
@@ -1817,8 +1817,8 @@ void UnitMotion::ApplyBankAndPitch(Unit* owner, Vec3* v)
     xz[1] = p2.z;
     FUN_004b7173(owner->angles.heading, xz);
     int n = (int)(((__int64)g_game->gravity << 16) / 0xccd);
-    owner->angles.bank = (short)FUN_004b715a((int)(((__int64)owner->def->field_1a2 * -xz[0]) >> 16), n);
-    owner->angles.pitch = (short)FUN_004b715a((int)(((__int64)owner->def->field_1a6 * -xz[0]) >> 16), n);
+    owner->angles.bank = (short)FUN_004b715a((int)(((__int64)owner->def->bankscale * -xz[0]) >> 16), n);
+    owner->angles.pitch = (short)FUN_004b715a((int)(((__int64)owner->def->pitchscale * -xz[0]) >> 16), n);
 }
 #pragma auto_inline(on)
 
@@ -1865,13 +1865,13 @@ void UnitMotion::SteerAircraft(Unit* unit) {
     UnitType_0043cd20* type = unit->def;
     const float eps = 1.52587890625e-05f;
 
-    float f18 = (float)type->field_19e * eps;
-    int q = (int)(((__int64)type->field_19e << 16) / type->maxvelocity);
+    float f18 = (float)type->acceleration * eps;
+    int q = (int)(((__int64)type->acceleration << 16) / type->maxvelocity);
     int scale = 0x10000 - q;
     velocity.Scale(scale);
 
     float dist = (float)_hypot(velocity.x, velocity.z) * eps;
-    float maxd = (float)unit->def->field_19a * eps;
+    float maxd = (float)unit->def->brakerate * eps;
     if (dist > maxd) {
         int f = (int)((double)(maxd / dist) * 65536.0);
         // MulFixed and AddFixed take the component by reference; written
@@ -1996,7 +1996,7 @@ void UnitMotion::UpdatePosition(Unit* u)
         return;
     }
 
-    if (u->target->field_0 != 0) {
+    if (u->target->active != 0) {
         if (u->target->type == 1 || u->target->type == 2)
             flag = CanPlaceUnitFootprint(u->def, u->id, cell, m) == 0;
     }
@@ -2038,10 +2038,10 @@ void UnitMotion::UpdateMoveRate(Unit* unit)
     int rate;
     if ((flags & 4) == 0 && unit->carrier == 0
         && (speed != 0 || turn != 0)) {
-        if (speed <= unit->def->field_1ae) {
+        if (speed <= unit->def->moverate1) {
             rate = 1;
         } else {
-            rate = 2 + (speed > unit->def->field_1b2);
+            rate = 2 + (speed > unit->def->moverate2);
         }
     } else {
         rate = 0;
@@ -2081,8 +2081,8 @@ UnitMotion::UnitMotion(Unit* unit)
     p2 = Vec3(0, 0, 0);
     mode = 1;
     flag = 0;
-    movementClass = unit->def->field_1b6;
-    if (unit->target->field_0 != 0 && unit->target->type == 3) {
+    movementClass = unit->def->movementclass;
+    if (unit->target->active != 0 && unit->target->type == 3) {
         if (unit->def->flag_800)
             obj = (Iface_0043dd20*)new PackedPosGoal(unit);
         else
@@ -2123,9 +2123,9 @@ void UnitMotion::SaveMotion(Unit* info, HapiBank* file)
     Record_0043dd70 hdr;
     hdr.velocity = velocity;
     hdr.p2 = p2;
-    hdr.field_20 = speed;
-    hdr.field_24 = turn;
-    hdr.field_26 = pathLockStamp;
+    hdr.speed = speed;
+    hdr.turn = turn;
+    hdr.pathLockStamp = pathLockStamp;
     hdr.mode = mode;
     hdr.flag = flag;
     sprintf(name, "u%04xmob", info->id);
@@ -2147,9 +2147,9 @@ void UnitMotion::LoadMotion(Unit* unit, HapiBank* file)
     file->ReadBox(&rec, 0x23);
     velocity = rec.velocity;
     p2 = rec.p2;
-    speed = rec.field_20;
-    turn = rec.field_24;
-    pathLockStamp = rec.field_26;
+    speed = rec.speed;
+    turn = rec.turn;
+    pathLockStamp = rec.pathLockStamp;
     mode = rec.mode;
     flag = rec.flag;
 }

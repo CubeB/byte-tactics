@@ -53,7 +53,7 @@ struct Gadget {                         // 0x15b bytes, one GUI list entry
         } frame;
         struct {                        // type 2
             int sortKey;                // +0xb6
-            short field_ba;             // +0xba, the selected line
+            short selected;             // +0xba, the selected line
             short firstRow;             // +0xbc, the first line shown
             short maxFirstRow;          // +0xbe, the largest value of firstRow
             short rowCount;             // +0xc0, the number of lines or items

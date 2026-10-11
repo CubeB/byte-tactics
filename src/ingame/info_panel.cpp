@@ -55,7 +55,7 @@ struct Owner_00467440 {
     char unknown_2b[0x73 - 0x2b];
     char type;                         // +0x73
     char unknown_74[0x108 - 0x74];
-    unsigned char field_108[1];        // +0x108
+    unsigned char allied[1];           // +0x108
 };
 
 struct PlayerInfo_004685a0 {
@@ -150,16 +150,16 @@ struct ByteMap_00467440 {
 };
 
 struct PlayerInfo_00467440 {
-    void* field_0;                     // +0x0
+    void* active;                      // +0x0
     char unknown_4[0x27 - 0x4];
     PlayerInfo* data;                  // +0x27
     char unknown_2b[0x67 - 0x2b];
-    Unit* field_67;                    // +0x67
-    Unit* field_6b;                    // +0x6b
+    Unit* unitsBegin;                  // +0x67
+    Unit* unitsEnd;                    // +0x6b
     char unknown_6f[0x7c - 0x6f];
     ByteMap_00467440 explored;         // +0x7c
     char unknown_88[0x146 - 0x88];
-    unsigned char field_146;           // +0x146
+    unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 };
 
@@ -459,11 +459,11 @@ struct Rect_0046b9d0 {
 
 class Prim_0046bae0 {                  // a model primitive, 0x20 bytes
 public:
-    int field_0;                       // +0x00 color
+    int colorIndex;                    // +0x00 color
     int count;                         // +0x04 number of vertices
-    int field_8;                       // +0x08
+    int always0;                       // +0x08
     unsigned short* indices;           // +0x0c
-    int field_10;                      // +0x10 texture pointer or index ref
+    int pic;                           // +0x10 texture pointer or index ref
     char unknown_14[8];
     // Dword bitfield, not an int tested with >> and &: the read codegen differs.
     unsigned int flag0 : 1;            // +0x1c bit 0
@@ -473,10 +473,10 @@ public:
 
 class Object_0046bae0 {                // the model or piece being drawn
 public:
-    int field_0;                       // +0x00
+    int version;                       // +0x00
     int count;                         // +0x04
-    int field_8;                       // +0x08
-    int field_c;                       // +0x0c
+    int faceCount;                     // +0x08
+    int firstFace;                     // +0x0c
     char unknown_10[0x24 - 0x10];
     Vec3* verts;                       // +0x24
     Prim_0046bae0* prims;              // +0x28
@@ -1263,7 +1263,7 @@ void ClampCameraTarget(void);
 // Draws a piece of a 3D model: projects obj->count vertices through
 // RotateByAngles (the same rotate/project idiom as the matched 0x467a50) into
 // screen points, then draws each primitive in obj->prims (from index 1 when
-// obj->field_c is not -1, otherwise from 0). A primitive whose bit 0 is set
+// obj->firstFace is not -1, otherwise from 0). A primitive whose bit 0 is set
 // is a flat filled polygon (FillPolygon); otherwise a 4-vertex textured quad
 // (DrawFrameQuad), whose texture is either the direct pointer at +0x10 or, when
 // bit 1 is set, the entry GetGafSequenceFrame looks up from the reference at +0x10.
@@ -1288,13 +1288,13 @@ void __stdcall DrawModel3doProjected(void* surface, Vec3* offset,
 
     int j;
     Prim_0046bae0* e = obj->prims;
-    if (obj->field_c != -1) {
+    if (obj->firstFace != -1) {
         e++;
         j = 1;
     } else {
         j = 0;
     }
-    for (; j < obj->field_8; j++, e++) {
+    for (; j < obj->faceCount; j++, e++) {
         unsigned short* idx = e->indices;
         Point* dst = g_game->assemPts;
         for (int k = 0; k < e->count; k++, idx++, dst++) {
@@ -1306,11 +1306,11 @@ void __stdcall DrawModel3doProjected(void* surface, Vec3* offset,
                 if (e->texIndexed)
                     tex = (void*)GetGafSequenceFrame((short*)((char*)e + 0x10));
                 else
-                    tex = (void*)e->field_10;
+                    tex = (void*)e->pic;
                 DrawFrameQuad(surface, tex, g_game->assemPts, 0);
             }
         } else {
-            FillPolygon(surface, g_game->assemPts, e->count, e->field_0);
+            FillPolygon(surface, g_game->assemPts, e->count, e->colorIndex);
         }
     }
 }

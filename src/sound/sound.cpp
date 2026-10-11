@@ -31,7 +31,7 @@ public:
 
 struct SoundParams_0047ed40 {
     char unknown_0[0x40];
-    int field_40;
+    int hwnd;
 };
 
 union Pos_0047f300 {
@@ -252,7 +252,7 @@ void InitSound(void)
         g_noDirectSound = 1;
     }
     if (!g_noDirectSound) {
-        int hr = g_game->sound->InitDirectSound(0x2b11, 0x10, 2, g_game->displayContext->field_40);
+        int hr = g_game->sound->InitDirectSound(0x2b11, 0x10, 2, g_game->displayContext->hwnd);
         if (hr == 0) {
             if (g_game->sound->HasNoDriver())
                 g_noDirectSound = 1;

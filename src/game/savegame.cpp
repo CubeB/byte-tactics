@@ -283,11 +283,11 @@ void __stdcall ShowSavedGameInfo()
 #define diffs b.diffs
 
     char* desc;
-    if (games->u.list.field_ba > -1
-        && (desc = SkipTextLines(g_savegameDescs, games->u.list.field_ba)) != 0
+    if (games->u.list.selected > -1
+        && (desc = SkipTextLines(g_savegameDescs, games->u.list.selected)) != 0
         && strlen(desc) != 0) {
         SetGadgetText(menu, index, desc);
-        char* fname = SkipTextLines(g_savegameFileNames, games->u.list.field_ba);
+        char* fname = SkipTextLines(g_savegameFileNames, games->u.list.selected);
         sprintf(path, "%s\\%s", g_savegameDir, fname);
         HapiBank* file = OpenSummaryBank(path);
         if (file != 0) {
@@ -417,7 +417,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
     }
     Gadget* e = FindGadgetChecked(entries, "GAMES");
-    sprintf(buf, "%s\\%s", g_savegameDir, SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
+    sprintf(buf, "%s\\%s", g_savegameDir, SkipTextLines(g_savegameFileNames, e->u.list.selected));
     HapiBank* save = OpenSummaryBank(buf);
     if (save != 0) {
         int type = save->GetIntegerItem("Gametype", 0);
@@ -455,7 +455,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         PlaySoundByName("SMLBUTTON", 0);
         e = FindGadgetChecked(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", g_savegameDir,
-                SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
+                SkipTextLines(g_savegameFileNames, e->u.list.selected));
         if (g_game->flags_2a44.b2)
             ShutdownIngameSystems();
         g_game->flags_3923b.b3 = 1;
@@ -648,7 +648,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     if (IsCurrentGadgetNamed(gadget, "DELETE")) {
         PlaySoundByName("SmallButton", 0);
         Gadget* e = FindGadgetChecked(entries, "GAMES");
-        sprintf(save.path, "%s\\%s", g_savegameDir, SkipTextLines(g_savegameFileNames, e->u.list.field_ba));
+        sprintf(save.path, "%s\\%s", g_savegameDir, SkipTextLines(g_savegameFileNames, e->u.list.selected));
         RemoveFile(save.path);
         ListSavedGames(&save.count);
         ClearSelectedGadget(gadget);

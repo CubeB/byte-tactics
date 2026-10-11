@@ -146,7 +146,7 @@ struct Cell_0046a860 {
 // The display context at g_game+0xc; only two fields are read here.
 struct Display_0046a860 {
     char unknown_0[0x9c];
-    int field_9c;                     // +0x09c
+    int haveBackBuffer;               // +0x09c
     char unknown_a0[0xf0 - 0xa0];
     unsigned char flags;              // +0x0f0, low byte of the state flags word
 };
@@ -315,7 +315,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         // No pfable or field_c locals: the PFSTATE sprintf re-reads g_game->displayContext per argument.
         int pfstate = g_game->screenHeight - GetFontHeight() - 1;
         sprintf(text, "PFSTATE %d, PFABLE %d\n", g_game->displayContext->flags & 1,
-                g_game->displayContext->field_9c);
+                g_game->displayContext->haveBackBuffer);
         DrawString(surface, (unsigned char*)text, 0x82, pfstate, -1);
 
         if (g_game->hoverUnitId != 0) {

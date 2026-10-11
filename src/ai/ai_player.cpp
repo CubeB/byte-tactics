@@ -167,11 +167,11 @@ struct Point16 {
 
 struct Sub_00409520 {
     char unknown_0[0xd4];
-    unsigned short field_d4;           // +0xd4
+    unsigned short damage;             // +0xd4
     char unknown_d6[6];
-    int field_dc;                      // +0xdc
+    int range;                         // +0xdc
     char unknown_e0[0x2a];
-    char field_10a;                    // +0x10a
+    char index;                        // +0x10a
 };
 
 // A 32-bit word of bits, tested by unit type id.
@@ -199,10 +199,10 @@ struct UnitDef {                       // 0x249 bytes
                 int field_156;
             };
             char unknown_15a[0x186 - 0x15a];
-            float field_186;              // +0x186
-            float field_18a;              // +0x18a
+            float energyCost;             // +0x186
+            float metalCost;              // +0x18a
             char unknown_18e[0x1c0 - 0x18e];
-            short field_1c0;              // +0x1c0
+            short minwaterdepth;          // +0x1c0
             char unknown_1c2[0x1ce - 0x1c2];
             union {
                 float value;              // +0x1ce
@@ -213,9 +213,9 @@ struct UnitDef {                       // 0x249 bytes
             char unknown_1fa[0x202 - 0x1fa];
             short range;                  // +0x202
             char unknown_204[0x22d - 0x204];
-            char field_22d;               // +0x22d
+            char makesMetal;              // +0x22d
             char unknown_22e;
-            char field_22f;               // +0x22f
+            char mobile;                  // +0x22f
             char unknown_230;
             // The type sets: pointers to bit words, one view named by use.
             union {
@@ -230,7 +230,7 @@ struct UnitDef {                       // 0x249 bytes
                 unsigned int flags;       // +0x241
                 struct {
                     unsigned int unknown_241 : 5;
-                    unsigned int field_5 : 1;
+                    unsigned int downloadable : 1;
                     unsigned int rest : 26;
                 };
                 struct {
@@ -1249,7 +1249,7 @@ void BuildTimer::OnTimer()
     for (std::vector<Unit*>::iterator it = group->units.begin(); it != group->units.end(); ++it) {
         Unit* u = *it;
         if ((u->flags & 0x20000000) && (u->flags & 0x10000000) && !(u->flags & 0x4000)) {
-            if (u->def->field_22d) {
+            if (u->def->makesMetal) {
                 if (u->economy->cost + u->economy->cost < u->economy->energy) {
                     if (GetNetEnergy(u->economy) > Zero_004fc968 && RandomInt(5))
                         u->SetStateBits(1, 1);
@@ -1287,7 +1287,7 @@ void SquadManager::AssignSquads()
                     else SetUnitSquad(u,1);
                 } else if(u->def->builder) SetUnitSquad(u,4);
                 else if(u->def->flying) SetUnitSquad(u,8);
-                else if(u->def->field_1c0>0) SetUnitSquad(u,7);
+                else if(u->def->minwaterdepth>0) SetUnitSquad(u,7);
                 else if(u->flags&0x80000000) SetUnitSquad(u,3);
             }
         }
@@ -1386,7 +1386,7 @@ SquadManager::SquadManager(Player* p)
 {
     player = p;
     index = p->index;
-    field_9 = 0;
+    unused_9 = 0;
     countdown = 30;
     cursor = 0;
     nextAction = 0;
@@ -1463,7 +1463,7 @@ void PlayerAI::InitUnitTables()
     for (int i = 0; i < n; ++i) {
         UnitDef* def = &g_game->unitDefs[i];
         weights[i] = 0;
-        if (!def->field_22f)
+        if (!def->mobile)
             weights[i] += 40;
         if (def->field_156)
             weights[i] += 20;
@@ -1492,8 +1492,8 @@ int __stdcall RateWeapons(UnitDef* p)
     Sub_00409520** pp = p->arr;
     for (int i = 3; i != 0; i--) {
         Sub_00409520* s = *pp;
-        if (s->field_10a != 0)
-            result = result + s->field_d4 / 40 + s->field_dc / 100 + 5;
+        if (s->index != 0)
+            result = result + s->damage / 40 + s->range / 100 + 5;
         pp++;
     }
     if (MIN(result, 100) < -100)
@@ -1507,19 +1507,19 @@ int __stdcall RateUnitType(UnitDef* p)
     int result = 1;
     if (p->field_1ce != 0.0f)
         result = 0xb;
-    if (p->field_22d != 0)
+    if (p->makesMetal != 0)
         result += 10;
     if (GetEnergyUse(p) < 0.0f)
         result += 10;
-    result = (int)((int)(result - p->field_18a * -0.01f) - p->field_186 * -0.002f);
+    result = (int)((int)(result - p->metalCost * -0.01f) - p->energyCost * -0.002f);
     int extra = 1;
     if (p->flag4)
         extra = 0xb;
     Sub_00409520** pp = p->arr;
     for (int i = 3; i != 0; i--) {
         Sub_00409520* s = *pp;
-        if (s->field_10a != 0)
-            extra = extra + s->field_d4 / 40 + s->field_dc / 100 + 5;
+        if (s->index != 0)
+            extra = extra + s->damage / 40 + s->range / 100 + 5;
         pp++;
     }
     result += (signed char)((MIN(extra, 100) < -100) ? -100 : MIN(extra, 100));
@@ -1587,7 +1587,7 @@ void __stdcall ParseDownloadableAiWeightScripts(int player)
     EnableAICommands();
     for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
         UnitDef* def = &g_game->unitDefs[i];
-        if (def->field_5) {
+        if (def->downloadable) {
             if (p->vec_bd[i].unknown_0 != 1) {
                 int len = strlen(def->command);
                 if (len != 0) {
@@ -1607,7 +1607,7 @@ void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player)
     EnableAICommands();
     for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
         UnitDef* def = &g_game->unitDefs[i];
-        if (def->field_5) {
+        if (def->downloadable) {
             if (p->locked[i].unknown_0 != 1) {
                 int len = strlen(def->command);
                 if (len != 0) {
@@ -1701,7 +1701,7 @@ bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, std::vector<Elem_0
 // Picks a random build cell near a world position: up to 30 tries of a
 // random direction and distance (within `range` cells) from `pos`, snapped
 // to the class's placement grid (spacing, offset and a random jitter reduced
-// by a margin; the second grid is used for types whose field_1c0 is
+// by a margin; the second grid is used for types whose minwaterdepth is
 // non-negative). A cell is accepted when CanPlaceUnitFootprint allows the type there
 // and the score GetBuildSiteMetal is at most the type's footprint area times
 // twice mapInfo->surfaceMetal.
@@ -1716,9 +1716,9 @@ bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Poin
     int areaY = type->origin.y;
     int areaX = type->origin.x;
     int threshold = g_game->mapInfo->surfaceMetal * areaY * areaX * 2;
-    Point16 spacing = type->field_1c0 < 0 ? spacing0 : spacing1;
-    Point16 offset = type->field_1c0 < 0 ? offset0 : offset1;
-    int margin = type->field_1c0 < 0 ? margin0 : margin1;
+    Point16 spacing = type->minwaterdepth < 0 ? spacing0 : spacing1;
+    Point16 offset = type->minwaterdepth < 0 ? offset0 : offset1;
+    int margin = type->minwaterdepth < 0 ? margin0 : margin1;
     for (int i = 0; i < 30; i++) {
         int dist = RandomInt(range) << 16;
         int angle = RandomInt(0x10000);

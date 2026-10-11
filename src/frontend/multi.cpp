@@ -135,7 +135,7 @@ struct Gadget {                        // 0x15b bytes
             char unknown_dc[0x138 - 0xdc]; // +0xdc
         };
     };
-    unsigned short field_138;          // +0x138
+    unsigned short status;             // +0x138
     unsigned char quickKey;            // +0x13a
     char unknown_13b;                  // +0x13b
     union {                            // +0x13c
@@ -1280,10 +1280,10 @@ void OpenNewMultiDialog()
     }
     Gadget* gname = FindGadgetChecked_B(entries, "GAMENAME");
     SetTranslatedTextByName(&g_game->gui, "GAMENAME", g_game->gameName, 0);
-    gname->field_138 = 0x10;
+    gname->status = 0x10;
     Gadget* nname = FindGadgetChecked_B(entries, "NICKNAME");
     SetTranslatedTextByName(&g_game->gui, "NICKNAME", g_game->nickname, 0);
-    nname->field_138 = 0x10;
+    nname->status = 0x10;
     char* pw = g_game->players[g_game->localPlayer].info->password;
     if (strlen(pw) == 0)
         pw = g_game->password;
@@ -2680,7 +2680,7 @@ void __cdecl BuildPlayerSlotGadgets(void)
                 case 1:
                     if (p != g_game->localPlayer) {
                         dst->field_13c_bit = 1;
-                        dst->field_138 = 0;
+                        dst->status = 0;
                     }
                     break;
                 case 2:
@@ -4303,7 +4303,7 @@ void RefreshBattleRoomRows()
             e = FindGadgetOrNull(entries, name);
             if (e) {
                 e->b13c_0 = 1;
-                e->field_138 = 0;
+                e->status = 0;
                 e->visible = 0;
             }
         } else {
@@ -4394,7 +4394,7 @@ void RefreshBattleRoomRows()
             sprintf(name, "READY%d", n);
             e = FindGadgetOrNull(entries, name);
             if (e) {
-                e->field_138 = g_game->players[n].info->bit5;
+                e->status = g_game->players[n].info->bit5;
                 e->visible = 1;
                 e->b13c_0 = !IsLocalHuman_00448c70(p);
             }

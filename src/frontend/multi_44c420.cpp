@@ -11,13 +11,13 @@
 #pragma pack(push, 1)
 struct Entry_0044c420 {                // DESCLIST / PICLIST gadget
     char unknown_0[0xbc];
-    short field_bc;                    // +0xbc
+    short firstRow;                    // +0xbc
     char unknown_be[0xc0 - 0xbe];
     short count;                       // +0xc0 picture slot count
     void* field_c2;                    // +0xc2 freed scratch
-    void* field_c6;                    // +0xc6 freed scratch
+    void* rows;                        // +0xc6 freed scratch
     char unknown_ca[0xd6 - 0xca];
-    char* field_d6;                    // +0xd6 per-item flags, freed
+    char* flags;                       // +0xd6 per-item flags, freed
 };
 
 struct Record_005129b4 {               // 0x62-byte slider/picture record
@@ -113,7 +113,7 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
                 i++;
             } while (i < desc->count);
         }
-        GameFreeThunk(desc->field_c6);
+        GameFreeThunk(desc->rows);
         GameFreeThunk(g_unitRestrictPics);
         g_unitRestrictPics = 0;
         GameFreeThunk(desc->field_c2);
@@ -135,10 +135,10 @@ void __stdcall HandleRestrictionsClick(Menu_0044c420* menu)
         }
         GameFreeThunk(g_unitRestrictEntries);
         GameFreeThunk(g_unitRestrictOldCounts);
-        GameFreeThunk(desc->field_d6);
+        GameFreeThunk(desc->flags);
         pic = FindGadgetChecked(menu->inner->gadgets, "PICLIST");
-        if (pic != 0 && pic->field_c6 != 0)
-            GameFreeThunk(pic->field_c6);
+        if (pic != 0 && pic->rows != 0)
+            GameFreeThunk(pic->rows);
         g_unitRestrictEntries = 0;
         return;
     }

@@ -113,7 +113,7 @@ struct Player {
 
 struct WeaponDef {
     char unknown_0[0xe0];
-    int field_e0;                        // +0xe0
+    int radius;                          // +0xe0
     char unknown_e4[0x111 - 0xe4];
     Flags111_00466dc0 flags;             // +0x111
 };
@@ -647,7 +647,7 @@ void DrawRadarUnits(void)
                             do {
                                 if (slot->weapon->flags.bits.bit30) {
                                     int r = ((int)g_game->minimapGadgetW *
-                                             (slot->weapon->field_e0 - 0x200)) /
+                                             (slot->weapon->radius - 0x200)) /
                                             g_game->mapPixelWidth;
                                     if (slot->stockpile != 0)
                                         DrawDashedCircle(surface, x, y, r, base[0xf],

@@ -38,7 +38,7 @@ struct Unit {
     char unknown_0[0xbc];
     float resourceSlot;                    // +0xbc
     char unknown_c0[0xd4 - 0xc0];
-    float field_d4;                    // +0xd4
+    float metalMake;                   // +0xd4
     char unknown_d8[0xec - 0xd8];
     Player* owner;                     // +0xec
     char unknown_f0[0x110 - 0xf0];
@@ -125,8 +125,8 @@ struct Player {
 struct SkirmishPlayerSlot {            // 0x18 bytes
     int controller;                    // +0x0
     char unknown_4[0xc - 0x4];
-    int field_c;                       // +0xc
-    int field_10;                      // +0x10
+    int metal;                         // +0xc
+    int energy;                        // +0x10
     int unknown_14;
 };
 
@@ -426,7 +426,7 @@ guard:
 class CommandArgs {
 public:
     char unknown_0[0xd0];
-    int field_d0;
+    int count;
     CommandArgs* InitArgs();
 };
 
@@ -973,7 +973,7 @@ void __stdcall UpdatePlayers()
                                     *slot = f;
                                 }
                                 {
-                                    float* slot = &unit->field_d4;
+                                    float* slot = &unit->metalMake;
                                     float f = (float)self->metal * kHundred;
                                     if (unit->owner->active != 0 &&
                                         unit->owner->type == 2) {
@@ -1134,8 +1134,8 @@ void InitPlayerResources()
                 player->metal = g_game->mapInfo->startMetal[i];
                 break;
             case 2:
-                player->energy = (float)g_game->options[i].field_10;
-                player->metal = (float)g_game->options[i].field_c;
+                player->energy = (float)g_game->options[i].energy;
+                player->metal = (float)g_game->options[i].metal;
                 break;
             case 3: {
                 int index = FindHostSlot();

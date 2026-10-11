@@ -196,7 +196,7 @@ void LoadWeaponTypes()
         TdfFile parser;
         BuildDataPath(path, "Weapons", p->ptr, "TDF");
         if (parser.LoadFile(path)
-            && (parser.field_8 || FUN_0041d8a0() == 0)) {
+            && (parser.flags || FUN_0041d8a0() == 0)) {
             int i = 0;
             while (1) {
                 parser.ResetCurrentRecord();

@@ -67,7 +67,7 @@ struct Gadget {                        // 0x15b bytes
     char unknown_27[0x28 - 0x27];
     unsigned char tab;                 // +0x28
     char unknown_29[0x60 - 0x29];
-    int field_60;                      // +0x60
+    int index;                         // +0x60
     char unknown_64[0xb6 - 0x64];
     union {                            // +0xb6
         short count;                   // 476ef0's text-gadget count

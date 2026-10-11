@@ -69,8 +69,8 @@ public:
 class TdfFile {
 public:
     TdfRecord* root;                     // +0x0
-    int field_4;                         // +0x4
-    int field_8;                         // +0x8
+    int current;                         // +0x4
+    int flags;                           // +0x8
 
     int LoadFile(char* path);
     void StripComments(char* p);
@@ -103,8 +103,8 @@ int TdfFile::LoadFile(char* path)
             if (root)
                 delete root;
             root = 0;
-            field_4 = 0;
-            field_8 = result;
+            current = 0;
+            flags = result;
             char* text = (char*)GameAllocIgnoreTag("TDF file", size + 1);
             memcpy(text, buf, size);
             text[size] = 0;

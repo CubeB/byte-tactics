@@ -88,8 +88,12 @@ static inline int IsVisible(Player* player, Position_00408090* pos)
     return IsPointVisible(player, pos);
 }
 
+#include "../units/unit_def.h"
+
+// The flags at +0x245 read as the original's bitfield; the header keeps the
+// plain word.
 #pragma pack(push, 1)
-struct UnitDef_00407e90 {
+struct UnitDefFlags_00407e90 {
     char unknown_0[0x245];
     unsigned int unknown_bits : 4;
     unsigned int flag4 : 1;             // +0x245 bit 4
@@ -100,7 +104,7 @@ struct Unit {
     char unknown_4[0x6a - 0x4];
     Vec3_00407d40 pos;                  // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitDef_00407e90* def;              // +0x92
+    UnitDef* def;                       // +0x92
 };
 #pragma pack(pop)
 
@@ -204,7 +208,7 @@ void SpatialTimer::OnTimer()
     for (std::vector<Unit*>::iterator it = ((Group_00407e90*)group)->units.begin();
          it != ((Group_00407e90*)group)->units.end(); ++it) {
         Unit* u = *it;
-        if (u->def->flag4) {
+        if (((UnitDefFlags_00407e90*)u->def)->flag4) {
             if (u->motion || WeaponCanReachPos(u, &u->pos, &best, 0)) {
                 MissionType kind = GetOrderType(3, u, 0, &best);
                 if (kind.index)

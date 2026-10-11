@@ -1985,8 +1985,8 @@ int __stdcall IsColorFree(int id, int slot)
         return 0;
     }
 
-    unsigned char local_c[10];
-    memset(local_c, -1, 10);
+    unsigned char colorOwner[10];
+    memset(colorOwner, -1, 10);
 
     unsigned char found;
     if (id == -1) {
@@ -2001,10 +2001,10 @@ int __stdcall IsColorFree(int id, int slot)
     for (int j = 0; j < 10; j++) {
         if (g_game->players[j].valid != 0 && g_game->players[j].id != id &&
             g_game->players[j].info->color != 0xff) {
-            local_c[g_game->players[j].info->color] = (unsigned char)j;
+            colorOwner[g_game->players[j].info->color] = (unsigned char)j;
         }
     }
-    return local_c[slot] == 0xff;
+    return colorOwner[slot] == 0xff;
 }
 
 static inline unsigned char FindReadyPlayer()

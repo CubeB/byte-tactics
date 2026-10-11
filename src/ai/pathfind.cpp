@@ -13,7 +13,7 @@
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
 void* __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
-void __cdecl GameFreeThunk(void* param_1);
+void __cdecl GameFreeThunk(void* p);
 
 // A min-heap record for MakeHeap and friends (the STL heap the search uses).
 struct Entry_40d670 {
@@ -33,19 +33,19 @@ void __stdcall PushHeapSiftUp(Entry_40d670* first, int hole, int top, Entry_40d6
 
 // Placement copy of a pair of ints (an STL construct helper), like 0x40d600.
 // FUNCTION: 0x40d5e0
-void __stdcall CopyDwordPair(int* param_1, int* param_2) {
-    if (param_1 != 0) {
-        param_1[0] = param_2[0];
-        param_1[1] = param_2[1];
+void __stdcall CopyDwordPair(int* dest, int* src) {
+    if (dest != 0) {
+        dest[0] = src[0];
+        dest[1] = src[1];
     }
 }
 
 // Placement copy of one char (an STL construct helper), like 0x40d600.
 // FUNCTION: 0x40d600
-void __stdcall CopyOneByte(char* param_1, char* param_2)
+void __stdcall CopyOneByte(char* dest, char* src)
 {
-    if (param_1 != 0) {
-        *param_1 = *param_2;
+    if (dest != 0) {
+        *dest = *src;
     }
 }
 
@@ -286,7 +286,7 @@ public:
 
 class OrderFx {
 public:
-    void AddFlags(int param_1);
+    void AddFlags(int flags);
 };
 
 class AiSearchGoal {
@@ -574,7 +574,7 @@ public:
     int ProbeStraightPath();
     void StartSearch(Target* t);
     void ReleaseHeldPathLock();
-    void AbortIfGoalMatch(int param_1);
+    void AbortIfGoalMatch(int goal);
     Pathfinder();
     ~Pathfinder();
     void RunSearches();
@@ -1020,9 +1020,9 @@ void Pathfinder::ReleaseHeldPathLock()
 }
 
 // FUNCTION: 0x40e9c0
-void Pathfinder::AbortIfGoalMatch(int param_1)
+void Pathfinder::AbortIfGoalMatch(int goal)
 {
-    if (param_1 == (int)path) {
+    if (goal == (int)path) {
         object = 0;
         path = 0;
         target = 0;

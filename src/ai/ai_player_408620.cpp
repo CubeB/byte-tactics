@@ -20,23 +20,23 @@ struct Obj_00408620 {
 
 extern Game* g_game;
 
-unsigned short __stdcall ChooseBuildOption(int param_1, Obj_00408620* param_2);
-void __stdcall QueueBuildOrder(char* name, Obj_00408620* param_2, int param_3);
+unsigned short __stdcall ChooseBuildOption(int player, Obj_00408620* unit);
+void __stdcall QueueBuildOrder(char* name, Obj_00408620* unit, int count);
 
 class BuildTimer {
 public:
     char unknown_0[0x10];
     int player;                        // +0x10
 
-    void TryIssueIdleFactoryBuildOrder(Obj_00408620* param_1);
+    void TryIssueIdleFactoryBuildOrder(Obj_00408620* unit);
 };
 
 // FUNCTION: 0x408620
-void BuildTimer::TryIssueIdleFactoryBuildOrder(Obj_00408620* param_1)
+void BuildTimer::TryIssueIdleFactoryBuildOrder(Obj_00408620* unit)
 {
-    if (param_1->orders != 0)
+    if (unit->orders != 0)
         return;
-    unsigned short idx = ChooseBuildOption(player, param_1);
+    unsigned short idx = ChooseBuildOption(player, unit);
     if (idx != 0)
-        QueueBuildOrder(g_game->unitDefs[idx].name, param_1, 1);
+        QueueBuildOrder(g_game->unitDefs[idx].name, unit, 1);
 }

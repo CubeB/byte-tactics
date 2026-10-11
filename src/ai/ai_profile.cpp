@@ -19,8 +19,8 @@ extern Game* g_game;
 
 extern int __cdecl _strcmpi(const char*, const char*);
 
-void __cdecl ProtectBlockReadOnly(void* param_1);
-void __cdecl ProtectBlockReadWrite(void* param_1);
+void __cdecl ProtectBlockReadOnly(void* p);
+void __cdecl ProtectBlockReadWrite(void* p);
 
 class AIProfileParser {
 public:
@@ -33,10 +33,10 @@ public:
     int tokenType;                      // +0x94
 
     AIProfileParser();
-    void SetBuffer(char* param_1, int param_2);
+    void SetBuffer(char* buffer, int size);
     int NextToken();
     int ReadInt();
-    bool TokenEquals(char* param_1);
+    bool TokenEquals(char* text);
     int ScanToken();
     void ReportParseError(char* text);
 };
@@ -55,11 +55,11 @@ AIProfileParser::AIProfileParser()
 }
 
 // FUNCTION: 0x428c90
-void AIProfileParser::SetBuffer(char* param_1, int param_2)
+void AIProfileParser::SetBuffer(char* buffer, int size)
 {
-    bufferStart = param_1;
-    bufferEnd = param_1 + param_2;
-    cursor = param_1;
+    bufferStart = buffer;
+    bufferEnd = buffer + size;
+    cursor = buffer;
     errorReported = 0;
     tokenPending = 0;
     tokenType = 0x102;
@@ -149,9 +149,9 @@ int AIProfileParser::ReadInt()
 }
 
 // FUNCTION: 0x428f40
-bool AIProfileParser::TokenEquals(char* param_1)
+bool AIProfileParser::TokenEquals(char* text)
 {
-    return _strcmpi(param_1, (const char*)this) == 0;
+    return _strcmpi(text, (const char*)this) == 0;
 }
 
 // Reports (once) a parse error in an AI profile: formats the message into a

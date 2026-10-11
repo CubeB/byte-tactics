@@ -2694,7 +2694,7 @@ void __stdcall SetGadgetRows(Table_004a35a0* table, char* name,
 
 #pragma pack(push, 1)
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-int IssueOrderToSelection(int, int, int, int, int, int, int);
+int HAPINET_createnewgame(int, int, int, int, int, int, int);
 #pragma pack(pop)
 
 struct Table_004a36a0 {
@@ -2755,8 +2755,8 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
 }
 #pragma pack(push, 1)
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
-int DrawTriangleContours(int, int, int, int, int, int, int, int);
-int DrawRangeCircle(int, int, int, int, int);
+int DrawTriangleContours(int, int, int, int, int, int, int);
+int DrawLitLine(int, int, int, int, int, int);
 
 struct List_004a3780 {
     char unknown_0[0xc];
@@ -4267,8 +4267,8 @@ int SendScriptCallByName(int, int, int, int, int, int, int);
 int SendScriptCall(int, int, int, int, int, int, int);
 int IssueOrCancelOrder(int, int, int, int, int, int, int);
 int HAPINET_updategameinfo(int, int, int, int, int, int, int);
-int LowerBoundOrderTypes(int, int, int, int, int, int);
-int MedianOrderTypes(int, int, int, int, int, int);
+int SquashPack(int, int, int, int, int, int);
+int HAPINET_enumconnections(int, int, int, int, int, int);
 int IsFootprintVisible(int, int, int, int, int, int);
 int DrawProgressBar(int, int, int, int, int, int);
 int PickRandomReclaimableResourcesInRadius(int, int, int, int, int, int);
@@ -6163,7 +6163,7 @@ void __stdcall IncrementKnobPos(Gui* obj, int index)
 // with "&G" is not moved either.
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int InitLobbiedConnection();
-void __cdecl LeaveNetGameCallback();
+unsigned char PickNewHost();
 int IsHostLocal();
 int CountHumanPlayers();
 int CountComputerPlayers();

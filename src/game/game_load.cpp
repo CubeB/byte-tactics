@@ -406,7 +406,7 @@ extern PacketManager g_packetManager;
 #include "../sound/sound.h"
 // Unused here: the symbol ids these declarations take keep the allocation of LoadMatch,
 // LoadingScreenFrame and OffsetWorldPosFromView (docs/c2-regalloc.md).
-int ScanDirectory();
+int GetHostDpid();
 void RegisterUnitOrders(void);
 void RegisterGroundOrders(void);
 void EnableAICommands(void);

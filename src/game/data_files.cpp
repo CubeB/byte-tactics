@@ -116,15 +116,15 @@ extern Game* g_game;
 extern char DAT_005119b8[];
 
 void* __cdecl GameAllocIgnoreTag(const char* name, int size);
-void* __cdecl GameReallocTagged(void* param_1, const char* name, unsigned int param_3);
-void __cdecl GameFreeThunk(void* param_1);
+void* __cdecl GameReallocTagged(void* block, const char* name, unsigned int size);
+void __cdecl GameFreeThunk(void* p);
 char* __stdcall StripExtension(char* name);
 int GetPreferredLanguage(void);
 void* __stdcall HAPI_OpenFileRead(char* path);
 int __stdcall HAPI_CloseFile(void* file);
 void __stdcall FatalError(char* path);
 char* __stdcall Translate(char* text);
-void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int wrapWidth, int centre, int autoHeight);
 char* __stdcall BuildDataPath(char* buf, const char* dir, const char* name, const char* ext);
 
 // FUNCTION: 0x429000
@@ -186,15 +186,15 @@ char* __stdcall BuildDataPath(char* buf, const char* dir, const char* name, cons
     return buf;
 }
 
-void* __stdcall LoadPcx(char* path, int param_2);
+void* __stdcall LoadPcx(char* path, int outPalette);
 
 // Loads bitmaps\<name>.PCX; reports the path when loading fails.
 // FUNCTION: 0x429290
-void* __stdcall LoadBitmapByName(const char* name, int param_2)
+void* __stdcall LoadBitmapByName(const char* name, int palette)
 {
     char path[256];
     BuildDataPath(path, "bitmaps", name, "PCX");
-    void* bitmap = LoadPcx(path, param_2);
+    void* bitmap = LoadPcx(path, palette);
     if (bitmap == 0) {
         FatalError(path);
     }
@@ -387,9 +387,9 @@ void* __stdcall LoadAnimGaf(char* name)
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 
 // FUNCTION: 0x429850
-void __stdcall FindGafSequence(int param_1, char* param_2)
+void __stdcall FindGafSequence(int gaf, char* name)
 {
-    FindGafEntry((void*)param_1, param_2);
+    FindGafEntry((void*)gaf, name);
 }
 
 struct Frame_00429870 {

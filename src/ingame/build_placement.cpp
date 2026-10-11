@@ -132,7 +132,7 @@ void __stdcall PopUntilNamedLayout(int a);
 void MainLoopTick();
 void __stdcall UpdateCursorWorldPos(View* p);
 void __stdcall IssueMobileBuildOrders(View* arg);
-void __stdcall PlaySoundByName(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int broadcast);
 void __stdcall ClickSelectHoverUnit(View* arg);
 void __stdcall IssueOrderToSelection(void* a, unsigned char b, MissionType kind, Vec3* d, int e, int f);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
@@ -149,15 +149,15 @@ void MenuFrame();
 void __cdecl LeaveNetGameCallback();
 
 // FUNCTION: 0x498f70
-void __stdcall HandleLeftClick(View* param_1)
+void __stdcall HandleLeftClick(View* view)
 {
     int index;
 
     if (g_game->orderMode == 0xe) {
         if (g_game->flags_2cc6 & 0x40) {
-            IssueMobileBuildOrders(param_1);
+            IssueMobileBuildOrders(view);
             PlaySoundByName("oktobuild", 0);
-            if (param_1->keyFlags & 4) {
+            if (view->keyFlags & 4) {
                 g_game->flags_2cc6 |= 0x20;
                 return;
             }
@@ -173,7 +173,7 @@ void __stdcall HandleLeftClick(View* param_1)
         return;
     }
     if (g_game->cursorMode == 0xf) {
-        ClickSelectHoverUnit(param_1);
+        ClickSelectHoverUnit(view);
         return;
     }
     if (g_game->cursorMode >= 0x11) {
@@ -186,9 +186,9 @@ void __stdcall HandleLeftClick(View* param_1)
     {
         MissionType kind;
         kind.index = 0;
-        IssueOrderToSelection(param_1, g_game->orderMode, kind, &g_game->pos, 0, 0);
+        IssueOrderToSelection(view, g_game->orderMode, kind, &g_game->pos, 0, 0);
     }
-    if (param_1->keyFlags & 4) {
+    if (view->keyFlags & 4) {
         g_game->flags_2cc6 |= 0x20;
         return;
     }
@@ -206,7 +206,7 @@ void __stdcall HandleLeftClick(View* param_1)
 // (+0x2cc6): bit 1 cancels the current order, bit 0 switches to the 0x13
 // (STOP) selection, bit 2 hands a zero order kind to IssueOrderToSelection.
 // FUNCTION: 0x499100
-void __stdcall HandleRightClick(View* param_1)
+void __stdcall HandleRightClick(View* view)
 {
     if (g_game->orderMode != 1) {
         g_game->orderMode = 1;
@@ -219,7 +219,7 @@ void __stdcall HandleRightClick(View* param_1)
     }
     if (g_game->interfaceType == 0) {
         if (g_game->flags_2cc6 & 2) {
-            if (param_1->keyFlags & 8) {
+            if (view->keyFlags & 8) {
                 BeginMouseScroll();
                 return;
             }
@@ -237,7 +237,7 @@ void __stdcall HandleRightClick(View* param_1)
         }
     } else if (g_game->flags_2cc6 & 4) {
         MissionType kind;
-        IssueOrderToSelection(param_1, 1, kind, &g_game->pos, 0, 0);
+        IssueOrderToSelection(view, 1, kind, &g_game->pos, 0, 0);
     }
 }
 

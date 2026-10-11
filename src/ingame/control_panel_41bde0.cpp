@@ -1,6 +1,6 @@
 // Decompiled by DeepSeek V4.1 Flash, finished by Claude Opus 5.5. Names are provisional.
 // Steps the selected unit's build menu to the next page (wrapping to page 1),
-// or closes it after the last page when param_1 is set.
+// or closes it after the last page when toggle is set.
 // Needed: without it the sub-object pointer is allocated to edx, not esi.
 // Kept its own file: in control_panel.cpp the include set and prelude move
 // that pointer from esi to edx.
@@ -39,7 +39,7 @@ extern Game* g_game;
 void __stdcall PlaySoundByName(char* name, int param);
 
 // FUNCTION: 0x41bde0
-void __stdcall StepBuildMenuPage(int param_1)
+void __stdcall StepBuildMenuPage(int toggle)
 {
     unsigned short index = g_game->unitIndex;
     if (index != 0) {
@@ -47,7 +47,7 @@ void __stdcall StepBuildMenuPage(int param_1)
         if (unit->unitDefIndex == 0)
             unit = 0;
         if (unit != 0) {
-            if (param_1 != 0) {
+            if (toggle != 0) {
                 if (!unit->menuOpen) {
                     unit->menuOpen = 1;
                     unit->page = 1;

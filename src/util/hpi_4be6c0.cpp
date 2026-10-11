@@ -25,7 +25,7 @@ public:
     }
     ~StringRef() { ReleaseRef(); }
     void ReleaseRef();
-    StringRef* Assign(StringRef* param_1);
+    StringRef* Assign(StringRef* other);
     StringRef* Append(const StringRef& other);
     StringRef* MakeLower();
     StringRef* MakeUpper();

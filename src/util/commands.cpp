@@ -107,7 +107,7 @@ public:
         AssignEntry((int*)&other);
         return *this;
     }
-    void* AssignEntry(int* param_1);
+    void* AssignEntry(int* source);
 };
 
 CommandEntry::CommandEntry(const StringRef& h, Pair_004b7620 pp) : handle(h)
@@ -334,10 +334,10 @@ void __stdcall RegisterCommands(ConsoleCommand* rec)
 }
 
 // FUNCTION: 0x4b78e0
-void __stdcall SetDefaultCommandHandler(int param_1, int param_2)
+void __stdcall SetDefaultCommandHandler(int callback, int mask)
 {
-    g_defaultCommandHandler = param_1;
-    g_defaultCommandMask = param_2;
+    g_defaultCommandHandler = callback;
+    g_defaultCommandMask = mask;
 }
 
 struct HandlerSlot_004b7900 {
@@ -364,7 +364,7 @@ static inline HandlerSlot_004b7900* Find_004b7900(const char* key)
 
 // Runs the command in obj: takes its first argument, lowercases it, looks the
 // name up in the file-local sorted handler table and calls the handler whose
-// mask matches param_2, or else the global default handler registered by
+// mask matches the given mask, or else the global default handler registered by
 // 0x4b78e0. Returns the mask of the handler that ran, or 0.
 //
 // The handler is called through a reinterpreted HandlerSlot view of the two
@@ -372,17 +372,17 @@ static inline HandlerSlot_004b7900* Find_004b7900(const char* key)
 // The original calls this out of line from ExecuteCommandText.
 #pragma auto_inline(off)
 // FUNCTION: 0x4b7900
-int __stdcall ExecuteCommand(CommandArgs* obj, int param_2)
+int __stdcall ExecuteCommand(CommandArgs* obj, int mask)
 {
     int result = 0;
     if (obj->count >= 1) {
         StringRef key((char*)obj->GetArg(0, (int)DAT_005119b8));
         key.MakeLower();
         HandlerSlot_004b7900* h = Find_004b7900(key.data);
-        if (h != 0 && (h->mask & param_2)) {
+        if (h != 0 && (h->mask & mask)) {
             result = h->mask;
             h->fn(obj);
-        } else if (g_defaultCommandHandler != 0 && (g_defaultCommandMask & param_2)) {
+        } else if (g_defaultCommandHandler != 0 && (g_defaultCommandMask & mask)) {
             result = g_defaultCommandMask;
             ((void (__stdcall *)(void*))g_defaultCommandHandler)(obj);
         }
@@ -395,21 +395,21 @@ int __stdcall ExecuteCommand(CommandArgs* obj, int param_2)
 // The newline search at 0x4b7a10 (the function just before this one in the
 // original file), defined here so /Ob2 inlines it as the original did.
 // FUNCTION: 0x4b7a10
-int __stdcall FindLineEnd(char* param_1, int param_2)
+int __stdcall FindLineEnd(char* text, int length)
 {
-    for (int i = 0; i < param_2; i++) {
-        if (param_1[i] == '\n') {
+    for (int i = 0; i < length; i++) {
+        if (text[i] == '\n') {
             return i;
         }
     }
-    return param_2;
+    return length;
 }
 
 // Runs a block of command lines: splits the text at newlines, parses each line
 // into a command object (Tokenize), substitutes "%N" arguments from vars
 // (SubstituteArgs) and executes it (ExecuteCommand); returns the OR of the results.
 // FUNCTION: 0x4b7a30
-int __stdcall ExecuteCommandText(char* text, int len, CommandArgs* vars, int param_4)
+int __stdcall ExecuteCommandText(char* text, int len, CommandArgs* vars, int mask)
 {
     int result = 0;
     CommandArgs cmd;
@@ -421,7 +421,7 @@ int __stdcall ExecuteCommandText(char* text, int len, CommandArgs* vars, int par
         char* end = text + n;
         cmd.Tokenize(text, end);
         cmd.SubstituteArgs(vars);
-        result |= ExecuteCommand(&cmd, param_4);
+        result |= ExecuteCommand(&cmd, mask);
         text = end + 1;
         len -= n + 1;
     }
@@ -454,11 +454,11 @@ typedef void (Vec_004b7b00::*InsertFn_004b7b00)(
 InsertFn_004b7b00 g_insert_004b7b00 = &Vec_004b7b00::insert;
 
 // FUNCTION: 0x4b7e00
-void* CommandEntry::AssignEntry(int* param_1)
+void* CommandEntry::AssignEntry(int* source)
 {
-    handle.Assign((StringRef*)param_1);
-    value1 = param_1[1];
-    value2 = param_1[2];
+    handle.Assign((StringRef*)source);
+    value1 = source[1];
+    value2 = source[2];
     return this;
 }
 

@@ -415,7 +415,7 @@ struct Display_0041ce90 {
 
 Unit* __stdcall FindNextSelectedUnit(Unit*, int);
 unsigned int* __stdcall GetCategoryMask(char* name);
-void __stdcall CalcRadarViewportRect(void* param_1);
+void __stdcall CalcRadarViewportRect(void* rect);
 int GetScreenWidth();
 int GetScreenHeight();
 void __stdcall SetCursorPosition(int x, int y);
@@ -425,12 +425,12 @@ void __stdcall GetCurrentMouseEvent(Mouse_0041ce90* mouse);
 Display_0041ce90* GetDisplay();
 
 void __stdcall RegisterCommands(Option_00419560* option);
-void __stdcall SetDefaultCommandHandler(void (__stdcall* callback)(int), int param_2);
-void __stdcall DefaultCommandHandler(int param_1);
+void __stdcall SetDefaultCommandHandler(void (__stdcall* callback)(int), int mask);
+void __stdcall DefaultCommandHandler(int args);
 
 void __stdcall GetGadgetName(Gadget* entries, char* name, int index);
 void __stdcall IssueOrCancelOrder(MissionType kind, int remove, Unit* owner,
-                            int id, Vec3* pos, int param_6, int param_7);
+                            int id, Vec3* pos, int typeId, int amount);
 int __stdcall CanBuildAt(UnitType* type, Point16 cell, int a, Player* player);
 int GetBuildSiteHeight(void);
 int __stdcall GetFootprintHeight(UnitType* unit, Point16 cell);
@@ -441,14 +441,14 @@ void __stdcall MarkChanged(void* obj);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 int __stdcall FindGadgetIndexBySubstring(Gadget* entries, char* name);
 void __stdcall SetGadgetStatus(Gui* menu, int index, int value);
-void __stdcall PlaySoundByName(char* name, int param_2);
+void __stdcall PlaySoundByName(char* name, int broadcast);
 void __stdcall AdjustBuildCount(MissionType kind, Unit* unit, int id, int count);
 void __stdcall IssueOrderToSelection(void* a, int b, MissionType kind,
                                      int d, int e, int f);
 void __stdcall SetGrayedOut(Gui* menu, int index, int value);
 void __stdcall SetGadgetActive(Gui* menu, int index, char value);
 void __stdcall RenderLayer(Gui* menu, int value);
-void __stdcall SetGadgetActiveByName(Gui* menu, char* name, int param_3);
+void __stdcall SetGadgetActiveByName(Gui* menu, char* name, int value);
 void __stdcall ClearSelectedGadget(Gui* menu);
 int __stdcall HandleOrdersPanelClick(Gui* menu, Gadget* entries);
 int __stdcall HandleOrderButtonClick(Gui* menu, Gadget* entries);
@@ -671,9 +671,9 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
 }
 
 // FUNCTION: 0x419bc0
-void __stdcall SetOrderIntent(unsigned char param_1)
+void __stdcall SetOrderIntent(unsigned char mode)
 {
-    g_game->orderMode = param_1;
+    g_game->orderMode = mode;
     g_game->flags.value = g_game->flags.value & 0xf7;
 }
 
@@ -1362,10 +1362,10 @@ int __stdcall AddBuildProgress(Unit* builder, Unit* unit, float amount)
 }
 
 // FUNCTION: 0x41bcd0
-void __stdcall ApplyUnfinishedBuildDecay(Unit* param_1, int param_2)
+void __stdcall ApplyUnfinishedBuildDecay(Unit* unit, int ticks)
 {
-    float val = -((float)(param_1->def->buildtime * param_2) / param_1->def->energyCost);
-    AddBuildProgress(param_1, param_1, val);
+    float val = -((float)(unit->def->buildtime * ticks) / unit->def->energyCost);
+    AddBuildProgress(unit, unit, val);
 }
 
 // FUNCTION: 0x41bd10
@@ -1403,7 +1403,7 @@ static inline unsigned int StepPage(unsigned int f)
 }
 
 // FUNCTION: 0x41bf10
-void __stdcall StepBuildMenuPageBack(int param_1)
+void __stdcall StepBuildMenuPageBack(int toggle)
 {
     unsigned short index = g_game->unitIndex;
     Unit* u;
@@ -1417,7 +1417,7 @@ void __stdcall StepBuildMenuPageBack(int param_1)
 
     // Each branch declares its own f: a single shared local made MSVC put the
     // field in eax and the unit in ecx, swapping every later operand.
-    if (param_1) {
+    if (toggle) {
         unsigned int f = u->flags.raw;
         if ((f & 0x400000) == 0) {
             f |= 0x400000;
@@ -1442,12 +1442,12 @@ nextbuild:
     PlaySoundByName("nextbuildmenu", 0);
 }
 
-// Opens the selected unit's build menu at page param_1 (closes it for 0),
+// Opens the selected unit's build menu at the given page (closes it for 0),
 // if the unit has that many pages.
-// Needed: without it the page count is loaded before param_1.
+// Needed: without it the page count is loaded before the page.
 
 // FUNCTION: 0x41c060
-void __stdcall OpenBuildMenuPage(int param_1)
+void __stdcall OpenBuildMenuPage(int page)
 {
     // Unit lookup written out in place: a GetSelectedUnit helper changes the code.
     unsigned short index = g_game->unitIndex;
@@ -1456,10 +1456,10 @@ void __stdcall OpenBuildMenuPage(int param_1)
         if (unit->unitDefIndex == 0)
             unit = 0;
         if (unit != 0) {
-            if (param_1 < unit->def->buildMenuPageCount) {
-                unit->flags.bits.buildPage = param_1 > 0;
-                if (param_1 != 0)
-                    unit->flags.bits.page = param_1;
+            if (page < unit->def->buildMenuPageCount) {
+                unit->flags.bits.buildPage = page > 0;
+                if (page != 0)
+                    unit->flags.bits.page = page;
                 g_game->orderState.lo |= 0x10;
                 PlaySoundByName("nextbuildmenu", 0);
             }
@@ -1488,7 +1488,7 @@ void __stdcall UpdateBuildMenuIfFocusUnit(Unit* unit)
 
 // 0x41bde0 keeps its own file (this file's prelude moves its sub-object
 // pointer from esi to edx); its declaration stands in for the definition.
-void __stdcall StepBuildMenuPage(int param_1);
+void __stdcall StepBuildMenuPage(int toggle);
 
 // The unit at g_game->unitIndex, or 0 when the index is empty or the slot is
 // not live (unitDefIndex == 0). Inlined at both call sites below.

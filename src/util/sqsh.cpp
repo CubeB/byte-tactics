@@ -744,29 +744,29 @@ int __stdcall SquashEncrypt(char* param1, unsigned int param2)
 }
 
 // FUNCTION: 0x4d1ba0
-int __stdcall SquashDecrypt(unsigned char* param_1, unsigned int param_2)
+int __stdcall SquashDecrypt(unsigned char* data, unsigned int size)
 {
     unsigned int i = 0;
-    if (param_2 > 0) {
+    if (size > 0) {
         do {
-            unsigned char dl = param_1[0];
+            unsigned char dl = data[0];
             dl = dl - (unsigned char)i;
             dl = dl ^ (unsigned char)i;
-            param_1[0] = dl;
-            param_1++;
+            data[0] = dl;
+            data++;
             i++;
-        } while (i < param_2);
+        } while (i < size);
     }
     return 0;
 }
 
 // FUNCTION: 0x4d1bd0
-int __stdcall SquashChecksum(unsigned char* param_1, int param_2)
+int __stdcall SquashChecksum(unsigned char* data, int size)
 {
     int sum = 0;
-    unsigned char* end = param_1 + param_2;
-    for (; param_1 < end; param_1++) {
-        sum += *param_1;
+    unsigned char* end = data + size;
+    for (; data < end; data++) {
+        sum += *data;
     }
     return sum;
 }
@@ -783,10 +783,10 @@ void __stdcall SquashDumpHeader(Chunk_4d1820* header)
 extern void* g_squashErrorNames[];
 
 // FUNCTION: 0x4d1c60
-void* __stdcall SquashErrorString(int param_1)
+void* __stdcall SquashErrorString(int code)
 {
-    if (param_1 < 7) {
-        return g_squashErrorNames[param_1];
+    if (code < 7) {
+        return g_squashErrorNames[code];
     }
     return 0;
 }

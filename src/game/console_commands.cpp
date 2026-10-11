@@ -282,7 +282,7 @@ public:
     int GetIntArg(int index, int fallback);
     float GetFloatArg(int index, float def);
     char* GetArg(int index, char* fallback);
-    int Tokenize(char* param_1, char* param_2);
+    int Tokenize(char* text, char* end);
     CommandArgs* InitArgs();
 };
 
@@ -340,7 +340,7 @@ public:
     virtual void Method_1c();
     virtual void Method_20();
     virtual void Method_24();
-    virtual void Method_28(int param_1);
+    virtual void Method_28(int ctx);
 };
 
 struct Point_00417f60 {
@@ -468,7 +468,7 @@ extern unsigned char g_contourColors[];  // colour by height band
 extern unsigned char g_movementClassColors[];
 extern signed char g_dirDeltaX[], g_dirDeltaZ[];
 
-void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
+void __stdcall AddMessage(char* text, int key, int value, int last);
 extern void RemoveAllFeatures();
 void* __stdcall GetMapCell(int x, int y);
 void __stdcall RemoveFeature(void* target, int flag);
@@ -480,12 +480,12 @@ void SaveSettings();
 void KillAllUnits(void);
 void __stdcall KillPlayerUnits(unsigned char player);
 void __stdcall RecalculateLineOfSight(int flag);
-void __stdcall SetLightVector(int param_1, int param_2, int param_3);
+void __stdcall SetLightVector(int x, int y, int z);
 void __stdcall TransferEnergy(unsigned char a, int b, float c, int d);
 void __stdcall TransferMetal(unsigned char a, int b, float c, int d);
 void __stdcall SetBrightness(float value);
 void __stdcall MakeDirectoryPath(char* dir);
-void __stdcall SaveGameFile(char* path, char* description, int param_3);
+void __stdcall SaveGameFile(char* path, char* description, int gameId);
 short __stdcall FindUnitTypeId(char* name);
 void __stdcall KillUnitsOfType(short id);
 void __stdcall ReloadUnitType(unsigned short id);
@@ -499,16 +499,16 @@ void DisableMeteors();
 void StartMeteorShower();
 void* __stdcall HAPI_OpenFileRead(char* path);
 void* __stdcall HAPI_LoadOpenFile(char* path, void* file, int* out);
-unsigned int __stdcall ExecuteCommandText(char* text, int size, CommandArgs* vars, unsigned int param_4);
+unsigned int __stdcall ExecuteCommandText(char* text, int size, CommandArgs* vars, unsigned int mask);
 void __cdecl GameFreeThunk(void* data);
 int __stdcall HAPI_CloseFile(void* file);
 int __stdcall MatchWildcard(const char* name, const char* pattern);
 void __stdcall SnapWorldPosToFootprint(UnitDef* def, Vec3* pos);
-void* __stdcall CreateUnit(unsigned char owner, short id, Vec3 pos, int param_4, int param_5, int param_6);
+void* __stdcall CreateUnit(unsigned char owner, short id, Vec3 pos, int param_4, int mode, int unitId);
 extern Display_00417a60* GetDisplay();
 void ToggleFullScreen();
 void __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
-void __stdcall ExecuteCommand(void* param_1, int param_2);
+void __stdcall ExecuteCommand(void* obj, int mask);
 int __stdcall GetGroundHeight(Pos_00417bb0* pos);
 // The real callee takes unsigned char; int here reproduces the original's
 // loop-invariant widening of the colour byte.
@@ -738,9 +738,9 @@ void __stdcall CmdSearch(CommandArgs* args)
 }
 
 // FUNCTION: 0x4167f0
-void __stdcall CmdCDPlay(CommandArgs* param_1)
+void __stdcall CmdCDPlay(CommandArgs* args)
 {
-    ((Sound*)g_game->sound)->PlayCdTrack(param_1->GetIntArg(1, 0), 1);
+    ((Sound*)g_game->sound)->PlayCdTrack(args->GetIntArg(1, 0), 1);
 }
 
 // FUNCTION: 0x416810
@@ -883,17 +883,17 @@ void __stdcall CmdGive(CommandArgs* args)
 }
 
 // FUNCTION: 0x416cf0
-void __stdcall CmdScrollSpeed(void* param_1)
+void __stdcall CmdScrollSpeed(void* args)
 {
-    unsigned char result = ((CommandArgs*)param_1)->GetIntArg(1, 0);
+    unsigned char result = ((CommandArgs*)args)->GetIntArg(1, 0);
     g_game->scrollSpeed = result;
     SaveSettings();
 }
 
 // FUNCTION: 0x416d20
-void __stdcall CmdIFace(void* param_1)
+void __stdcall CmdIFace(void* args)
 {
-    int result = ((CommandArgs*)param_1)->GetIntArg(1, 0);
+    int result = ((CommandArgs*)args)->GetIntArg(1, 0);
     g_game->interfaceType = result;
     SaveSettings();
 }
@@ -1173,9 +1173,9 @@ void __stdcall CmdNetStats(int)
 }
 
 // FUNCTION: 0x4175e0
-void __stdcall CmdMusicMode(void* param_1)
+void __stdcall CmdMusicMode(void* args)
 {
-    CommandArgs* obj = (CommandArgs*)param_1;
+    CommandArgs* obj = (CommandArgs*)args;
     int result = obj->GetIntArg(1, 0);
     void* p = *(void**)((char*)g_game + 0x10);
     ((Sound*)p)->SetTrackCategory(result);
@@ -1328,22 +1328,22 @@ void __stdcall CmdDebugBreak(CommandArgs* args)
     }
 }
 
-// Splits the command line param_1 into tokens in a local tokenizer object and
-// dispatches it with the flags param_2. A null command line copies the global
+// Splits commandLine into tokens in a local tokenizer object and
+// dispatches it with the handler mask. A null command line copies the global
 // command buffer g_commandLineBuf instead. Compare 0x416780.
 // FUNCTION: 0x417b50
-void __stdcall ExecuteCommandLine(char* param_1, int param_2)
+void __stdcall ExecuteCommandLine(char* commandLine, int mask)
 {
     char buf[0xd4];
 
-    if (param_1 == 0)
-        param_1 = g_commandLineBuf;
+    if (commandLine == 0)
+        commandLine = g_commandLineBuf;
     else
-        strncpy(g_commandLineBuf, param_1, 0x4f);
+        strncpy(g_commandLineBuf, commandLine, 0x4f);
 
     ((CommandArgs*)buf)->InitArgs();
-    ((CommandArgs*)buf)->Tokenize(param_1, 0);
-    ExecuteCommand(buf, param_2);
+    ((CommandArgs*)buf)->Tokenize(commandLine, 0);
+    ExecuteCommand(buf, mask);
 }
 
 // Converts a 16.16 fixed-point world position into screen coordinates.
@@ -1443,10 +1443,10 @@ void AiSearchGoal::DrawOnSurface(void* surface)
 }
 
 // FUNCTION: 0x417f30
-void __stdcall DrawSelectedGoal(int param_1, Iface_00417f30*** param_2)
+void __stdcall DrawSelectedGoal(int ctx, Iface_00417f30*** unit)
 {
-    if (param_2 && *param_2 && **param_2) {
-        (**param_2)->Method_28(param_1);
+    if (unit && *unit && **unit) {
+        (**unit)->Method_28(ctx);
     }
 }
 

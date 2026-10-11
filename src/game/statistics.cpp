@@ -66,9 +66,9 @@ extern ChatFn_0046bf30 g_riReportGameChat;    // _RIReportGameChat@8
 void ShutdownScoreTables();
 void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 int AllocScoreTables();
-void __stdcall ReportGameEventCallback(int param_1);
+void __stdcall ReportGameEventCallback(int event);
 int __stdcall ShowGameMessage(char* text, int mode);
-void __stdcall RISetCallbacks(int param_1, int param_2);
+void __stdcall RISetCallbacks(int report, int notify);
 void __stdcall HAPINET_uninitmultiplay(void* p);
 void __cdecl GameFreeThunk(void* p);
 
@@ -161,10 +161,10 @@ failed:
 }
 
 // FUNCTION: 0x46bf00
-int __stdcall EnableReporter(int param_1)
+int __stdcall EnableReporter(int enable)
 {
     if (g_riEnable != 0) {
-        return g_riEnable(param_1);
+        return g_riEnable(enable);
     }
     return 1;
 }
@@ -182,7 +182,7 @@ bool IsReporterDllLoaded()
 // Returns 0 once the console is up, 2 when reporter.dll could not be loaded
 // complete, and 4 when there is still nothing to report to.
 // FUNCTION: 0x46bf30
-int __stdcall LoadReporterDll(int* param_1, int param_2)
+int __stdcall LoadReporterDll(int* count, int names)
 {
     char* net;
 
@@ -235,7 +235,7 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
                                                 g_riTerminate();
                                                 FreeLibrary(g_reporterDll);
                                                 g_reporterDll = 0;
-                                            } else if (g_riInitializeEx(param_1, param_2) == 4) {
+                                            } else if (g_riInitializeEx(count, names) == 4) {
                                                 g_riTerminate();
                                                 FreeLibrary(g_reporterDll);
                                                 g_reporterDll = 0;
@@ -255,7 +255,7 @@ int __stdcall LoadReporterDll(int* param_1, int param_2)
             g_reporterDll = 0;
             return 2;
         } else {
-            *param_1 = 0;
+            *count = 0;
         }
     }
 tail:

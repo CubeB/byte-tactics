@@ -308,11 +308,11 @@ int Sound::GetPlayState()
 }
 
 // FUNCTION: 0x4ce030
-void __cdecl HandleCdMessage(int param_1, int param_2, int param_3)
+void __cdecl HandleCdMessage(int msg, int wParam, int lParam)
 {
     char buf[64];
 
-    switch (param_1) {
+    switch (msg) {
     case 0x219: {
         Sound* obj = g_cdPlayer;
         mciSendStringA("stop cdaudio", 0, 0, 0);
@@ -325,7 +325,7 @@ void __cdecl HandleCdMessage(int param_1, int param_2, int param_3)
         RemoveTimer(g_cdNextTrackTimer);
         RemoveTimer(g_cdFadeTimer);
         g_cdNextTrackTimer = g_cdFadeTimer = -1;
-        if (param_2 == 0x8000) {
+        if (wParam == 0x8000) {
             g_cdPlayer->QueryDisc();
             if (g_cdPlayer->callback)
                 g_cdPlayer->callback();
@@ -333,7 +333,7 @@ void __cdecl HandleCdMessage(int param_1, int param_2, int param_3)
         break;
     }
     case 0x3b9:
-        if (param_2 == 1 && g_cdPlayer->playState == 1) {
+        if (wParam == 1 && g_cdPlayer->playState == 1) {
             int playing;
             if (mciSendStringA("status cdaudio mode", buf, 0x40, 0) == 0)
                 playing = strcmp(buf, "playing") == 0;
@@ -595,9 +595,9 @@ void Sound::SetCategoryOfTrack(int index, unsigned char value)
 }
 
 // FUNCTION: 0x4ce7e0
-unsigned char Sound::GetCategoryOfTrack(int param_1)
+unsigned char Sound::GetCategoryOfTrack(int index)
 {
-    return arr_214[param_1];
+    return arr_214[index];
 }
 
 // FUNCTION: 0x4ce7f0

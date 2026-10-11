@@ -208,9 +208,9 @@ void __cdecl AllocNotifyNop(int)
 void* __cdecl GameAlloc(unsigned int size);
 
 // FUNCTION: 0x4d83b0
-void __cdecl GameAllocIgnoreTag(unsigned int param_1, unsigned int param_2)
+void __cdecl GameAllocIgnoreTag(unsigned int name, unsigned int size)
 {
-    GameAlloc(param_2);
+    GameAlloc(size);
 }
 
 class CritSec_004da780;
@@ -249,9 +249,9 @@ void* __cdecl GameAlloc(unsigned int size)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d8450
-void __cdecl GameAllocShared(unsigned int param_1)
+void __cdecl GameAllocShared(unsigned int size)
 {
-    GameAlloc(param_1);
+    GameAlloc(size);
 }
 
 // calloc-style allocation: count * size bytes from GameAlloc, zeroed.
@@ -266,56 +266,56 @@ void* __cdecl GameCalloc(unsigned int count, unsigned int size)
     return p;
 }
 
-void* __cdecl GameRealloc(void* param_1, unsigned int param_3);
+void* __cdecl GameRealloc(void* block, unsigned int size);
 
 // The original calls this out of line from GameReallocIgnoreTag.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d84a0
-void __cdecl GameReallocTagged(void* param_1, int unused_param_2, unsigned int param_3)
+void __cdecl GameReallocTagged(void* block, int unused_param_2, unsigned int size)
 {
-    GameRealloc(param_1, param_3);
+    GameRealloc(block, size);
 }
 #pragma auto_inline(on)
 
 void* __cdecl ReallocDebugBlock(void* p, unsigned int size, int flags);
-void __cdecl CountFree(int param_1);
+void __cdecl CountFree(int size);
 
 // The original calls this out of line from GameReallocTagged.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d84c0
-void* __cdecl GameRealloc(void* param_1, unsigned int param_2)
+void* __cdecl GameRealloc(void* block, unsigned int size)
 {
     CRITICAL_SECTION* cs = (CRITICAL_SECTION*)GetAllocLock();
     EnterCriticalSection(cs);
     void* p;
     do {
         if (IsMemFussy()) {
-            p = ReallocDebugBlock(param_1, param_2, 0);
+            p = ReallocDebugBlock(block, size, 0);
         } else {
-            size_t old = GetBlockSize(param_1);
-            if (param_1 == 0 && param_2 == 0)
+            size_t old = GetBlockSize(block);
+            if (block == 0 && size == 0)
                 p = 0;
             else
-                p = realloc(param_1, param_2);
-            if (p != 0 || param_2 == 0) {
-                if (param_1 != 0)
+                p = realloc(block, size);
+            if (p != 0 || size == 0) {
+                if (block != 0)
                     CountFree(old);
-                if (param_2 != 0)
-                    CountAlloc(param_2);
+                if (size != 0)
+                    CountAlloc(size);
             }
         }
-        if (p == 0 && param_2 != 0 && g_outOfMemoryHandler != 0)
+        if (p == 0 && size != 0 && g_outOfMemoryHandler != 0)
             g_outOfMemoryHandler();
-    } while (p == 0 && param_2 != 0 && g_outOfMemoryHandler != 0);
+    } while (p == 0 && size != 0 && g_outOfMemoryHandler != 0);
     LeaveCriticalSection(cs);
     return p;
 }
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d8580
-void __cdecl GameReallocIgnoreTag(int* param_1, int param_2)
+void __cdecl GameReallocIgnoreTag(int* block, int size)
 {
-    GameReallocTagged(param_1, 0, param_2);
+    GameReallocTagged(block, 0, size);
 }
 
 void __cdecl GameFree(void* p);
@@ -323,9 +323,9 @@ void __cdecl GameFree(void* p);
 // The original calls this out of line from GameFreeIndirectThunk.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d85a0
-void __cdecl GameFreeThunk(int* param_1)
+void __cdecl GameFreeThunk(int* p)
 {
-    GameFree(param_1);
+    GameFree(p);
 }
 #pragma auto_inline(on)
 
@@ -365,15 +365,15 @@ char* __cdecl GameStrdup(char* s)
 }
 
 // FUNCTION: 0x4d8660
-void __cdecl GameAllocThunk(unsigned int param_1)
+void __cdecl GameAllocThunk(unsigned int size)
 {
-    GameAlloc(param_1);
+    GameAlloc(size);
 }
 
 // FUNCTION: 0x4d8670
-void __cdecl GameFreeIndirectThunk(int* param_1)
+void __cdecl GameFreeIndirectThunk(int* p)
 {
-    GameFreeThunk(param_1);
+    GameFreeThunk(p);
 }
 
 // The original calls this through a cast function pointer from ReportException.
@@ -388,9 +388,9 @@ char __cdecl AvWriteDetectStub(unsigned long)
 void __cdecl ProtectPages(int addr, int size, int protect);
 
 // FUNCTION: 0x4d8690
-void __cdecl ProtectPagesReadOnly(int param_1, int param_2)
+void __cdecl ProtectPagesReadOnly(int addr, int size)
 {
-    ProtectPages(param_1, param_2, 2);
+    ProtectPages(addr, size, 2);
 }
 
 // Changes the protection of the whole pages inside [addr, addr + size),
@@ -411,20 +411,20 @@ void __cdecl ProtectPages(int addr, int size, int protect)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d86f0
-void __cdecl ProtectPagesReadWrite(int param_1, int param_2)
+void __cdecl ProtectPagesReadWrite(int addr, int size)
 {
-    ProtectPages(param_1, param_2, 4);
+    ProtectPages(addr, size, 4);
 }
 
 void __cdecl ProtectBlock(void* p, int protect);
 
 // FUNCTION: 0x4d8710
-void __cdecl ProtectBlockReadOnly(void* param_1)
+void __cdecl ProtectBlockReadOnly(void* p)
 {
-    ProtectBlock(param_1, 2);
+    ProtectBlock(p, 2);
 }
 
-void __cdecl RoundRangeToPages(unsigned int* param_1, unsigned int* param_2);
+void __cdecl RoundRangeToPages(unsigned int* start, unsigned int* end);
 
 // Changes the protection of a heap block, widened to whole pages when the
 // "memfussy" switch (IsMemFussy) is on.
@@ -444,9 +444,9 @@ void __cdecl ProtectBlock(void* p, int protect)
 #pragma auto_inline(on)
 
 // FUNCTION: 0x4d8780
-void __cdecl ProtectBlockReadWrite(void* param_1)
+void __cdecl ProtectBlockReadWrite(void* p)
 {
-    ProtectBlock(param_1, 4);
+    ProtectBlock(p, 4);
 }
 
 // Memory block description, 0x30 bytes, passed by value to FormatBlockInfo.
@@ -460,7 +460,7 @@ public:
 
     BlockInfo(void);
     BlockInfo(int p1, int p2, int p3, int p4, const char* p5);
-    void SetName(char* param_1);
+    void SetName(char* newName);
 };
 
 // The original calls this out of line from the block histories and the block descriptions.
@@ -506,10 +506,10 @@ BlockInfo::BlockInfo(int p1, int p2, int p3, int p4, const char* p5)
 // The original calls this out of line from the BlockInfo constructors.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d8850
-void BlockInfo::SetName(char* param_1)
+void BlockInfo::SetName(char* newName)
 {
-    if (param_1 != 0) {
-        lstrcpynA(name, param_1, 0x20);
+    if (newName != 0) {
+        lstrcpynA(name, newName, 0x20);
     } else {
         name[0] = 0;
     }
@@ -595,7 +595,7 @@ public:
     unsigned __int64 total;            // +0xb8
 
     RunningStats(const Base_004d8ae0& src, const char* name);
-    void SetName(const char* param_1);
+    void SetName(const char* newName);
     void AddSample(unsigned int value);
 };
 
@@ -609,10 +609,10 @@ RunningStats::RunningStats(const Base_004d8ae0& src, const char* name)
 // The original calls this from the constructor rather than inlining it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d8b30
-void RunningStats::SetName(const char* param_1)
+void RunningStats::SetName(const char* newName)
 {
-    if (param_1 != 0) {
-        lstrcpynA(name, param_1, 0x20);
+    if (newName != 0) {
+        lstrcpynA(name, newName, 0x20);
     } else {
         name[0] = 0;
     }
@@ -746,10 +746,10 @@ void* GetStackHigh()
 extern void (*g_outOfMemoryHandler)();
 
 // FUNCTION: 0x4d8e50
-int __cdecl SetOutOfMemoryHandler(int param_1)
+int __cdecl SetOutOfMemoryHandler(int handler)
 {
     int temp = (int)g_outOfMemoryHandler;
-    g_outOfMemoryHandler = (void (*)())param_1;
+    g_outOfMemoryHandler = (void (*)())handler;
     return temp;
 }
 
@@ -769,7 +769,7 @@ public:
     unsigned long* pc;                 // +0x2080
     char dump_text[0xa44c];            // +0x2084
 
-    void CaptureStack(int* param_1, int* param_2, int param_3, int param_4);
+    void CaptureStack(int* frame, int* esp, int eip, int skip);
     void FormatStackReport();
 };
 
@@ -975,17 +975,17 @@ char* __cdecl GetExceptionName(unsigned long code)
 // FatalError (0x4d9ab0) stays in src/debug/debug_lib_4d9ab0.cpp: it is the
 // source of a gap region (its __try/__except and `int 3` have no FPO record).
 
-void __cdecl WalkFrameChain(int* param_1, int* param_2, int param_3, int param_4,
+void __cdecl WalkFrameChain(int* frame, int* stack, int eip, int skip,
                            void* this_, int flag, int* field_78, int* field_7c,
                            int size, int* field_207c);
 
 // The original calls this out of line from ReportException.
 #pragma auto_inline(off)
 // FUNCTION: 0x4d9c60
-void StackTrace::CaptureStack(int* param_1, int* param_2, int param_3, int param_4)
+void StackTrace::CaptureStack(int* frame, int* esp, int eip, int skip)
 {
-    pc = (unsigned long*)param_2;
-    WalkFrameChain(param_1, param_2, param_3, param_4, this, 0x1e, &count, stack, 0x800, &copied);
+    pc = (unsigned long*)esp;
+    WalkFrameChain(frame, esp, eip, skip, this, 0x1e, &count, stack, 0x800, &copied);
 }
 #pragma auto_inline(on)
 
@@ -1186,9 +1186,9 @@ int __cdecl ReportException(EXCEPTION_POINTERS*, char*);
 extern const char g_exceptionHandlerName[];
 
 // FUNCTION: 0x4da2a0
-void __stdcall UnhandledExceptionHandler(int param_1)
+void __stdcall UnhandledExceptionHandler(int ep)
 {
-    ReportException((EXCEPTION_POINTERS*)param_1, (char*)g_exceptionHandlerName);
+    ReportException((EXCEPTION_POINTERS*)ep, (char*)g_exceptionHandlerName);
 }
 
 // The debug thread DebugThreadProc, RunDebugThread, HandleDialogMessage and
@@ -1273,13 +1273,13 @@ HWND __cdecl CreateDialogFromTemplate(int id, HWND parent, DLGPROC proc, LPARAM 
 extern char* __cdecl strrchr(const char*, int);
 
 // FUNCTION: 0x4da590
-char* __cdecl GetFileNameFromPath(char* param_1)
+char* __cdecl GetFileNameFromPath(char* path)
 {
-    char* result = strrchr(param_1, 0x5c);
+    char* result = strrchr(path, 0x5c);
     if (result != 0) {
         return result + 1;
     }
-    return param_1;
+    return path;
 }
 
 // Opens a URL in the browser. It tries ShellExecuteA on the URL first; when
@@ -1414,9 +1414,9 @@ void __cdecl CountAlloc(unsigned int size)
 // The original calls this out of line from the allocator and the page protection.
 #pragma auto_inline(off)
 // FUNCTION: 0x4da840
-void __cdecl CountFree(int param_1) {
+void __cdecl CountFree(int size) {
     g_liveAllocCount--;
-    g_currentBytes -= param_1;
+    g_currentBytes -= size;
 }
 #pragma auto_inline(on)
 
@@ -1436,15 +1436,15 @@ void ResetAllocStats(void)
 }
 
 // FUNCTION: 0x4da8a0
-int __cdecl RoundUpToDoublePage(int param_1)
+int __cdecl RoundUpToDoublePage(int size)
 {
-    return (param_1 + 0xfff & ~0xfff) * 2;
+    return (size + 0xfff & ~0xfff) * 2;
 }
 
 // FUNCTION: 0x4da8c0
-unsigned int __cdecl RoundUpToPage(int param_1)
+unsigned int __cdecl RoundUpToPage(int size)
 {
-    return (param_1 + 0xfff) & 0xfffff000;
+    return (size + 0xfff) & 0xfffff000;
 }
 
 // Lazily built singleton for the game's file-record map (the std::_Tree whose
@@ -1799,7 +1799,7 @@ public:
         second = o.second;
         first = o.first;
     }
-    MapInsertResult* Assign(int* param_1, unsigned char* param_2);
+    MapInsertResult* Assign(int* iter, unsigned char* inserted);
     MapInsertResult* Assign(const FreeBlockIter& first, unsigned char& second);
     MapInsertResult* Assign(const FreeBlockIter& first, const bool& second);
 };
@@ -1966,7 +1966,7 @@ public:
     BlockMapIter lower_bound(const unsigned int& key);
     Node_004daa30* LowerBound(const unsigned int& key);
     Node_004daa30* Ubound(const unsigned int& key);
-    Node_004daa30* CreateNode(int param_1, int param_2);
+    Node_004daa30* CreateNode(int parent, int color);
     void RotateLeft(Node_004daa30* x);
     void RotateRight(Node_004daa30* x);
 };
@@ -2174,11 +2174,11 @@ public:
     }
 
     FreeBlockIter Begin() { return FreeBlockIter(head->left); }
-    int* Begin(int* param_1);
+    int* Begin(int* out);
     // A method that ignores `this`: its caller (0x4dbec0, an inlined tree insert
     // after its std::_Lockit) sets ecx to the tree. Shaped like
     // std::_Tree<...>::_Buynode(parent, colour) with a pooled allocator.
-    Node_004db000* CreateNode(int param_1, int param_2);
+    Node_004db000* CreateNode(int parent, int color);
     MapInsertResult TreeInsert(const Pair_004db000& V);
     MapInsertResult InsertOrFind(const Pair_004db000& V);
     MapInsertResult InsertOrFindInline(Pair_004db000* p);
@@ -2544,10 +2544,10 @@ unsigned int __cdecl LookupBlockSize(unsigned int key)
 // The original calls this out of line from ProtectBlock.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dbb90
-void __cdecl RoundRangeToPages(unsigned int* param_1, unsigned int* param_2)
+void __cdecl RoundRangeToPages(unsigned int* start, unsigned int* end)
 {
-    *param_1 &= 0xfffff000;
-    *param_2 = (*param_2 + 0xfff) & 0xfffff000;
+    *start &= 0xfffff000;
+    *end = (*end + 0xfff) & 0xfffff000;
 }
 #pragma auto_inline(on)
 
@@ -2712,10 +2712,10 @@ FreeBlockIter FreeBlockIter::Previous(int)
 // 0x4db450's inlined Tail calls this out of line in the original.
 #pragma auto_inline(off)
 // FUNCTION: 0x4dbeb0
-int* FreeBlockMap::Begin(int* param_1)
+int* FreeBlockMap::Begin(int* out)
 {
-    *param_1 = (int)head->left;
-    return param_1;
+    *out = (int)head->left;
+    return out;
 }
 #pragma auto_inline(on)
 
@@ -3465,12 +3465,12 @@ InsertFn_004dd8c0 g_insert_004dd8c0 = &Vec_004dd8c0::insert;
 // ---- from src/debug/debug_lib_4ddbe0.cpp --------------------
 
 // FUNCTION: 0x4ddbe0
-MapInsertResult* MapInsertResult::Assign(int* param_1, unsigned char* param_2)
+MapInsertResult* MapInsertResult::Assign(int* iter, unsigned char* inserted)
 {
     MapInsertResult* eax = this;
-    int* ecx = param_1;
+    int* ecx = iter;
     int edx = *ecx;
-    unsigned char* ecx2 = (unsigned char*)param_2;
+    unsigned char* ecx2 = (unsigned char*)inserted;
     eax->first.ptr = (Node_004db000*)edx;
     unsigned char dl = *ecx2;
     eax->second = dl;
@@ -3532,11 +3532,11 @@ static inline Node_004db000* AllocNode_004db000()
 // The original calls this out of line from the file-record tree insert.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddc00
-Node_004db000* FreeBlockMap::CreateNode(int param_1, int param_2)
+Node_004db000* FreeBlockMap::CreateNode(int parent, int color)
 {
     Node_004db000* node = AllocNode_004db000();
-    node->parent = (Node_004db000*)param_1;
-    node->color = param_2;
+    node->parent = (Node_004db000*)parent;
+    node->color = color;
     return node;
 }
 #pragma auto_inline(on)
@@ -3601,11 +3601,11 @@ static inline Node_004daa30* AllocNode_004daa30()
 // The original calls this out of line from the file-record tree insert.
 #pragma auto_inline(off)
 // FUNCTION: 0x4ddce0
-Node_004daa30* BlockMap::CreateNode(int param_1, int param_2)
+Node_004daa30* BlockMap::CreateNode(int parent, int color)
 {
     Node_004daa30* node = AllocNode_004daa30();
-    node->parent = (Node_004daa30*)param_1;
-    node->color = param_2;
+    node->parent = (Node_004daa30*)parent;
+    node->color = color;
     return node;
 }
 #pragma auto_inline(on)
@@ -4533,7 +4533,7 @@ class NameMapInsertResult {
 public:
     NameMapInsertResult(const NameMapIter& _V1, const bool& _V2)
         : first(_V1), second(_V2) {}
-    NameMapInsertResult* Assign(const Data1* param_1, const Data2* param_2);
+    NameMapInsertResult* Assign(const Data1* iter, const Data2* inserted);
     NameMapIter first;
     bool second;
 };
@@ -5555,7 +5555,7 @@ public:
     int ReadInt(LPCSTR name, int minValue, int maxValue, int defaultValue);
     bool ReadBool(const char* param1, unsigned int param2);
     void WriteBool(LPCSTR param1, DWORD param2);
-    void WriteDword(LPCSTR param_1, DWORD param_2);
+    void WriteDword(LPCSTR valueName, DWORD value);
     void WriteInt(LPCSTR name, int value);
     void ApplyDword(LPCSTR name, DWORD* value, DWORD minValue, DWORD maxValue, DWORD defaultValue);
     void ApplyBool(char* name, bool* value, bool defaultValue);
@@ -6298,7 +6298,7 @@ public:
     int oldThreadPriority;             // +0x50
 
     ~Timer();
-    Timer(int param_1);
+    Timer(int startFlags);
     Timer(int a, int b);
     double GetElapsedSeconds();
     void ResumeTimer();
@@ -6315,9 +6315,9 @@ public:
 // A timer object: starts timing (0x4e1d60, which saves and raises the thread
 // priority) and discards a first elapsed-time reading (0x4e20a0).
 // FUNCTION: 0x4e1d20 ??0Timer@@QAE@H@Z
-Timer::Timer(int param_1)
+Timer::Timer(int startFlags)
 {
-    StartTimer(0, param_1);
+    StartTimer(0, startFlags);
     RestartTimer();
 }
 
@@ -6550,10 +6550,10 @@ struct Data2 {
 };
 
 // FUNCTION: 0x4e2a10
-NameMapInsertResult* NameMapInsertResult::Assign(const Data1* param_1, const Data2* param_2)
+NameMapInsertResult* NameMapInsertResult::Assign(const Data1* iter, const Data2* inserted)
 {
-    *(int*)&first = param_1->field_0;
-    *(char*)&second = param_2->field_0;
+    *(int*)&first = iter->field_0;
+    *(char*)&second = inserted->field_0;
     return this;
 }
 
@@ -6723,8 +6723,8 @@ int CavedogRegistryKey::ReadInt(LPCSTR name, int minValue, int maxValue, int def
 // The original calls this out of line from its callers.
 #pragma auto_inline(off)
 // FUNCTION: 0x4e2d70
-void CavedogRegistryKey::WriteDword(LPCSTR param_1, DWORD param_2) {
-    RegSetValueExA(key, param_1, 0, REG_DWORD, (LPBYTE)&param_2, 4);
+void CavedogRegistryKey::WriteDword(LPCSTR valueName, DWORD value) {
+    RegSetValueExA(key, valueName, 0, REG_DWORD, (LPBYTE)&value, 4);
 }
 #pragma auto_inline(on)
 

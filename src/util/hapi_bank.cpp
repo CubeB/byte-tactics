@@ -69,7 +69,7 @@ int __stdcall SquashUnpackedSize(unsigned char* src);
 int __stdcall SquashUnpack(void* dest, void* src);
 char* __stdcall SquashErrorString(int code);
 int __stdcall SquashMaxPackedSize(int size, int level);
-int __stdcall SquashPack(void* dest, int* destSize, void* src, int srcSize, int param_5, int param_6);
+int __stdcall SquashPack(void* dest, int* destSize, void* src, int srcSize, int method, int encrypt);
 void __stdcall FatalError(char* message);
 char* __stdcall StripExtension(char* name);
 

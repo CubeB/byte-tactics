@@ -11,10 +11,10 @@ extern const char g_errorCaption[];  // "Error"
 extern unsigned int g_randomSeed;
 
 // FUNCTION: 0x4b6b80
-void __stdcall ShowErrorBox(const char* param_1, int unused)
+void __stdcall ShowErrorBox(const char* message, int unused)
 {
     (void)unused;
-    MessageBoxA(0, param_1, g_errorCaption, 0x40000);
+    MessageBoxA(0, message, g_errorCaption, 0x40000);
 }
 
 // Four-byte checksum of a buffer: byte sum, byte xor, sum of (index ^ byte)
@@ -120,12 +120,12 @@ int __stdcall ApproxDistance(int dx, int dy)
 }
 
 // FUNCTION: 0x4b6e80
-double __stdcall DotProduct(float param_1, float param_2, float param_3,
-                               float param_4, float param_5, float param_6)
+double __stdcall DotProduct(float ax, float ay, float az,
+                               float bx, float by, float bz)
 {
-    double result = param_4 * param_1;
-    result = result + param_5 * param_2;
-    result = result + param_6 * param_3;
+    double result = bx * ax;
+    result = result + by * ay;
+    result = result + bz * az;
     return result;
 }
 

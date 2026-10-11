@@ -50,7 +50,7 @@ void __stdcall GetNanoPiecePosition(Unit* unit, Vec3* out);
 void __stdcall EmitReverseNanoParticles(Box* from, Vec3* to, int count);
 void __stdcall ReclaimFeature(Unit* unit, Vec3* pos);
 // Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
-void __stdcall AddOrder(int kind, int remove, Unit* owner, void* id, Vec3* pos, int param_6, int param_7);
+void __stdcall AddOrder(int kind, int remove, Unit* owner, void* id, Vec3* pos, int typeId, int amount);
 
 // Order handler "Reclaiming" for a feature (wreck, tree, rock) at the order
 // position.

@@ -145,13 +145,13 @@ int CheckMapCrc()
 
 // The slot swap at 0x4453a0, which has no callers. MSVC inlines it only when
 // it is declared inline (it has a loop).
-inline void __stdcall SwapPlayerSlots(Player* param_1, Player* param_2)
+inline void __stdcall SwapPlayerSlots(Player* from, Player* to)
 {
-    Player tmp = *param_2;
-    *param_2 = *param_1;
-    *param_1 = tmp;
-    param_1->SetType(0);
-    param_1->active = 0;
+    Player tmp = *to;
+    *to = *from;
+    *from = tmp;
+    from->SetType(0);
+    from->active = 0;
     for (int i = 0; i <= 10; i++) {
         Player* p = &g_game->players[i];
         if (p->active != 0

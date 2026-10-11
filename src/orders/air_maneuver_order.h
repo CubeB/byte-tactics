@@ -36,7 +36,7 @@ public:
     AirManeuverOrder(Order* order, const Vec3& a, const Vec3& b);
     AirManeuverOrder(int owner, HapiBank* file, char* name);
     AirManeuverOrder(Owner_0044e9c0* owner, BitReader* reader);
-    void* Destroy(int param_1);
+    void* Destroy(int flag);
     int SerializeToSave(Order* order, HapiBank* file, char* name);
     int GetDesiredHeading(unsigned short* out);
     void SetAltitude(int altitude);

@@ -141,11 +141,11 @@ void __stdcall WriteCameraPosition(HapiBank* file)
 }
 
 // FUNCTION: 0x41d3b0
-void __stdcall SaveCameraPosition(int param_1)
+void __stdcall SaveCameraPosition(int slot)
 {
-    g_game->xs[param_1] = g_game->scrollX;
-    g_game->ys[param_1] = g_game->scrollY;
-    g_game->valid[param_1] = 1;
+    g_game->xs[slot] = g_game->scrollX;
+    g_game->ys[slot] = g_game->scrollY;
+    g_game->valid[slot] = 1;
 }
 
 // FUNCTION: 0x41d3f0

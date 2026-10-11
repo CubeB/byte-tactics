@@ -77,16 +77,16 @@ extern Game* g_game;
 
 int __stdcall OrderModeTakesTarget(unsigned char type);
 MissionType __stdcall GetOrderType(unsigned char mode, Unit* unit,
-                                       Unit* target, void* param_5);
+                                       Unit* target, void* pos);
 void __stdcall IssueOrCancelOrder(OrderType kind, int flag, Unit* unit,
-                            Unit* target, int* pos, int param_5, int param_6);
+                            Unit* target, int* pos, int typeId, int amount);
 
 static inline MissionType Order(const char* name) { return MissionType(name); }
 
 // Kept out of the merged selection.cpp: it only matches at this file's symbol count.
 // FUNCTION: 0x48cf30
 void __stdcall IssueOrderToSelection(OrderTypeEntry* entry, unsigned char mode,
-                            OrderType kind, int* pos, int param_5, int param_6)
+                            OrderType kind, int* pos, int typeId, int amount)
 {
     int flag_a = (entry->flags_a >> 2) & 1;
     Unit* except = 0;
@@ -145,11 +145,11 @@ void __stdcall IssueOrderToSelection(OrderTypeEntry* entry, unsigned char mode,
                         here[0] = pos[0] + u->x - avg[0];
                         here[1] = pos[1];
                         here[2] = pos[2] + u->z - avg[2];
-                        IssueOrCancelOrder(kind, flag_a, u, except, here, param_5, param_6);
+                        IssueOrCancelOrder(kind, flag_a, u, except, here, typeId, amount);
                         continue;
                     }
                 }
-                IssueOrCancelOrder(kind, flag_a, u, except, pos, param_5, param_6);
+                IssueOrCancelOrder(kind, flag_a, u, except, pos, typeId, amount);
             }
         }
     }

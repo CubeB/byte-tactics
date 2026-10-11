@@ -1147,9 +1147,9 @@ end:
 }
 
 // FUNCTION: 0x4d0620
-void Sound::LoadSample(char* param_1)
+void Sound::LoadSample(char* path)
 {
-    OpenSample(param_1, 0, 0, 0);
+    OpenSample(path, 0, 0, 0);
 }
 
 // FUNCTION: 0x4d0640

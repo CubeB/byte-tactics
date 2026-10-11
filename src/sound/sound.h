@@ -70,7 +70,7 @@ public:
     int GetLockedTrack();
     int SetPlaybackOrder(int value);
     void SetCategoryOfTrack(int index, unsigned char value);
-    unsigned char GetCategoryOfTrack(int param_1);
+    unsigned char GetCategoryOfTrack(int index);
     int SelectTrack(int index);
     int PauseCdAudio(int pause);
     int StopCdAudio();
@@ -120,7 +120,7 @@ public:
     int Is3DEnabled();
     void Set3DDistances(float minimum, float maximum);
     int HasNoDriver();
-    void LoadSample(char* param_1);
+    void LoadSample(char* path);
     void PlaySample(const char* param1, int param2, int param3);
     void StreamSample(char* a, int b);
     int StreamSampleDelayed(char* name, int value, int delay);

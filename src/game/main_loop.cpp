@@ -282,7 +282,7 @@ extern int g_netHeartbeatNextTick;
 
 int GetMilliseconds();
 void UpdateFramePacing();
-void __stdcall RunGameSteps(int param_1);
+void __stdcall RunGameSteps(int showStats);
 void MainLoopContinueStub();
 void MainLoopContinueStub_B();
 void MainLoopContinueStub_C();
@@ -315,7 +315,7 @@ void HideSoftwareCursor();
 void PreBattleFrame();
 void CampaignSetupFrame();
 void LoadingScreenFrame();
-void __stdcall BlitMenuLayers(Sub_00496b10* sub, unsigned int* param_2, int* param_3);
+void __stdcall BlitMenuLayers(Sub_00496b10* sub, unsigned int* dest, int* clip);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void SendNetHeartbeat();
 void __stdcall SetupPlayerSlot(unsigned char player, unsigned char kind);

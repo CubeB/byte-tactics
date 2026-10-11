@@ -783,13 +783,13 @@ int __stdcall DrawExplodedPiece(void* surface, ExplodedPiece* obj)
 // Takes a free slot from the 100-entry pool at g_explodedPieces and copies the
 // argument header plus the per-unit record into the freshly allocated block.
 // FUNCTION: 0x421620
-void __stdcall StartExplodePiece(ExplodedPiece* param_1)
+void __stdcall StartExplodePiece(ExplodedPiece* piece)
 {
-    Unit* obj = param_1->unit;
-    PieceRec* rec = (PieceRec*)((char*)obj->state + 0x22 + param_1->index * 0x36);
+    Unit* obj = piece->unit;
+    PieceRec* rec = (PieceRec*)((char*)obj->state + 0x22 + piece->index * 0x36);
     rec->flags &= 0xfffe;
-    if (param_1->b2) {
-        BreakPieceIntoDebris(param_1);
+    if (piece->b2) {
+        BreakPieceIntoDebris(piece);
         return;
     }
     int index = FindFreeExplodedPieceSlot();
@@ -801,7 +801,7 @@ void __stdcall StartExplodePiece(ExplodedPiece* param_1)
         return;
     }
     ExplodedBlock* block = (ExplodedBlock*)g_explodedPieces[index];
-    block->header = *param_1;
+    block->header = *piece;
     PieceRec* dst = (PieceRec*)((char*)block + 0x30);
     block->header.rec = dst;
     *dst = *rec;

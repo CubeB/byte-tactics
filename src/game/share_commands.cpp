@@ -29,7 +29,7 @@ public:
     int GetIntArg(int index, int fallback);
 };
 
-void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
+void __stdcall AddMessage(char* text, int key, int value, int last);
 void BroadcastPlayerInfo();
 
 extern char g_fxEventPoolBlocked;

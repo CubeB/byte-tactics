@@ -196,7 +196,7 @@ int __stdcall LoadSavedGameState(HapiBank* file)
 // writes the save file and returns its result. Argument 2 is an optional
 // description string, argument 3 the game id.
 // FUNCTION: 0x4326b0
-int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
+int __stdcall SaveGameFile(char* path, char* description, int gameId)
 {
     HapiBank file;
     char buf[256];
@@ -232,10 +232,10 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
         (&file)->SetIntegerItem(g_betweenMissionsKey, 1);
         g_game->mapInfo->SelectMission(g_game->mission);
     }
-    if (param_2 != 0) {
-        (&file)->SetStringItem(g_descriptionKey, param_2);
+    if (description != 0) {
+        (&file)->SetStringItem(g_descriptionKey, description);
     }
-    (&file)->SetIntegerItem(g_gameIdKey, param_3);
+    (&file)->SetIntegerItem(g_gameIdKey, gameId);
     (&file)->SetIntegerItem(g_gameTimeKey, g_game->gameTick);
     if (g_game->frontendState == 6) {
         (&file)->OpenNamedBox(g_radarImageBoxName);
@@ -250,7 +250,7 @@ int __stdcall SaveGameFile(char* param_1, char* param_2, int param_3)
         SaveMeteors(&file);
         g_game->victoryConditions->SaveConditions(&file);
     }
-    int result = file.SaveBank(param_1, g_saveBankName, 1, 0);
+    int result = file.SaveBank(path, g_saveBankName, 1, 0);
     (&file)->CloseBank();
     return result;
 }

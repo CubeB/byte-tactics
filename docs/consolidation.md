@@ -181,7 +181,7 @@ revisit them once the surrounding code is known.
 - 0x438b90's `Class_00438b90` has `Class_0043a1f0`'s layout (kind at +4,
   flags at +0x42).
 - `Class_0043a1f0` (vtable 0x4fd2c8, constructors 0x43a0c0 and 0x43a420,
-  destructor 0x43a1f0) derives from `Class_0043a1e0` (vtable 0x4fd2cc). Each
+  destructor 0x43a1f0) derives from `OrderBase` (vtable 0x4fd2cc). Each
   vtable has one slot: the base's is the empty 0x43a1e0, and the derived
   class overrides it with 0x438870 (still filed as
   `Class_00438870::FUN_00438870`; neither has a direct caller). Both

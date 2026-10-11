@@ -106,7 +106,7 @@ struct ActivateFlagsPacket {
 extern Game* g_game;
 
 // One virtual slot, called on the object a link belongs to.
-class Class_0043a1e0 {
+class OrderBase {
 public:
     virtual void OrStatusFlags(unsigned int value);
 };
@@ -117,7 +117,7 @@ public:
     void* vptr;                        // +0x0
     void* owner;                       // +0x4
     PathOrderAttach* next;             // +0x8
-    Class_0043a1e0* value;             // +0xc
+    OrderBase* value;                  // +0xc
 };
 
 #pragma pack(push, 1)

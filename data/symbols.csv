@@ -755,7 +755,7 @@ address,name
 0x439fe0,MoveOrderToTail
 0x43a020,EnsurePatrolReturnOrder
 0x43a0c0,Order::Order
-0x43a1e0,Class_0043a1e0::OrStatusFlags
+0x43a1e0,OrderBase::OrStatusFlags
 0x43a1f0,Order::~Order
 0x43a2d0,WriteUnitTypeNameKey
 0x43a360,ResolveUnitTypeKey
@@ -4047,7 +4047,7 @@ address,name
 0x4fd2b0,TWO_PI
 0x4fd2b8,ONE_EIGHTH
 0x4fd2c8,??_7Order@@6B@
-0x4fd2cc,??_7Class_0043a1e0@@6B@
+0x4fd2cc,??_7OrderBase@@6B@
 0x4fd2f8,g_orderFxVtable
 0x4fd328,g_approachRadiusVtable
 0x4fd358,g_ringApproachVtable

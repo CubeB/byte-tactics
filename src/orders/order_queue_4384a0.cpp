@@ -226,7 +226,7 @@ public:
 #pragma pack(pop)
 
 // The base class: one virtual slot, its vtable at 0x4fd2cc.
-class Class_0043a1e0 {
+class OrderBase {
 public:
     virtual void OrStatusFlags(unsigned int);  // slot 0: 0x43a1e0, empty
 };
@@ -245,7 +245,7 @@ struct Head_0043a1f0 {
     Head_0043a1f0() : kind(0) {}
 };
 
-class Order : public Class_0043a1e0, public Head_0043a1f0 {
+class Order : public OrderBase, public Head_0043a1f0 {
 public:
     // Slot 0 of vtable 0x4fd2c8, overriding the base's.
     virtual void OrStatusFlags(unsigned int);

@@ -218,12 +218,12 @@ public:
 };
 
 // The base class: one virtual slot, its vtable at 0x4fd2cc.
-class Class_0043a1e0 {
+class OrderBase {
 public:
     virtual void OrStatusFlags(unsigned int);  // slot 0: 0x43a1e0, empty
 };
 
-class Order : public Class_0043a1e0 {
+class Order : public OrderBase {
 public:
     // Slot 0 of vtable 0x4fd2c8, overriding the base's: 0x438870 (defined
     // in order_queue_4384a0.cpp).
@@ -618,7 +618,7 @@ void __stdcall EnsurePatrolReturnOrder(Unit* p, Order* item)
 // The constructor of Order (destructor 0x43a1f0, vtable 0x4fd2c8).
 // The rest of the class is in order_queue_4384a0.cpp.
 // It first stores 0x4fd2cc, the vtable of the inline constructor of the base
-// class Class_0043a1e0, then runs the member initialisers, then stores its
+// class OrderBase, then runs the member initialisers, then stores its
 // own vtable. Each vtable has one slot: the base's is the empty 0x43a1e0 and
 // the derived class overrides it with 0x438870 (which ORs bits into +0x4e).
 // The other constructor, 0x43a420 (which loads the object from a file),
@@ -655,11 +655,11 @@ Order::Order(unsigned char k, Unit* o, Vec3* p, int a, int b, int c)
         link.SetUnit(0);
 }
 
-// Slot 0 of Class_0043a1e0's vtable (0x4fd2cc): an empty virtual method.
-// Class_0043a1e0 is the base of Order (vtable 0x4fd2c8), which
+// Slot 0 of OrderBase's vtable (0x4fd2cc): an empty virtual method.
+// OrderBase is the base of Order (vtable 0x4fd2c8), which
 // overrides this slot with 0x438870 (see order_queue_4384a0.cpp).
 // FUNCTION: 0x43a1e0
-void Class_0043a1e0::OrStatusFlags(unsigned int)
+void OrderBase::OrStatusFlags(unsigned int)
 {
 }
 

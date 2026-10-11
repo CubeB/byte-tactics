@@ -6,8 +6,8 @@
 // of the unit's activateFlags is set. Otherwise it builds a 16.16 position from
 // the unit's position plus the def's offsets, bails out when the position is
 // below the game-wide limit, and then asks "is this point visible" four times:
-// at p, at p + (def->f176,0,0), at p + (f176,-f17a,f17e), and finally at p
-// again. The first three go through IsPointVisible unless the player's map
+// at p, at p + (def->modelSizeX,0,0), at p + (modelSizeX,-modelSizeY,
+// modelSizeZ), and finally at p again. The first three go through IsPointVisible unless the player's map
 // flags say to use the explored byte map instead; the fourth inlines the shared
 // visibility bit mask.
 #pragma pack(push, 1)
@@ -35,18 +35,7 @@ struct Game {
     char debugMode;
     unsigned short mapFlags;             // +0x14281
 };
-struct UnitDef_00465ac0 {
-    char unknown_0[0x15e];
-    int f15e;
-    char unknown_162[0x166 - 0x162];
-    int f166;
-    char unknown_16a[0x16e - 0x16a];
-    int f16e;
-    char unknown_172[0x176 - 0x172];
-    int f176;
-    int f17a;
-    int f17e;
-};
+#include "../units/unit_def.h"
 struct Vec3_00465ac0 {
     int x, y, z;
 };
@@ -54,7 +43,7 @@ struct Unit {
     char unknown_0[0x6a];
     Vec3_00465ac0 pos;                   // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitDef_00465ac0* def;               // +0x92
+    UnitDef* def;                        // +0x92
     Map_00465ac0* player;                // +0x96
     char unknown_9a[0x10e - 0x9a];
     unsigned char activateFlags;         // +0x10e
@@ -149,23 +138,23 @@ int __stdcall IsUnitVisibleToPlayer(Map_00465ac0* map, Unit* u)
     if (u->activateFlags & 4)
         return 0;
     Pos_00465ac0 p;
-    p.x = u->def->f15e + u->pos.x;
-    p.y = u->def->f16e + u->pos.y;
-    p.z = u->def->f166 + u->pos.z;
+    p.x = u->def->modelMinX + u->pos.x;
+    p.y = u->def->modelMaxY + u->pos.y;
+    p.z = u->def->modelMinZ + u->pos.z;
     if (!(u->flags & 0x200)) {
         if (p.y < (g_game->seaLevel << 16))
             return 0;
     }
     if (IsVisible(map, (Position_00465ac0*)&p))
         return 1;
-    p.x += u->def->f176;
+    p.x += u->def->modelSizeX;
     if (IsVisible2(map, (Position_00465ac0*)&p))
         return 1;
-    p.z += u->def->f17e;
-    p.y -= u->def->f17a;
+    p.z += u->def->modelSizeZ;
+    p.y -= u->def->modelSizeY;
     if (IsVisible2(map, (Position_00465ac0*)&p))
         return 1;
-    p.x -= u->def->f176;
+    p.x -= u->def->modelSizeX;
     if (IsVisible3(map, (Position_00465ac0*)&p))
         return 1;
     return 0;

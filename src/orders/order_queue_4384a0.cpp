@@ -181,10 +181,11 @@ public:
 
 // The attachments the order functions make from a position.
 struct Source_0044cf60;
-struct Point_00438ad0 {
-    short x;
-    short y;
-};
+
+// Unused here: real functions declared for their symbol ids, which take the
+// place of the Point view this file used to define (docs/c2-regalloc.md).
+int CloakOnOrder(char*, int, int);
+int GetUnitCount(int, unsigned int);
 
 class ApproachRadius : public OrderFx {
 public:
@@ -216,7 +217,7 @@ class PointMarker : public OrderFx {
 public:
     char pad[0x10];
     PointMarker(int owner, HapiBank* file, char* name);
-    PointMarker(void* owner, Point_00438ad0 pos, Point_00438ad0 size);
+    PointMarker(void* owner, Point16 pos, Point16 size);
     // Unused here: the type's members the other views declare keep the symbol
     // ids of the functions after the merged classes (docs/c2-regalloc.md).
     void* Destroy(unsigned char should_delete);
@@ -275,7 +276,7 @@ public:
     void SetAttachedFx(OrderFx* obj);
     void AttachApproachRadiusGoal(int* p, int n);
     void AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2);
-    void AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size);
+    void AttachBuildFootprintMarker(Point16 cell, Point16 size);
     void MergeFlagsFromTable(int k);
     // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
     Unit* Target();
@@ -545,7 +546,7 @@ void Order::AttachRingApproachGoal(Vec3_0043a1f0* pos, int radius1, int radius2)
 }
 
 // FUNCTION: 0x438ad0
-void Order::AttachBuildFootprintMarker(Point_00438ad0 cell, Point_00438ad0 size)
+void Order::AttachBuildFootprintMarker(Point16 cell, Point16 size)
 {
     if (!(unit->def->flags32 & 0x800)) {
         PointMarker* obj = new PointMarker(this, cell, size);

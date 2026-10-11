@@ -754,7 +754,7 @@ address,size,file,symbol,status,similarity
 0x439fe0,58,src/orders/order_list.cpp,?MoveOrderToTail@@YGXPAD0@Z,matched,100.0
 0x43a020,152,src/orders/order_list.cpp,?EnsurePatrolReturnOrder@@YGXPAUUnit@@PAVOrder@@@Z,matched,100.0
 0x43a0c0,274,src/orders/order_list.cpp,??0Order@@QAE@EPAUUnit@@PAUVec3@@HHH@Z,matched,100.0
-0x43a1e0,3,src/orders/order_list.cpp,?OrStatusFlags@Class_0043a1e0@@UAEXI@Z,matched,100.0
+0x43a1e0,3,src/orders/order_list.cpp,?OrStatusFlags@OrderBase@@UAEXI@Z,matched,100.0
 0x43a1f0,218,src/orders/order_queue_4384a0.cpp,??1Order@@QAE@XZ,matched,100.0
 0x43a2d0,131,src/orders/order_list.cpp,?WriteUnitTypeNameKey@@YGXPAVHapiBank@@G@Z,matched,100.0
 0x43a360,186,src/orders/order_list.cpp,?ResolveUnitTypeKey@@YGFPAVHapiBank@@G@Z,matched,100.0

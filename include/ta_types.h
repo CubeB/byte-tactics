@@ -223,7 +223,7 @@ class Class_00438a00;
 class Class_00438ad0;
 class Class_00438b90;
 class Class_00439e80;
-class Class_0043a1e0;
+class OrderBase;
 class Class_0043a420;
 class MissionOrderTable;
 class Class_0043cbb0;
@@ -6472,7 +6472,7 @@ struct Obj_00439e30 {  // 0x64 bytes, 1 view
     Node_00439e30* list2;  // +0x60
 };
 
-class Class_0043a1e0 {  // 0x4 bytes, 6 views
+class OrderBase {       // 0x4 bytes, 6 views
 public:
     virtual void OrStatusFlags(unsigned int);
     virtual void Notify(int);

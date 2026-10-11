@@ -846,19 +846,13 @@ struct CellPos_0049a120 {
 };
 
 #pragma pack(push, 1)
-struct UnitDef_0049a120 {
-    char unknown_0[0x15e];
-    Vec3_0049a120 boxMin;              // +0x15e
-    Vec3_0049a120 boxMax;              // +0x16a
-};
-
 struct Holder_0049a120;
 
 struct Unit_0049a120 {
     char unknown_0[0x6a];
     Vec3_0049a120 pos;                 // +0x6a
     char unknown_76[0x92 - 0x76];
-    UnitDef_0049a120* def;             // +0x92
+    UnitDef* def;                      // +0x92
     Holder_0049a120* player;           // +0x96
     char unknown_9a[0xff - 0x9a];
     unsigned char playerIndex;         // +0xff

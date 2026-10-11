@@ -304,14 +304,14 @@ struct Game {
     char unknown_1485b[0x148db - 0x1485b];
     void* logos32;                     // +0x148db
     char unknown_148df[0x37e1b - 0x148df];
-    void* surface;                     // +0x37e1b
+    void* offscreen;                   // +0x37e1b
     int screenWidth;                   // +0x37e1f
     int screenHeight;                  // +0x37e23
     char unknown_37e27[0x37e3f - 0x37e27];
     union {
         struct {
-            Sub_004679a0_a a;          // +0x37e3f
-            Sub_004679a0_b b;          // +0x37e60
+            Sub_004679a0_a resources;  // +0x37e3f
+            Sub_004679a0_b selectionInfoCache; // +0x37e60
         };
         struct {
             char unknown_37e3f[0x37e90 - 0x37e3f];
@@ -324,7 +324,7 @@ struct Game {
     char unknown_37ee8[0x37f06 - 0x37ee8];
     unsigned short visualFlags;        // +0x37f06
     char unknown_37f08[0x37f2f - 0x37f08];
-    unsigned short flags;              // +0x37f2f
+    unsigned short uiOptionFlags;      // +0x37f2f
     char unknown_37f31[0x38a47 - 0x37f31];
     union {
         int gameTick;                  // +0x38a47
@@ -336,10 +336,10 @@ struct Game {
     int total;                         // +0x38d89
     int values[8];                     // +0x38d8d
     char unknown_38dad[0x391b3 - 0x38dad];
-    int f_391b3;                       // +0x391b3
-    unsigned short f_391b7;            // +0x391b7
-    int f_391b9;                       // +0x391b9
-    unsigned short f_391bd;            // +0x391bd
+    int unitInfoHoverTrack;            // +0x391b3
+    unsigned short unitInfoHoverUnitId; // +0x391b7
+    int unitBuilderHoverTrack;         // +0x391b9
+    unsigned short unitBuilderHoverUnitId; // +0x391bd
     char unknown_391bf[0x391f9 - 0x391bf];
     int fontComix;                     // +0x391f9
 
@@ -599,15 +599,15 @@ void SonarJamVisitor::ApplySonarJamFlag(Unit* unit)
 // FUNCTION: 0x4679a0
 void LoadLightBar()
 {
-    Sub_004679a0_a* a = &g_game->a;
+    Sub_004679a0_a* a = &g_game->resources;
     a->field_1 = a->field_d = a->field_19 = a->field_1d = 0;
-    Sub_004679a0_b* b = &g_game->b;
+    Sub_004679a0_b* b = &g_game->selectionInfoCache;
     b->field_30 = 0;
     b->lightbar = 0;
     unsigned short* frames = FindGafEntry(g_game->gaf, "LIGHTBAR");
-    g_game->b.lightbar = (unsigned short*)GetGafFrame(frames, 1);
-    g_game->b.lightbar[3] = 0;
-    g_game->b.lightbar[2] = 0;
+    g_game->selectionInfoCache.lightbar = (unsigned short*)GetGafFrame(frames, 1);
+    g_game->selectionInfoCache.lightbar[3] = 0;
+    g_game->selectionInfoCache.lightbar[2] = 0;
 }
 
 // FUNCTION: 0x467a20
@@ -734,7 +734,7 @@ void __stdcall DrawKillCount(void* surface, Player_00467cb0* player, int x, int 
 // FUNCTION: 0x467d70
 void DrawLightBars()
 {
-    void* surf = g_game->surface;
+    void* surf = g_game->offscreen;
     SetOffscreenSurface(surf);
     FillSurface(surf, 0);
 
@@ -772,13 +772,13 @@ int __stdcall DrawUnitStateProbe(void* surface)
     int prev;
     Mission_00467e50* m;
 
-    if (g_game->f_391b3 == 0 || g_game->f_391b7 == 0)
+    if (g_game->unitInfoHoverTrack == 0 || g_game->unitInfoHoverUnitId == 0)
         return 0;
     unit = (Unit*)(*(int*)((char*)g_game + 0x14357)
-                            + g_game->f_391b7 * 0x118);
+                            + g_game->unitInfoHoverUnitId * 0x118);
     if ((unit->f_110 & 0x10000000) == 0 || (unit->f_110 & 0x4000) != 0) {
-        g_game->f_391b3 = 0;
-        g_game->f_391b7 = 0;
+        g_game->unitInfoHoverTrack = 0;
+        g_game->unitInfoHoverUnitId = 0;
     }
     colors = &g_game->colors[0];
     SetTextColors(colors[15], GetTextKeyColor());
@@ -954,13 +954,13 @@ static void Bar_004685a0(void* surface, Rect_004685a0* rect, int percent)
 // FUNCTION: 0x4685a0
 int __stdcall DrawUnitBuilderProbe(void* surface)
 {
-    if (g_game->f_391b9 == 0 || g_game->f_391bd == 0)
+    if (g_game->unitBuilderHoverTrack == 0 || g_game->unitBuilderHoverUnitId == 0)
         return 0;
-    Unit* unit = &g_game->units[g_game->f_391bd];
+    Unit* unit = &g_game->units[g_game->unitBuilderHoverUnitId];
     if ((unit->f_110 & 0x10000000) == 0 || (unit->f_110 & 0x4000) != 0
             || unit->type->ids == 0) {
-        g_game->f_391b3 = 0;
-        g_game->f_391b7 = 0;
+        g_game->unitInfoHoverTrack = 0;
+        g_game->unitInfoHoverUnitId = 0;
     }
     unsigned char* colors = g_game->colors;
     SetTextColors(colors[15], GetTextKeyColor());

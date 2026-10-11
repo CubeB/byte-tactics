@@ -187,7 +187,7 @@ struct Game {
     char unknown_391f5[0x391f9 - 0x391f5];
     void* fontComix;                   // +0x391f9
     char unknown_391fd[0x39201 - 0x391fd];
-    char field_39201[0x10];            // +0x39201
+    char providerGuid[0x10];           // +0x39201
     char unknown_39211[0x3923d - 0x39211];
     int playMovie;                     // +0x3923d
     int introMovieLoop;                // +0x39241

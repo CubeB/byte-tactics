@@ -105,7 +105,7 @@ struct Game {
     unsigned short : 15;
     char unknown_38a53[0x38d75 - 0x38a53];
     union {
-        volatile unsigned short net_flags; // +0x38d75
+        volatile unsigned short netFlags;  // +0x38d75
         struct {
             unsigned short : 2;
             unsigned short net_bit2 : 1;
@@ -463,7 +463,7 @@ static inline void DropPlayer(int id)
     out->type = 0x1c;
     out->id = id;
     Player* p = &g_game->players[FindPlayerSlot(id)];
-    if ((p->active && p->state == 3) || !(g_game->net_flags & 1) || (g_game->net_flags & 2))
+    if ((p->active && p->state == 3) || !(g_game->netFlags & 1) || (g_game->netFlags & 2))
         RemovePlayer(id);
     BroadcastPacket(LocalPlayer()->id, out, 5);
 }

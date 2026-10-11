@@ -163,7 +163,7 @@ struct Game {
     int sideCount;                     // +0x37f39, the sides
     char names[1][0x232];              // +0x37f3d
     char unknown_3816f[0x38d7f - 0x3816f];
-    unsigned short flags_38d7f;        // +0x38d7f
+    unsigned short allMissionsFlags;   // +0x38d7f
     int numSkirmishPlayers;            // +0x38d81
     char unknown_38d85[0x391e9 - 0x38d85];
     Mission* mapInfo;                  // +0x391e9
@@ -718,12 +718,12 @@ int HasFewerThanThreeCampaignFiles(void)
 void __stdcall ToggleAnyMission(Object_00477510* obj)
 {
     if (strncmp(obj->info->name, "DRDEATH", 7) == 0) {
-        if (!(g_game->flags_38d7f & 1)) {
+        if (!(g_game->allMissionsFlags & 1)) {
             SetGadgetActiveByName(&g_game->gui, "AnyMsn", 1);
-            g_game->flags_38d7f |= 1;
+            g_game->allMissionsFlags |= 1;
         } else {
             SetGadgetActiveByName(&g_game->gui, "AnyMsn", 0);
-            g_game->flags_38d7f &= ~1;
+            g_game->allMissionsFlags &= ~1;
         }
         SaveAllMissionsSetting();
         MarkChanged(&g_game->gui);
@@ -813,10 +813,10 @@ void OpenSingleMenu()
         break;
     }
     SetMissionType(1);
-    if (g_game->flags_38d7f & 1) {
+    if (g_game->allMissionsFlags & 1) {
         SetGadgetActiveByName(&g_game->gui, "AnyMsn", 1);
         // Original oddity, kept: the test guards an |= of the same bit.
-        g_game->flags_38d7f |= 1;
+        g_game->allMissionsFlags |= 1;
     }
     g_game->gui.layer->textHandler = (void (__stdcall*)(void*))ToggleAnyMission;
     if (GetPreferredLanguage() && _strcmpi((char*)GetPreferredLanguage(), "spanish") == 0) {

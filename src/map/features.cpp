@@ -457,19 +457,19 @@ struct Game {
     char unknown_1428b[0x1439b - 0x1428b];
     int unitDefs;                   // +0x1439b
     char unknown_1439f[0x37ecc - 0x1439f];
-    int windX;                         // +0x37ecc
+    int windVelX;                      // +0x37ecc
     int windY;                         // +0x37ed0
     int windZ;                         // +0x37ed4
     char unknown_37ed8[0x37eee - 0x37ed8];
     int difficulty;                    // +0x37eee
     char unknown_37ef2[0x37f2f - 0x37ef2];
-    unsigned char flags_37f2f;         // +0x37f2f
+    unsigned char uiOptionFlags;       // +0x37f2f
     char unknown_37f30[0x38a47 - 0x37f30];
-    unsigned int ticks;                // +0x38a47
+    unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x38d72 - 0x38a4b];
     unsigned char loadPercent;         // +0x38d72
     char unknown_38d73[0x391e9 - 0x38d73];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 #pragma pack(pop)
 
@@ -704,8 +704,8 @@ static inline int FindFeature(char* name)
 // FUNCTION: 0x423160
 void PlaceMissionFeatures(void)
 {
-    for (int i = 0; i < g_game->net->featureCount; i++) {
-        MissionFeature* p = &g_game->net->features[i];
+    for (int i = 0; i < g_game->mapInfo->featureCount; i++) {
+        MissionFeature* p = &g_game->mapInfo->features[i];
         if (p->name[0] == 0)
             continue;
         unsigned short id = (unsigned short)FindFeature(p->name);
@@ -960,7 +960,7 @@ int __stdcall ReclaimFeature(Unit* unit, Vec3* pos)
         unit->metal += metal;
     }
     KillFeature(x, z, 1);
-    if (g_game->net->GetGameType() == 3) {
+    if (g_game->mapInfo->GetGameType() == 3) {
         FeatureDamagePacket packet;
         packet.type = 0xf;
         packet.sub = 0xff;
@@ -1013,7 +1013,7 @@ void __stdcall SpreadFire(Feature* f, Point16* cell)
     int lastX = cell->x;
     int lastZ = cell->z;
     for (int i = 5; i; i--) {
-        px.value += (int)(((__int64)g_game->windX * 0x20000) >> 16);
+        px.value += (int)(((__int64)g_game->windVelX * 0x20000) >> 16);
         pz.value += (int)(((__int64)g_game->windZ * 0x20000) >> 16);
         int x = px.f.whole;
         int z = pz.f.whole;
@@ -1217,7 +1217,7 @@ void __stdcall UpdateFeatures()
             }
         }
     }
-    int smoke = g_game->ticks % 3 == 0;
+    int smoke = g_game->gameTick % 3 == 0;
     int i = g_game->pool.usedHead;
     while (i != -1) {
         Spot* spot = &g_game->pool.entries[i];
@@ -1268,7 +1268,7 @@ void __stdcall UpdateFeatures()
 // FUNCTION: 0x4244b0
 void __stdcall DamageFeature(Cell* cell, int x, int z, Weapon* weapon)
 {
-    if (!(g_game->flags_37f2f & 8))
+    if (!(g_game->uiOptionFlags & 8))
         return;
     if (cell->feature >= 0xfffb)
         return;
@@ -1277,7 +1277,7 @@ void __stdcall DamageFeature(Cell* cell, int x, int z, Weapon* weapon)
         return;
     FeatureDamagePacket packet;
     int send;
-    if (g_game->net->GetGameType() == 3) {
+    if (g_game->mapInfo->GetGameType() == 3) {
         if (!(g_game->players[g_game->playerIndex].data->flags & 1)) {
             packet.type = 0xf;
             packet.sub = weapon->kind;

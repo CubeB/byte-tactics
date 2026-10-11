@@ -326,15 +326,15 @@ struct Game {
     unsigned short maxUnits;           // +0x37ee6
     char unknown_37ee8[0x37eee - 0x37ee8];
     int difficulty;                    // +0x37eee
-    char unknown_37ef2[4];
-    int mode;                          // +0x37ef6
+    char side[4];
+    int battleCommanderDeath;          // +0x37ef6
     char unknown_37efa[0x37f06 - 0x37efa];
     unsigned short b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1,
         b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;   // +0x37f06
     char unknown_37f08[0x37f5f - 0x37f08];
     Name_004864b0 names[8];            // +0x37f5f
     char unknown_390ef[0x391e9 - 0x390ef];
-    Mission* mission;                  // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
     MissionConditions* conditions;     // +0x391ed
 };
 #pragma pack(pop)
@@ -588,7 +588,7 @@ void __stdcall AllocateUnitMemory(void)
 // FUNCTION: 0x485940
 int __stdcall ComparePlayers(Player* a, Player* b)
 {
-    if (g_game->mission->GetGameType() == 3)
+    if (g_game->mapInfo->GetGameType() == 3)
         return a->id < b->id;
     return a < b;
 }
@@ -1121,7 +1121,7 @@ void __stdcall KillUnit(Unit* unit, int param_2)
             BroadcastPacket(unit->player->id, (unsigned char*)&cmd, 0xb);
         }
         ApplyUnitDeath(&cmd, 1);
-        if (same && g_game->mode != 0 && unit->player->active != 0 &&
+        if (same && g_game->battleCommanderDeath != 0 && unit->player->active != 0 &&
             (unit->player->type == 1 || unit->player->type == 2)) {
             PopUntilNamedLayout(1);
             KillPlayerUnits(unit->playerIndex);
@@ -1234,11 +1234,11 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
         Player* rec = &g_game->players[unit->lastAttackerSlot];
         if (rec->active != 0 && (rec->type == 1 || rec->type == 2 || rec->type == 3)
             && rec->index != 10
-            && (g_game->mission->GetGameType() == 3 || g_game->mission->GetGameType() == 2)
+            && (g_game->mapInfo->GetGameType() == 3 || g_game->mapInfo->GetGameType() == 2)
             && rec->rank > 0) {
             int rank = rec->rank;
             int best = rank;
-            int mine = g_game->mode == 2 ? rec->commanderKills : rec->kills;
+            int mine = g_game->battleCommanderDeath == 2 ? rec->commanderKills : rec->kills;
             int i = 10;
             Player* p = g_game->players;
             // do/while over a Player pointer: otherwise the frame grows.
@@ -1248,7 +1248,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
                     if (!hid) {
                         // Two compare arms: the compiler merges their setg.
                         int ahead;
-                        if (g_game->mode == 2)
+                        if (g_game->battleCommanderDeath == 2)
                             ahead = mine > p->commanderKills;
                         else
                             ahead = mine > p->kills;
@@ -1274,7 +1274,7 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
                 if (best == 0) {
                     char text[100];
                     sprintf(text, Translate(g_takenLeadFormat), rec->name,
-                            g_game->mode == 2 ? rec->commanderKills : rec->kills);
+                            g_game->battleCommanderDeath == 2 ? rec->commanderKills : rec->kills);
                     AddMessage(text, 2, 0, 10);
                 }
             }
@@ -1334,9 +1334,9 @@ void __stdcall ApplyUnitDeath(Cmd_004864b0* cmd, int local)
     unit->flags.all &= ~0x30;
     unit->player->unitCount--;
     if (unit->player->unitCount == 0) {
-        if (g_game->mission->GetGameType() == 3)
+        if (g_game->mapInfo->GetGameType() == 3)
             AnnouncePlayerLeft(unit->player->id);
-        if (g_game->mission->GetGameType() == 2)
+        if (g_game->mapInfo->GetGameType() == 2)
             AnnounceForcesDestroyed(unit->player);
     }
 }

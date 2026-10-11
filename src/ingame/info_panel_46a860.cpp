@@ -254,7 +254,7 @@ struct Game {
     int scrollX;                          // +0x1431f
     int scrollY;                         // +0x14323
     char unknown_14327[0x14353 - 0x14327];
-    int field_14353;                      // +0x14353
+    int activeUnitTickCount;              // +0x14353
     Unit_0046a860* units;                 // +0x14357
     char unknown_1435b[0x14367 - 0x1435b];
     int count;                            // +0x14367
@@ -336,7 +336,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         sprintf(text, "X: %d  Y: %d\n", g_game->scrollX, g_game->scrollY);
         DrawString(surface, (unsigned char*)text, 0x82, pfstate, -1);
 
-        sprintf(text, "UNITS %d\\%d\n", g_game->field_14353, g_game->count);
+        sprintf(text, "UNITS %d\\%d\n", g_game->activeUnitTickCount, g_game->count);
         DrawString(surface, (unsigned char*)text, 0x108, pfstate, -1);
 
         sprintf(text, "PACKETS: %d %d %d\n", g_game->players[1].nIncomingPacketCount,

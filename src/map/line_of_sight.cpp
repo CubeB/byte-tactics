@@ -306,7 +306,7 @@ struct Game {
     int viewPixelWidth;                // +0x37e37
     int viewPixelHeight;               // +0x37e3b
     char unknown_37e3f[0x37f06 - 0x37e3f];
-    Flags_004848e0 flags_37f06;        // +0x37f06
+    Flags_004848e0 visualFlags;        // +0x37f06
     char unknown_37f08[0x38a47 - 0x37f08];
     unsigned int gameTick;             // +0x38a47
     char unknown_38a4b[0x38d6b - 0x38a4b];
@@ -1428,13 +1428,13 @@ void __stdcall DrawFogOfWar(void* surface)
                 if (cell->level1 != 0) {
                     if (cell->level1 != 0xf) {
                         void* bmp = GetGafFrame(g_game->gray1Seq[(i + j + q) & 3], cell->level1 - 1);
-                        if (g_game->flags_37f06.ditheredFog) {
+                        if (g_game->visualFlags.ditheredFog) {
                             EraseFrameDithered(surface, bmp, r.left, r.top, parity);
                         } else {
                             DrawFrameGray(surface, bmp, r.left, r.top);
                         }
                     } else {
-                        if (g_game->flags_37f06.ditheredFog) {
+                        if (g_game->visualFlags.ditheredFog) {
                             DitherRectangle(surface, &r, parity);
                         } else {
                             GrayRectangle(surface, &r);

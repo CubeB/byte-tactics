@@ -30,7 +30,7 @@ struct Game {
     int scrollX;                       // +0x1431f
     int scrollY;                       // +0x14323
     char unknown_14327[0x147cf - 0x14327];
-    void* unknown_147cf;               // +0x147cf, the animation
+    void* smoke1;                      // +0x147cf, the animation
     char unknown_147d3[0x37ecc - 0x147d3];
     int windVelX;                      // +0x37ecc
     char unknown_37ed0[4];

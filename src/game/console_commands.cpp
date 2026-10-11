@@ -212,11 +212,11 @@ struct Game {
     int interfaceType;                 // +0x37efa
     char unknown_37efe[0x37f02 - 0x37efe];
     int screenChat;                    // +0x37f02
-    GameFlags flags;                   // +0x37f06
+    GameFlags visualFlags;             // +0x37f06
     int gamma;                         // +0x37f08
     char unknown_37f0c[0x37f2f - 0x37f0c];
     union {
-        unsigned short flags_37f2f;    // +0x37f2f
+        unsigned short uiOptionFlags;  // +0x37f2f
         struct {
             unsigned short b0 : 1;
             unsigned short b1 : 1;
@@ -258,7 +258,7 @@ struct Game {
     int fontSmlFont;                   // +0x391fd
     char unknown_39201[0x3923b - 0x39201];
     union {
-        unsigned short flags_3923b;    // +0x3923b
+        unsigned short endGameFlags;   // +0x3923b
         struct {
             unsigned short bits_3923b : 2;
             unsigned short flag2 : 1;
@@ -611,7 +611,7 @@ void __stdcall CmdFeature(CommandArgs* args)
 // FUNCTION: 0x416420
 void __stdcall CmdShading(int unused)
 {
-    g_game->flags.shading = !g_game->flags.shading;
+    g_game->visualFlags.shading = !g_game->visualFlags.shading;
     g_game->unitTable->FlushCache();
     SaveSettings();
 }
@@ -650,7 +650,7 @@ void __stdcall CmdZBuffer(int)
 // FUNCTION: 0x416510
 void __stdcall CmdAntiAlias(int unused)
 {
-    g_game->flags.antiAlias = !g_game->flags.antiAlias;
+    g_game->visualFlags.antiAlias = !g_game->visualFlags.antiAlias;
     g_game->unitTable->FlushCache();
     SaveSettings();
 }
@@ -659,7 +659,7 @@ void __stdcall CmdAntiAlias(int unused)
 // FUNCTION: 0x416550
 void __stdcall CmdShadow(int unused)
 {
-    g_game->flags.shadows = !g_game->flags.shadows;
+    g_game->visualFlags.shadows = !g_game->visualFlags.shadows;
     g_game->unitTable->FlushCache();
     SaveSettings();
 }
@@ -667,7 +667,7 @@ void __stdcall CmdShadow(int unused)
 // FUNCTION: 0x416590
 void __stdcall CmdDither(int unused)
 {
-    g_game->flags.ditheredFog = !g_game->flags.ditheredFog;
+    g_game->visualFlags.ditheredFog = !g_game->visualFlags.ditheredFog;
     SaveSettings();
 }
 
@@ -675,18 +675,18 @@ void __stdcall CmdDither(int unused)
 void __stdcall CmdSwitchAlt(CommandArgs* args)
 {
     if (args->count < 2) {
-        g_game->flags.switchAlt = !g_game->flags.switchAlt;
+        g_game->visualFlags.switchAlt = !g_game->visualFlags.switchAlt;
         SaveSettings();
         return;
     }
-    g_game->flags.switchAlt = args->GetIntArg(1, 0);
+    g_game->visualFlags.switchAlt = args->GetIntArg(1, 0);
 }
 
 // Toggles one flag bit in a 16-bit bitfield inside the game state.
 // FUNCTION: 0x416630
 void __stdcall CmdTShadow(int unused)
 {
-    g_game->flags.vehicleShadows = !g_game->flags.vehicleShadows;
+    g_game->visualFlags.vehicleShadows = !g_game->visualFlags.vehicleShadows;
 }
 
 // Toggles one flag bit in a 16-bit bitfield inside the game state (the same
@@ -694,7 +694,7 @@ void __stdcall CmdTShadow(int unused)
 // FUNCTION: 0x416660
 void __stdcall CmdFShadow(int unused)
 {
-    g_game->flags.featureShadows = !g_game->flags.featureShadows;
+    g_game->visualFlags.featureShadows = !g_game->visualFlags.featureShadows;
 }
 
 // FUNCTION: 0x416690
@@ -951,14 +951,14 @@ void __stdcall CmdNow(CommandArgs* args)
         !strcmp(args->GetArg(3,DAT_005119b8),"Include") &&
         !strcmp(args->GetArg(4,DAT_005119b8),"Reload") &&
         !strcmp(args->GetArg(5,DAT_005119b8),"Assert"))
-        g_game->flags_37f2f|=2;
-    else g_game->flags_37f2f&=~2;
+        g_game->uiOptionFlags|=2;
+    else g_game->uiOptionFlags&=~2;
 }
 
 // FUNCTION: 0x417030
 void __stdcall CmdDoubleShot(int unused)
 {
-    unsigned short* ptr = &g_game->flags_37f2f;
+    unsigned short* ptr = &g_game->uiOptionFlags;
     unsigned short ax = *ptr;
     unsigned short edx = ax;
     edx = (unsigned short)(~edx);
@@ -1302,7 +1302,7 @@ void __stdcall DefaultCommandHandler(CommandArgs* args)
 // FUNCTION: 0x417a60
 void __stdcall CmdDebugBreak(CommandArgs* args)
 {
-    if ((g_game->flags_37f2f & 2) && (g_game->flags_3923b & 2)) {
+    if ((g_game->uiOptionFlags & 2) && (g_game->endGameFlags & 2)) {
         if (args->count > 0) {
             if (args->GetIntArg(1, 0) == 1) {
                 for (;;)

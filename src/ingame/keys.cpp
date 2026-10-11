@@ -148,9 +148,9 @@ struct Game {
     unsigned short unitIndex;           // +0x37e9c
     char unknown_37e9e[0x37ea0 - 0x37e9e];
     char guiName[0x37ebe - 0x37ea0];
-    Flags_00495e90_37ebe flags_37ebe;   // +0x37ebe
+    Flags_00495e90_37ebe ordersPanelFlags; // +0x37ebe
     char unknown_37ec0[0x37f06 - 0x37ec0];
-    Flags_00495e90_37f06 flags_37f06;   // +0x37f06
+    Flags_00495e90_37f06 visualFlags;   // +0x37f06
     char unknown_37f08[0x37f27 - 0x37f08];
     int textLines;                      // +0x37f27
     char unknown_37f2b[0x37f2f - 0x37f2b];
@@ -180,7 +180,7 @@ struct Game {
     char unknown_391bf[0x391e9 - 0x391bf];
     Mission* mapInfo;                   // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
-    Flags_00495e90_3923b flags_3923b;   // +0x3923b
+    Flags_00495e90_3923b endGameFlags;  // +0x3923b
 };
 
 #pragma pack(pop)
@@ -466,8 +466,8 @@ void HandleGameKey(void)
     // Case bodies stay in the original physical order: the jump table depends on it.
     switch (event) {
     case 0x1b:
-        if (g_game->flags_37ebe.b0) {
-            g_game->flags_37ebe.b0 = 0;
+        if (g_game->ordersPanelFlags.b0) {
+            g_game->ordersPanelFlags.b0 = 0;
             int r = IsScreenNamed(&g_game->gui, g_game->guiName);
             if (r == 0) {
                 g_game->unitIndex = 0;
@@ -509,7 +509,7 @@ void HandleGameKey(void)
     case 0x37:
     case 0x38:
     case 0x39:
-        if (g_game->flags_37f06.b8) {
+        if (g_game->visualFlags.b8) {
             if (IsKeyDown(0xfb) != 0) {
                 OpenBuildMenuPage(event - 0x31);
             } else {
@@ -546,7 +546,7 @@ void HandleGameKey(void)
     case 0x2a:
     case 0x60:
     case 0x7e:
-        g_game->flags_37f06.b0 = !g_game->flags_37f06.b0;
+        g_game->visualFlags.b0 = !g_game->visualFlags.b0;
         SaveSettings();
         break;
 
@@ -584,7 +584,7 @@ void HandleGameKey(void)
 
     case 9:
         if (g_game->mapInfo->GetGameType() == 3) {
-            if (!g_game->flags_37ebe.b2)
+            if (!g_game->ordersPanelFlags.b2)
                 ToggleTabMenu();
             break;
         }
@@ -598,9 +598,9 @@ void HandleGameKey(void)
                 g_game->unitBuilderHoverTrack = 0;
             }
         } else {
-            if (!g_game->flags_37ebe.b0) {
+            if (!g_game->ordersPanelFlags.b0) {
                 OpenInGameOptions();
-                g_game->flags_37ebe.b0 = 1;
+                g_game->ordersPanelFlags.b0 = 1;
             }
         }
         break;
@@ -643,11 +643,11 @@ void HandleGameKey(void)
 
     case 0xec:
         if (g_game->flags_37f2f.b1) {
-            g_game->flags_3923b.b1 = !g_game->flags_3923b.b1;
-            if (g_game->flags_3923b.b1) {
+            g_game->endGameFlags.b1 = !g_game->endGameFlags.b1;
+            if (g_game->endGameFlags.b1) {
                 SetDescListCleanupFlag(&g_game->gui, 0);
             } else {
-                g_game->flags_3923b.b0 = 0;
+                g_game->endGameFlags.b0 = 0;
                 g_game->debugMode = 0;
                 SetDescListCleanupFlag(&g_game->gui, 1);
             }
@@ -660,7 +660,7 @@ void HandleGameKey(void)
         break;
 
     case 0xe5:
-        g_game->flags_37f06.b7 = !g_game->flags_37f06.b7;
+        g_game->visualFlags.b7 = !g_game->visualFlags.b7;
         break;
 
     case 0xed:
@@ -753,7 +753,7 @@ void HandleGameKey(void)
 
     case 0x2d:
     case 0x5f:
-        if (!(g_game->flags_3923b.raw & 2)) {
+        if (!(g_game->endGameFlags.raw & 2)) {
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
             if (pl->valid != 0 && (pl->data->flags_9b & 0x40) != 0)
                 break;
@@ -765,7 +765,7 @@ void HandleGameKey(void)
 
     case 0x2b:
     case 0x3d:
-        if (!(g_game->flags_3923b.raw & 2)) {
+        if (!(g_game->endGameFlags.raw & 2)) {
             Player_495e90* pl = &g_game->players[g_game->localPlayer];
             if (pl->valid != 0 && (pl->data->flags_9b & 0x40) != 0)
                 break;
@@ -779,6 +779,6 @@ void HandleGameKey(void)
         break;
     }
 
-    if (g_game->flags_3923b.b1)
+    if (g_game->endGameFlags.b1)
         HandleDebugHotkey(event);
 }

@@ -155,7 +155,7 @@ struct Game {
     char saveName[0x38d6b - 0x38c6b];    // +0x38c6b
     HapiBank* pendingSaveStore;          // +0x38d6b
     char unknown_38d6f[0x391cf - 0x38d6f];
-    char buf391cf[0x391e9 - 0x391cf];    // +0x391cf
+    char campaignMissionStatus[0x391e9 - 0x391cf]; // +0x391cf
     Mission* mapInfo;                    // +0x391e9
     char unknown_391ed[0x391f1 - 0x391ed];
     int frontendState;                   // +0x391f1
@@ -488,8 +488,8 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             goto invalid;
         strcpy((char*)&g_game->options->aMapName[0], mission);
         char* thumbs = (g_game->pendingSaveStore)->GetStringItem("Thumbs", 0);
-        strncpy(g_game->buf391cf, thumbs, 0x19);
-        if (strlen(g_game->buf391cf) != 0x19)
+        strncpy(g_game->campaignMissionStatus, thumbs, 0x19);
+        if (strlen(g_game->campaignMissionStatus) != 0x19)
             InitMissionStatus();
         if (g_game->mapInfo->GetGameType() == 2) {
             (g_game->pendingSaveStore)->OpenAccount("summary");

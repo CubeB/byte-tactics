@@ -99,9 +99,9 @@ struct Game {
     char unknown_1428b[0x1439b - 0x1428b];
     UnitDef* unitDefs;                 // +0x1439b
     char unknown_1439f[0x38a47 - 0x1439f];
-    int ticks;                         // +0x38a47
+    int gameTick;                      // +0x38a47
     char unknown_38a4b[0x391e9 - 0x38a4b];
-    Mission* net;                      // +0x391e9
+    Mission* mapInfo;                  // +0x391e9
 };
 
 struct FeatureDamagePacket {
@@ -205,7 +205,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
             box.hi.z += f->footprintZ << 20;
             box.hi.y += f->height << 16;
             EmitNanoParticles(&nano, &box, 6);
-            unit->workTime = g_game->ticks + 300;
+            unit->workTime = g_game->gameTick + 300;
             order->SetDeadlineTicks(1);
             return 2;
         }
@@ -224,7 +224,7 @@ int __stdcall ResurrectOrder(Unit* unit, Order* order, int flags)
         if (spot)
             order->target.owner->angles = spot->rot;
         RemoveFeature(GetMapCellAtPosition(&order->pos), 0);
-        if (g_game->net->GetGameType() == 3) {
+        if (g_game->mapInfo->GetGameType() == 3) {
             FeatureDamagePacket packet;
             int n = c - g_game->heightMap;
             int w = g_game->mapWidthTiles;

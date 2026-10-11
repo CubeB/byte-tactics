@@ -248,7 +248,7 @@ struct Game {
     char unknown_1481b[0x148db - 0x1481b];
     void* logos32;                     // +0x148db
     char unknown_148df[0x37e1b - 0x148df];
-    void* surface;                     // +0x37e1b
+    void* offscreen;                   // +0x37e1b
     int screenWidth;                   // +0x37e1f
     int screenHeight;                  // +0x37e23
     char unknown_37e27[0x37eee - 0x37e27];
@@ -288,7 +288,7 @@ struct Game {
     int mission;                       // +0x391ab
     int won;                           // +0x391af
     char unknown_391b3[0x391cf - 0x391b3];
-    char missionFlags[0x1a];           // +0x391cf
+    char campaignMissionStatus[0x1a];  // +0x391cf
     Mission* mapInfo;                  // +0x391e9
     char unknown_391ed[0x3923b - 0x391ed];
     unsigned short bits0_3923b : 2;    // +0x3923b
@@ -418,8 +418,8 @@ void __stdcall SetMissionStatus(int param1, int param2, int param3)
 // FUNCTION: 0x41da30
 void InitMissionStatus(void)
 {
-    memset(&g_game->missionFlags[0], 0x55, 25);
-    g_game->missionFlags[25] = 0;
+    memset(&g_game->campaignMissionStatus[0], 0x55, 25);
+    g_game->campaignMissionStatus[25] = 0;
 }
 
 // Sets up the end-of-mission screen: allocates the fade table and palette
@@ -854,7 +854,7 @@ static inline int HasNextMission()
 void __stdcall OpenEndMissionScreen()
 {
     BlankScreen();
-    FillSurface(g_game->surface, 0);
+    FillSurface(g_game->offscreen, 0);
     FlipScreen();
     Layer* layer = LoadGuiLayer(&g_game->gui, "ENDMSN.GUI", 0x80);
     layer->handler = (void (__stdcall*)(void*))HandleEndMissionClick;
@@ -874,13 +874,13 @@ void __stdcall OpenEndMissionScreen()
     next = HasNextMission();
     if (next) {
         int count = g_game->mapInfo->BuildMissionList((int*)&data->items);
-        data->items = BuildScrollItems1((char*)data->items, g_game->missionFlags, count);
+        data->items = BuildScrollItems1((char*)data->items, g_game->campaignMissionStatus, count);
         // Suspected original bug: this finds the first 'U' mission flag but
         // the index is never used (perhaps a lost "select the first
         // unplayed mission" step).
         int i;
         for (i = 0; i < 0x19; i++) {
-            if (g_game->missionFlags[i] == 'U')
+            if (g_game->campaignMissionStatus[i] == 'U')
                 break;
         }
         ConfigureListBoxByName(&g_game->gui, "Missions", data->items, count, 0);
@@ -995,8 +995,8 @@ int DrawEndGameFrame()
 {
     if (g_game->state == 1) {
         Display* d = GetDisplay();
-        DrawSurface(g_game->surface, g_game->lastFrame, d->width, d->height);
-        DrawMessages(g_game->surface);
+        DrawSurface(g_game->offscreen, g_game->lastFrame, d->width, d->height);
+        DrawMessages(g_game->offscreen);
         UpdateMenu(&g_game->gui);
         BlitMenuLayers(&g_game->gui, 0, 0);
         ShowSoftwareCursor();
@@ -1036,14 +1036,14 @@ void __stdcall RunEndGameState()
     char text[64];
     int event[6];
     unsigned palette[256];
-    SetOffscreenSurface(g_game->surface);
+    SetOffscreenSurface(g_game->offscreen);
     HandleNetPackets();
     switch(g_game->state) {
     case 0:
         if(g_game->mapInfo->GetGameType()==3) {
             Display* e=GetDisplay();
             g_game->lastFrame=AllocSurface("Copy of last game frame",e->width,e->height);
-            DrawSurface(g_game->lastFrame,g_game->surface,e->width,e->height);
+            DrawSurface(g_game->lastFrame,g_game->offscreen,e->width,e->height);
             ReportGameEvent(7);
             g_game->state=1;
             Player* player=&g_game->players[g_game->localPlayer];
@@ -1060,8 +1060,8 @@ void __stdcall RunEndGameState()
         if(IsScreenNamed(&g_game->gui,"MSGBOX.GUI")) {
             if(g_game->state==1) {
                 Display* e=GetDisplay();
-                DrawSurface(g_game->surface,g_game->lastFrame,e->width,e->height);
-                DrawMessages(g_game->surface);
+                DrawSurface(g_game->offscreen,g_game->lastFrame,e->width,e->height);
+                DrawMessages(g_game->offscreen);
                 UpdateMenu(&g_game->gui);
                 BlitMenuLayers(&g_game->gui,0,0);
                 ShowSoftwareCursor();
@@ -1088,7 +1088,7 @@ void __stdcall RunEndGameState()
             }
         } else {
             Force640x480Surfaces(); g_game->state=4;
-            SetOffscreenSurface(g_game->surface);
+            SetOffscreenSurface(g_game->offscreen);
         }
         break;
     case 4:
@@ -1115,7 +1115,7 @@ void __stdcall RunEndGameState()
             StartPaletteFade(g_game->palette_3907f,(unsigned char*)palette,5);
             g_game->nextTime=GetTicks()+1;
             g_game->state=6;
-            DrawSurface(g_game->surface,g_game->image_3907b,0,0);
+            DrawSurface(g_game->offscreen,g_game->image_3907b,0,0);
         } else {
             OpenEndMissionScreen(); FillEndGameStatistics(); EnableEndMissionButtons();
             MarkLayerChanged(&g_game->gui); MarkChanged(&g_game->gui);
@@ -1142,7 +1142,7 @@ void __stdcall RunEndGameState()
                 }
                 unsigned deadline=GetTickRate()*5+g_game->deadline;
                 if(deadline<GetTicks())
-                    DrawOutlinedString(g_game->surface,Translate("Click to continue."),g_game->gui.colours[0],g_game->gui.colours[0xf],g_game->screenHeight-20);
+                    DrawOutlinedString(g_game->offscreen,Translate("Click to continue."),g_game->gui.colours[0],g_game->gui.colours[0xf],g_game->screenHeight-20);
             }
         }
         break;

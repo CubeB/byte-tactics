@@ -99,13 +99,13 @@ struct Game {
     int interfaceType;                   // +0x37efa
     char unknown_37efe[0x37f02 - 0x37efe];
     int screenChat;                      // +0x37f02
-    Flags_0042f9a0 flags_37f06;          // +0x37f06
+    Flags_0042f9a0 visualFlags;          // +0x37f06
     int gamma;                           // +0x37f08
     int fxVolume;                        // +0x37f0c
     int musicVolume;                     // +0x37f10
     union {
-        unsigned char musicmode;         // +0x37f14
-        MusicFlags_0042f9a0 musicFlags_37f14;
+        unsigned char musicMode;         // +0x37f14
+        MusicFlags_0042f9a0 musicFlags;
     };
     unsigned char cdMode;                // +0x37f16
     unsigned char unitChat;              // +0x37f17
@@ -116,7 +116,7 @@ struct Game {
     int textScroll;                      // +0x37f23
     int textLines;                       // +0x37f27
     int mousespeed;                      // +0x37f2b
-    ClockFlags_0042f9a0 flags_37f2f;     // +0x37f2f
+    ClockFlags_0042f9a0 uiOptionFlags;   // +0x37f2f
     char unknown_37f31[0x38a4b - 0x37f31];
     unsigned short speedCtrl;            // +0x38a4b
     unsigned short effectiveGameSpeed;   // +0x38a4d
@@ -127,7 +127,7 @@ struct Game {
     int imageOutputDirDirty;             // +0x38c5f
     int movieOutputRateDirty;            // +0x38c63
     char unknown_38c67[0x38d7f - 0x38c67];
-    MissionFlags_0042f9a0 missionFlags;  // +0x38d7f
+    MissionFlags_0042f9a0 allMissionsFlags; // +0x38d7f
     int numSkirmishPlayers;              // +0x38d81
     char unknown_38d85[0x391e9 - 0x38d85];
     Mission* mapInfo;                    // +0x391e9
@@ -277,10 +277,10 @@ void LoadSettings()
     ReadSettingInt("screenchat", &Game::screenChat, 1, value);
     int ok12 = ReadRegistryDword("Total Annihilation", "damagebars", &value);
     if (ok12 != 0) {
-        g_game->flags_37f06.damagebars = value;
+        g_game->visualFlags.damagebars = value;
     } else {
-        g_game->flags_37f06.damagebars = 0;
-        WriteRegistryDword("Total Annihilation", "damagebars", g_game->flags_37f06.damagebars);
+        g_game->visualFlags.damagebars = 0;
+        WriteRegistryDword("Total Annihilation", "damagebars", g_game->visualFlags.damagebars);
     }
     int ok13 = ReadRegistryDword("Total Annihilation", "Sound Mode", &value);
     if (ok13 != 0) {
@@ -319,45 +319,45 @@ void LoadSettings()
     }
     int ok18 = ReadRegistryDword("Total Annihilation", "Anti-Alias", &value);
     if (ok18 != 0) {
-        g_game->flags_37f06.antiAlias = value;
+        g_game->visualFlags.antiAlias = value;
     } else {
-        g_game->flags_37f06.antiAlias = 1;
-        WriteRegistryDword("Total Annihilation", "Anti-Alias", g_game->flags_37f06.antiAlias);
+        g_game->visualFlags.antiAlias = 1;
+        WriteRegistryDword("Total Annihilation", "Anti-Alias", g_game->visualFlags.antiAlias);
     }
     int ok19 = ReadRegistryDword("Total Annihilation", "Shadows", &value);
     if (ok19 != 0) {
-        g_game->flags_37f06.shadows = value;
+        g_game->visualFlags.shadows = value;
     } else {
-        g_game->flags_37f06.shadows = 1;
-        WriteRegistryDword("Total Annihilation", "Shadows", g_game->flags_37f06.shadows);
+        g_game->visualFlags.shadows = 1;
+        WriteRegistryDword("Total Annihilation", "Shadows", g_game->visualFlags.shadows);
     }
     int ok20 = ReadRegistryDword("Total Annihilation", "FeatureShadows", &value);
     if (ok20 != 0) {
-        g_game->flags_37f06.featureShadows = value;
+        g_game->visualFlags.featureShadows = value;
     } else {
-        g_game->flags_37f06.featureShadows = 1;
-        WriteRegistryDword("Total Annihilation", "FeatureShadows", g_game->flags_37f06.featureShadows);
+        g_game->visualFlags.featureShadows = 1;
+        WriteRegistryDword("Total Annihilation", "FeatureShadows", g_game->visualFlags.featureShadows);
     }
     int ok21 = ReadRegistryDword("Total Annihilation", "VehicleShadows", &value);
     if (ok21 != 0) {
-        g_game->flags_37f06.vehicleShadows = value;
+        g_game->visualFlags.vehicleShadows = value;
     } else {
-        g_game->flags_37f06.vehicleShadows = 1;
-        WriteRegistryDword("Total Annihilation", "VehicleShadows", g_game->flags_37f06.vehicleShadows);
+        g_game->visualFlags.vehicleShadows = 1;
+        WriteRegistryDword("Total Annihilation", "VehicleShadows", g_game->visualFlags.vehicleShadows);
     }
     int ok22 = ReadRegistryDword("Total Annihilation", "Shading", &value);
     if (ok22 != 0) {
-        g_game->flags_37f06.shading = value;
+        g_game->visualFlags.shading = value;
     } else {
-        g_game->flags_37f06.shading = 1;
-        WriteRegistryDword("Total Annihilation", "Shading", g_game->flags_37f06.shading);
+        g_game->visualFlags.shading = 1;
+        WriteRegistryDword("Total Annihilation", "Shading", g_game->visualFlags.shading);
     }
     int ok23 = ReadRegistryDword("Total Annihilation", "DitheredFog", &value);
     if (ok23 != 0) {
-        g_game->flags_37f06.ditheredFog = value;
+        g_game->visualFlags.ditheredFog = value;
     } else {
-        g_game->flags_37f06.ditheredFog = 0;
-        WriteRegistryDword("Total Annihilation", "DitheredFog", g_game->flags_37f06.ditheredFog);
+        g_game->visualFlags.ditheredFog = 0;
+        WriteRegistryDword("Total Annihilation", "DitheredFog", g_game->visualFlags.ditheredFog);
     }
     if (ReadRegistryDword("Total Annihilation", "Gamma", &value) != 0) {
         if (value == 10) {
@@ -370,10 +370,10 @@ void LoadSettings()
         WriteRegistryDword("Total Annihilation", "Gamma", g_game->gamma);
     }
     if (ReadRegistryDword("Total Annihilation", "SwitchAlt", &value) != 0) {
-        g_game->flags_37f06.switchAlt = value;
+        g_game->visualFlags.switchAlt = value;
     } else {
-        g_game->flags_37f06.switchAlt = 0;
-        WriteRegistryDword("Total Annihilation", "SwitchAlt", g_game->flags_37f06.switchAlt);
+        g_game->visualFlags.switchAlt = 0;
+        WriteRegistryDword("Total Annihilation", "SwitchAlt", g_game->visualFlags.switchAlt);
     }
     value = 0xb;
     if (ReadRegistryData("Total Annihilation", "Password", g_game->password, &value) == 0) {
@@ -426,9 +426,9 @@ void LoadSettings()
         g_game->unitChatText = 5;
     }
     if (ReadRegistryDword("Total Annihilation", "musicmode", &value) != 0) {
-        g_game->musicFlags_37f14.musicmode = value;
+        g_game->musicFlags.musicmode = value;
     } else {
-        g_game->musicFlags_37f14.musicmode = 1;
+        g_game->musicFlags.musicmode = 1;
     }
     if (ReadRegistryDword("Total Annihilation", "cdmode", &value) != 0) {
         g_game->cdMode = (unsigned char)value;
@@ -453,9 +453,9 @@ void LoadSettings()
     ReadSettingIntOr("fxvol", &Game::fxVolume, 0x1b, value);
     ReadSettingIntOr("musicvol", &Game::musicVolume, 0x20, value);
     if (ReadRegistryDword("Total Annihilation", "clock", &value) != 0) {
-        g_game->flags_37f2f.clock = value;
+        g_game->uiOptionFlags.clock = value;
     } else {
-        g_game->flags_37f2f.clock = 0;
+        g_game->uiOptionFlags.clock = 0;
     }
     if (ReadRegistryDword("Total Annihilation", "NumSkirmishPlayers", &value) != 0) {
         if (value > 1 && value <= 10) {
@@ -519,19 +519,19 @@ void LoadSettings()
     if (value == 0x100) {
         int ok28 = ReadRegistryDword("Total Annihilation", "Games", &value);
         if (ok28 == 0) value=0;
-        if (value == 1) g_game->flags_37f2f.bit1=1;
-        else g_game->flags_37f2f.bit1=0;
-    } else g_game->flags_37f2f.bit1=0;
+        if (value == 1) g_game->uiOptionFlags.bit1=1;
+        else g_game->uiOptionFlags.bit1=0;
+    } else g_game->uiOptionFlags.bit1=0;
 label_430e7f:
-    g_game->flags_37f2f.bit2 = 1;
-    g_game->flags_37f2f.bit3 = 1;
-    g_game->flags_37f2f.bit4 = 0;
+    g_game->uiOptionFlags.bit2 = 1;
+    g_game->uiOptionFlags.bit3 = 1;
+    g_game->uiOptionFlags.bit4 = 0;
     int ok29 = ReadRegistryDword("Total Annihilation", "AllMissions", &value);
     if (ok29 != 0) {
-        g_game->missionFlags.allMissions = value;
+        g_game->allMissionsFlags.allMissions = value;
         return;
     }
-    g_game->missionFlags.allMissions = 0;
+    g_game->allMissionsFlags.allMissions = 0;
 }
 
 // Writes every option back out to the config tree: the display, sound and
@@ -555,7 +555,7 @@ void SaveSettings()
     WriteRegistryDword("Total Annihilation", "SingleLineOfSight", g_game->lineOfSight);
     WriteRegistryDword("Total Annihilation", "SingleLOSType", g_game->singleLOSType);
     WriteRegistryDword("Total Annihilation", "screenchat", g_game->screenChat);
-    WriteRegistryDword("Total Annihilation", "damagebars", g_game->flags_37f06.damagebars);
+    WriteRegistryDword("Total Annihilation", "damagebars", g_game->visualFlags.damagebars);
     WriteRegistryDword("Total Annihilation", "Sound Mode", g_game->soundFlags.soundMode);
     WriteRegistryDword("Total Annihilation", "RestoreVolume", g_game->soundFlags.restoreVolume);
     WriteRegistryDword("Total Annihilation", "MixingBuffers",
@@ -566,15 +566,15 @@ void SaveSettings()
         WriteRegistryDword("Total Annihilation", "CDAudioVolume",
                      g_game->sound->QueryAuxVolume());
     }
-    WriteRegistryDword("Total Annihilation", "Anti-Alias", g_game->flags_37f06.antiAlias);
-    WriteRegistryDword("Total Annihilation", "Shadows", g_game->flags_37f06.shadows);
-    WriteRegistryDword("Total Annihilation", "FeatureShadows", g_game->flags_37f06.featureShadows);
-    WriteRegistryDword("Total Annihilation", "VehicleShadows", g_game->flags_37f06.vehicleShadows);
-    WriteRegistryDword("Total Annihilation", "Shading", g_game->flags_37f06.shading);
-    WriteRegistryDword("Total Annihilation", "DitheredFog", g_game->flags_37f06.ditheredFog);
+    WriteRegistryDword("Total Annihilation", "Anti-Alias", g_game->visualFlags.antiAlias);
+    WriteRegistryDword("Total Annihilation", "Shadows", g_game->visualFlags.shadows);
+    WriteRegistryDword("Total Annihilation", "FeatureShadows", g_game->visualFlags.featureShadows);
+    WriteRegistryDword("Total Annihilation", "VehicleShadows", g_game->visualFlags.vehicleShadows);
+    WriteRegistryDword("Total Annihilation", "Shading", g_game->visualFlags.shading);
+    WriteRegistryDword("Total Annihilation", "DitheredFog", g_game->visualFlags.ditheredFog);
     WriteRegistryDword("Total Annihilation", "Difficulty", g_game->difficulty);
     WriteRegistryDword("Total Annihilation", "Gamma", g_game->gamma);
-    WriteRegistryDword("Total Annihilation", "SwitchAlt", g_game->flags_37f06.switchAlt);
+    WriteRegistryDword("Total Annihilation", "SwitchAlt", g_game->visualFlags.switchAlt);
     WriteRegistryString("Total Annihilation", "Password", g_game->password);
     WriteRegistryString("Total Annihilation", "Nickname", g_game->nickname);
     WriteRegistryString("Total Annihilation", "Game Name", g_game->gameName);
@@ -593,8 +593,8 @@ void SaveSettings()
     WriteRegistryDword("Total Annihilation", "textscroll", g_game->textScroll);
     WriteRegistryDword("Total Annihilation", "mousespeed", g_game->mousespeed);
     WriteRegistryDword("Total Annihilation", "gamespeed", g_game->speedCtrl);
-    WriteRegistryDword("Total Annihilation", "clock", g_game->flags_37f2f.clock);
-    WriteRegistryDword("Total Annihilation", "musicmode", g_game->musicmode & 1);
+    WriteRegistryDword("Total Annihilation", "clock", g_game->uiOptionFlags.clock);
+    WriteRegistryDword("Total Annihilation", "musicmode", g_game->musicMode & 1);
     WriteRegistryDword("Total Annihilation", "cdmode", g_game->cdMode);
     WriteRegistryDword("Total Annihilation", "ackfx", g_game->soundFlags.ackfx);
     WriteRegistryDword("Total Annihilation", "buildfx", g_game->soundFlags.buildfx);

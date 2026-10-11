@@ -75,10 +75,14 @@ jobs:
     steps:
       # pull_request_target would check out main. The head sha is pinned when
       # the event fires, so a push after approval does not change what runs.
+      # checkout refuses a fork's code in a pull_request_target run unless told
+      # to: here the fork-ci approval, the read-only token and the art-only
+      # secret are what make it safe, so fork runs opt in.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || '' }}
           persist-credentials: false
+          allow-unsafe-pr-checkout: ${{ github.event_name == 'pull_request_target' }}
 
       - name: Install Wine, 7-Zip and cabextract
         run: |

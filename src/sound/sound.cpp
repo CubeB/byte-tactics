@@ -199,7 +199,7 @@ extern Message_0047fad0 g_speechTypes[24];
 extern int g_noDirectSound;            // NoDirectSound
 extern int g_useWindowsSound;          // UseWindowsSound
 extern int g_playLooping;
-extern int DAT_0051e698;
+extern int g_cmdSingEnabled;
 
 extern char g_noDirectSoundKey[]; // "NoDirectSound"
 extern char g_useWindowsSoundKey[]; // "UseWindowsSound"
@@ -749,7 +749,7 @@ void SpeechQueue::PlaySpeech(int index, int param_2, int param_3)
     if ((int)e->priority > 10 - g_game->unitChat && count > 0 && param_2 != 0
         && (g_game->flags_37f19 & 0x40)) {
         char* name;
-        if (DAT_0051e698)
+        if (g_cmdSingEnabled)
             name = ((g_game->gameTick / 30) & 7) ? "sing" : "honk";
         else
             name = cat->slots[slot].table1 + idx * 0x40;

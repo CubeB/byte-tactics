@@ -18,7 +18,7 @@
 
 #pragma pack(push, 1)
 
-// The layer Gui+0x18 (Game+0x531) points at, as 0x495860 named it: the gadget
+// The layer Gui+0x18 (Game+0x531) points at: the gadget
 // array pointer is read as an int here.
 struct Layer {
     int unknown_0;

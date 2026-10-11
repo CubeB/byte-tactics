@@ -414,18 +414,21 @@ unsigned char Unit::ChooseWeapon()
 }
 
 #pragma pack(push, 1)
-struct Dmg_00489bb0 {              // 9 bytes, the record ApplyUnitDamage takes
-    unsigned char kind;            // +0x0, 11 here, never read by that callee
-    short team_target;             // +0x1
-    short team_source;             // +0x3
+// The send side's view of the 9 byte damage packet (type 0xb); the receiver's
+// view, UnitDamagePacket, is below. Both stay: two views of one type cannot
+// share a name in one file without moving a declaration.
+struct UnitDamagePacketOut {
+    unsigned char type;            // +0x0, 11 here, never read by that callee
+    short victimId;                // +0x1, the unit that takes the damage
+    short attackerId;              // +0x3, the unit that deals it, 0 for none
     short amount;                  // +0x5
-    unsigned char extra;           // +0x7
-    unsigned char type;            // +0x8, the damage type
+    unsigned char headingByte;     // +0x7, high byte of the 16-bit heading
+    unsigned char damageKind;      // +0x8, the damage type
 };
 #pragma pack(pop)
 
-void __stdcall ApplyUnitDamage(Dmg_00489bb0* dmg);
-void __stdcall BroadcastPacket(int who, Dmg_00489bb0* dmg, int size);
+void __stdcall ApplyUnitDamage(UnitDamagePacketOut* dmg);
+void __stdcall BroadcastPacket(int who, UnitDamagePacketOut* dmg, int size);
 int __cdecl GetLocalDpid(void);
 
 // Works out how much damage one unit does to another and hands the result to
@@ -451,14 +454,14 @@ void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type, unsi
     } else {
         dmg = amount;
     }
-    Dmg_00489bb0 d;
-    d.kind = 11;
-    d.team_target = !target ? 0 : target->id;
-    d.team_source = !source ? 0 : source->id;
+    UnitDamagePacketOut d;
+    d.type = 11;
+    d.victimId = !target ? 0 : target->id;
+    d.attackerId = !source ? 0 : source->id;
     d.amount = dmg;
     // extra is a 16-bit value of which only the high byte reaches the record.
-    d.extra = (unsigned char)(extra >> 8);
-    d.type = type;
+    d.headingByte = (unsigned char)(extra >> 8);
+    d.damageKind = type;
     ApplyUnitDamage(&d);
     if (target->player->active != 0 && target->player->type == 3 && type != 11) {
         // The call is written in both arms: a ternary argument merges the tails.
@@ -474,13 +477,13 @@ void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type, unsi
 #include "../orders/order.h"
 
 #pragma pack(push, 1)
-struct Event_00489ce0 {
-    unsigned char type;                // +0x0, unused here
-    unsigned short attacker;           // +0x1
-    unsigned short target;             // +0x3
+struct UnitDamagePacket {
+    unsigned char type;                // +0x0, 0xb, unused here
+    unsigned short victimId;           // +0x1, the unit that takes the damage
+    unsigned short attackerId;         // +0x3, the unit that deals it, 0 for none
     unsigned short amount;             // +0x5
-    unsigned char param_7;             // +0x7
-    unsigned char kind;                // +0x8
+    unsigned char headingByte;         // +0x7, high byte of the hit direction
+    unsigned char damageKind;          // +0x8
 };
 #pragma pack(pop)
 
@@ -495,9 +498,11 @@ void __stdcall AddCdActivitySample(int flag);
 int __cdecl FUN_004b7123(unsigned short idx, int scale);
 int __cdecl FUN_004b70ef(short idx, int scale);
 
-// Applies one damage/heal event record (a small struct on the caller's stack:
-// byte type at +0, two unit ids at +1 and +3, an amount at +5, a byte at +7
-// and the event kind at +8) to the unit named by the first id.
+// Applies one damage/heal packet (type 0xb, 9 bytes: the type byte, the victim
+// unit id at +1, the attacker unit id at +3, an amount at +5, the heading byte
+// at +7 and the damage kind at +8) to the victim. Here `unit` is the victim and
+// `target` the attacker, which the victim records as its last attacker.
+// DamageUnit builds the packet, the network handler passes received ones in.
 //
 // The heal branch repeats the sum inside the clamp ternary. With a separate
 // `int v = ...` local MSVC puts the second addend in the accumulator (health in
@@ -505,10 +510,10 @@ int __cdecl FUN_004b70ef(short idx, int scale);
 // ev->amount` makes the original put health in eax and the amount in edx.
 //
 // FUNCTION: 0x489ce0
-void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
+void __stdcall ApplyUnitDamage(UnitDamagePacket* ev)
 {
-    Unit* unit = ev->attacker == 0 ? 0 : &g_game->units[ev->attacker];
-    Unit* target = ev->target == 0 ? 0 : &g_game->units[ev->target];
+    Unit* unit = ev->victimId == 0 ? 0 : &g_game->units[ev->victimId];
+    Unit* target = ev->attackerId == 0 ? 0 : &g_game->units[ev->attackerId];
 
     if (unit == 0)
         return;
@@ -517,7 +522,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
     if (unit->flags & 0x4000)
         return;
 
-    if (ev->kind == 10) {
+    if (ev->damageKind == 10) {
         unit->health = (short)((unsigned int)(unit->health + ev->amount) < unit->def->maxhp
                            ? unit->health + ev->amount : unit->def->maxhp);
         return;
@@ -525,10 +530,10 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
 
     MarkRecentlyDamaged(unit);
 
-    if (ev->kind != 11)
+    if (ev->damageKind != 11)
         ReactToAttack(target, unit, ev->amount);
 
-    unit->lastDamageType = ev->kind;
+    unit->lastDamageType = ev->damageKind;
 
     if (target) {
         unsigned char c = target->playerIndex;
@@ -538,7 +543,7 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
             AddCdActivitySample(1);
     }
 
-    if (ev->kind == 2) {
+    if (ev->damageKind == 2) {
         int ticks = ev->amount;
         if (unit->flags & 0x10000000) {
             if (!(unit->flags & 0x4000)) {
@@ -566,9 +571,9 @@ void __stdcall ApplyUnitDamage(Event_00489ce0* ev)
             }
             unit->health = 0;
         }
-        if (ev->kind == 1) {
-            int a = FUN_004b7123(ev->param_7 << 8, 400);
-            int b = FUN_004b70ef(ev->param_7 << 8, 400);
+        if (ev->damageKind == 1) {
+            int a = FUN_004b7123(ev->headingByte << 8, 400);
+            int b = FUN_004b70ef(ev->headingByte << 8, 400);
             unit->script->StartScriptWithArgs(s_HitByWeapon_00508d74, 0, 0, 2, a, b, 0, 0);
             int pct = unit->health * 100 / unit->def->maxhp;
             if (pct < 0)

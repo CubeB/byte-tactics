@@ -1797,7 +1797,7 @@ address,size,file,symbol,status,similarity
 0x486360,247,src/units/units_485010.cpp,?CreateUnitCorpse@@YGXPAUUnit@@HH@Z,matched,100.0
 0x486460,74,src/units/units_485010.cpp,?IsUnitCommander@@YGHPAUUnit@@@Z,matched,100.0
 0x4864b0,530,src/units/units_485010.cpp,?KillUnit@@YGXPAUUnit@@H@Z,matched,100.0
-0x4866d0,1964,src/units/units_485010.cpp,?ApplyUnitDeath@@YGXPAUCmd_004864b0@@H@Z,matched,100.0
+0x4866d0,1964,src/units/units_485010.cpp,?ApplyUnitDeath@@YGXPAUUnitKilledPacket@@H@Z,matched,100.0
 0x486e80,71,src/units/units_485010.cpp,?KillUnitsOfType@@YGXF@Z,matched,100.0
 0x486ed0,58,src/units/units_485010.cpp,?KillAllUnits@@YGXXZ,matched,100.0
 0x486f10,185,src/units/units_485010.cpp,?KillPlayerUnits@@YGXE@Z,matched,100.0
@@ -1843,7 +1843,7 @@ address,size,file,symbol,status,similarity
 0x489a70,32,src/units/unit.cpp,?CountCargo@Unit@@QAEHXZ,matched,100.0
 0x489a90,275,src/units/unit.cpp,?CanLoad@Unit@@QAEHPAV1@@Z,matched,100.0
 0x489bb0,299,src/units/unit_targets.cpp,?DamageUnit@@YGXPAVUnit@@0HHG@Z,matched,100.0
-0x489ce0,697,src/units/unit_targets.cpp,?ApplyUnitDamage@@YGXPAUEvent_00489ce0@@@Z,matched,100.0
+0x489ce0,697,src/units/unit_targets.cpp,?ApplyUnitDamage@@YGXPAUUnitDamagePacket@@@Z,matched,100.0
 0x489fa0,186,src/units/unit_targets.cpp,?ParalyzeUnit@@YGXPAVUnit@@H@Z,matched,100.0
 0x48a060,51,src/units/unit_targets.cpp,?SetWeaponTargetUnit@@YGXPAD0H@Z,matched,100.0
 0x48a0a0,67,src/units/unit_targets.cpp,?SetWeaponTargetPos@@YGXPADPAHH@Z,matched,100.0

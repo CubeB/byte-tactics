@@ -873,7 +873,7 @@ class Class_004e8230;
 class LosTable;
 class Class_44ef90;
 struct DisplayContext;
-struct Cmd_004866d0;
+struct UnitKilledPacket;
 struct Cmp_0046d040;
 struct CobFile_0042d1f0;
 struct Color_004acc70;
@@ -982,7 +982,7 @@ struct Display_004c6d20;
 struct Display_004c6dc0;
 struct Display_004c6e70;
 struct Display_004c8020;
-struct Dmg_00489bb0;
+struct UnitDamagePacketOut;
 struct Driver_004c6890;
 struct Dst_00440ca0;
 class Dummy_00440be0;
@@ -12521,7 +12521,7 @@ struct Name_0048d630 {  // 0x232 bytes, 5 views
     char name[562];  // +0x0
 };
 
-struct Cmd_004866d0 {  // 0xb bytes, 2 views
+struct UnitKilledPacket {  // 0xb bytes, 2 views
     unsigned char type;  // +0x0
     unsigned short unitId;  // +0x1
     int killerId;  // +0x3
@@ -12906,7 +12906,7 @@ struct Node_00489a90 {  // 0x92 bytes, 1 view
     Node_00489a90* next;  // +0x8e
 };
 
-struct Dmg_00489bb0 {  // 0x9 bytes, 2 views
+struct UnitDamagePacketOut {  // 0x9 bytes, 2 views
     unsigned char type;  // +0x0
     unsigned short attacker;  // +0x1
     unsigned short target;  // +0x3

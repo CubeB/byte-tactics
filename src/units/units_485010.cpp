@@ -46,9 +46,8 @@ struct Entry_486360 {
 
 #include "../network/player_info.h"
 
-// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+// Unused here: a real function declared to keep the file's symbol count (docs/c2-regalloc.md).
 int StepTowards(int, int, int);
-void NopRetC(int, int, int);
 
 struct Unit;
 
@@ -160,10 +159,9 @@ struct Vec3_004853b0 {
     Fixed_004853b0 z;
 };
 
-struct WeaponAimCobCb {                // 0x1c bytes, vtable 0x4fd6f0
-    void* vtable;                      // +0x0
-    char unknown_4[0x1c - 0x4];
-};
+// This header's symbol ids replace those of the local aim callback view
+// (docs/c2-regalloc.md).
+#include "../weapons/unit_weapon_slot.h"
 
 class SpatialBucket {
 public:
@@ -226,11 +224,8 @@ union Flags114_485a40 {
 
 struct Unit {                          // 0x118 bytes
     UnitMotion* motion;                // +0x0
-    char unknown_4[0x8 - 0x4];
-    WeaponAimCobCb sub_8;              // +0x8
-    WeaponAimCobCb sub_24;             // +0x24
-    WeaponAimCobCb sub_40;             // +0x40
-    char unknown_5c[0x64 - 0x5c];
+    UnitWeaponSlot weapons[3];         // +0x4, stride 0x1c
+    char unknown_58[0x64 - 0x58];
     Angles16 angles;                   // +0x64
     Pos_00485a40 pos;                  // +0x6a
     ShortPair_485a40 screen;           // +0x76
@@ -825,12 +820,12 @@ extern void* g_weaponAimCobVtable[];
 void __stdcall InitUnitWeaponSlots(Unit* unit);
 void __stdcall UpdateMetalExtraction(Unit* unit);
 
-// Initialises a unit: finds its unit type, gives the three 0x1c-byte members
-// at +8, +0x24 and +0x40 their vtable, stores the type id at +0xa6, then hands
-// the unit to the position/flags setter, the object builder and two more
-// methods. When the unit type's +0x22f is 1 the unit also gets a new
-// UnitMotion and the type's +0x210 copied to +0x66, the tail of the
-// matched CreateUnitMotion inlined.
+// Initialises a unit: finds its unit type, gives the aim callback of each of
+// the three weapon slots (at +8, +0x24 and +0x40) its vtable, stores the type
+// id at +0xa6, then hands the unit to the position/flags setter, the object
+// builder and two more methods. When the unit type's +0x22f is 1 the unit
+// also gets a new UnitMotion and the type's +0x210 copied to +0x66, the tail
+// of the matched CreateUnitMotion inlined.
 // The three vtable stores are guarded by `if (unit)` but the +0xa6 store right
 // after them, and the new expression at the end, are not: a null unit pointer
 // writes to 0xa6, then to 0, and reads 0x92. Kept as the original has it.
@@ -839,11 +834,8 @@ void __stdcall InitUnit(int unitType, Pos_00485a40 pos, int param_5, Unit* unit)
 {
     UnitType* type = &g_game->unitDefs[(unsigned short)unitType];
     if (unit) {
-        WeaponAimCobCb* sub = (WeaponAimCobCb*)((char*)unit + 8);
-        for (int i = 0; i < 3; i++) {
-            sub->vtable = g_weaponAimCobVtable;
-            sub = (WeaponAimCobCb*)((char*)sub + 0x1c);
-        }
+        for (int i = 0; i < 3; i++)
+            unit->weapons[i].aimCob.ppVtbl = g_weaponAimCobVtable;
     }
     unit->unitDefIndex = (short)unitType;
     InitUnitFromType(unit, pos, param_5);
@@ -878,11 +870,8 @@ static inline void __stdcall InitUnit_00485e90(unsigned short unitType, Pos_0048
 {
     UnitType* type = &g_game->unitDefs[unitType];
     if (unit) {
-        WeaponAimCobCb* sub = (WeaponAimCobCb*)((char*)unit + 8);
-        for (int i = 0; i < 3; i++) {
-            sub->vtable = g_weaponAimCobVtable;
-            sub = (WeaponAimCobCb*)((char*)sub + 0x1c);
-        }
+        for (int i = 0; i < 3; i++)
+            unit->weapons[i].aimCob.ppVtbl = g_weaponAimCobVtable;
     }
     unit->unitDefIndex = unitType;
     InitUnitFromType(unit, pos, param_5);
@@ -1404,7 +1393,9 @@ void __stdcall KillPlayerUnits(unsigned char player)
     }
 }
 
-// Unused here: a real function declared to keep the file's symbol count (docs/c2-regalloc.md).
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md);
+// SaveUnits stands in for the ids the weapon slot header moved.
+void __stdcall SaveUnits(void* file);
 void __stdcall NopRetC_B(int, int, int);
 
 struct Vec3_004851c0 {

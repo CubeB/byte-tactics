@@ -27,13 +27,7 @@ union Fixed {
 
 #include "../util/vec3.h"
 #include "../util/point.h"
-
-struct Rect {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
+#include "../graphics/rect.h"
 
 // The unit type table entry, the UnitDef at a unit's +0x92.
 struct UnitDef {

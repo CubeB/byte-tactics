@@ -75,7 +75,7 @@ void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const
 void* __stdcall LoadGaf(char* path);
 void* __stdcall FindGafEntry(void* gaf, const char* name);
 void __stdcall FatalError(char* message);
-void __cdecl GameFreeThunk(int* param_1);
+void __cdecl GameFreeThunk(int* p);
 void __stdcall ReadSideRect(TdfFile* obj, int* out, char* name, char* side);
 void* __stdcall HAPI_LoadFile(char* path, int flags);
 

@@ -207,7 +207,7 @@ extern Game* g_game;
 extern const char g_offscreenSurfaceName[];  // "OFFSCREEN"
 
 int __stdcall AllocSurface(const char* name, int width, int height);
-void __stdcall SetRestoreSurface(int param_1);
+void __stdcall SetRestoreSurface(int surface);
 
 // FUNCTION: 0x490ac0
 void CreateOffscreenSurface()
@@ -217,7 +217,7 @@ void CreateOffscreenSurface()
 }
 
 // Releases the offscreen object created by 0x490ac0.
-void __cdecl GameFreeThunk(int* param_1);
+void __cdecl GameFreeThunk(int* p);
 void RestoreScreen();
 
 // FUNCTION: 0x490b00
@@ -338,10 +338,10 @@ void ResetGameSpeed()
 char* __stdcall Translate(char* text);
 int GetLocalDpid();
 int __stdcall BroadcastPacket(int player, void* data, int size);
-void __stdcall AddMessage(char* text, int param_2, int param_3, int param_4);
+void __stdcall AddMessage(char* text, int key, int value, int last);
 
 // FUNCTION: 0x490df0
-void __stdcall SetGameSpeed(int speed, int param_2)
+void __stdcall SetGameSpeed(int speed, int broadcast)
 {
     if (speed > 0x14)
         speed = 0x14;
@@ -360,7 +360,7 @@ void __stdcall SetGameSpeed(int speed, int param_2)
     }
     g_game->speed_38a4b = speed;
     g_game->effectiveGameSpeed = speed;
-    if (param_2) {
+    if (broadcast) {
         char data[3];
         data[0] = 0x19;
         data[1] = 1;
@@ -410,15 +410,15 @@ void LoadCdLists(void)
 // block and saves it to the registry under "CDLISTS".
 class Sound {
 public:
-    void SetTrackCategory(int param_1);
+    void SetTrackCategory(int mode);
     int GetDiscSerial();
     int IsFirstTrackData();
     int GetTrackCategory();
-    int SetCdCallback(void (*param_1)());
+    int SetCdCallback(void (*cb)());
     void CopyTrackTypeTable(const void* src);
     int GetTrackCount();
-    unsigned char GetCategoryOfTrack(int param_1);
-    int SetPlaybackOrder(int param_1);
+    unsigned char GetCategoryOfTrack(int index);
+    int SetPlaybackOrder(int value);
     void PlayNextTrack();
     int StopCdAudio();
     void EnableCdAudio(int on);
@@ -521,8 +521,8 @@ extern const char g_unitLimitKey[];        // "UnitLimit"
 
 int GetScreenWidth();
 int GetScreenHeight();
-void __stdcall SetPageFlipping(int param_1);
-void __stdcall SetMissionType(int param_1);
+void __stdcall SetPageFlipping(int enable);
+void __stdcall SetMissionType(int type);
 void LoadGameResources();
 void InitSound();
 void ResetFrontendState();
@@ -531,30 +531,30 @@ void RegisterAllOrderTypes();
 void LoadGameFonts();
 void LoadDefaultPalette();
 void LoadAllSound();
-void __stdcall LoadAlphaTable(void* param_1);
-void __stdcall LoadShadeTable(void* param_1);
-void __stdcall LoadLightTable(void* param_1);
-void __stdcall MakeGrayTable(void* param_1);
-void __stdcall MakeBlueTable(void* param_1);
+void __stdcall LoadAlphaTable(void* palette);
+void __stdcall LoadShadeTable(void* palette);
+void __stdcall LoadLightTable(void* palette);
+void __stdcall MakeGrayTable(void* palette);
+void __stdcall MakeBlueTable(void* palette);
 void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 void LoadSettings();
 void ApplyBrightnessAndVolume();
 void LoadSideData();
 void LoadLogos();
-void __stdcall SetBrightness(float param_1);
-void __stdcall SetCurrentGuiContext(void* param_1);
-void __stdcall SetGuiPath(void* param_1, const char* name);
-void __stdcall SetAnimsPath(void* param_1, const char* name);
-void __stdcall SetFontsPath(void* param_1, const char* name);
+void __stdcall SetBrightness(float brightness);
+void __stdcall SetCurrentGuiContext(void* ctx);
+void __stdcall SetGuiPath(void* obj, const char* name);
+void __stdcall SetAnimsPath(void* obj, const char* name);
+void __stdcall SetFontsPath(void* obj, const char* name);
 void __stdcall SetDefaultFont(void* param_1, int param_2);
-void* __stdcall GetGafFrame(void* param_1, int param_2);
-void __stdcall InitCursorFrames(void* param_1, void* param_2);
-void __stdcall LoadGafFile(void* param_1, const char* name);
-void __stdcall LoadGafIntoSlot(void* param_1, const char* name, int param_3);
-void __stdcall SetTextKeyColor(int param_1);
-void __stdcall SetFont(int param_1);
+void* __stdcall GetGafFrame(void* gaf, int frame);
+void __stdcall InitCursorFrames(void* p, void* value);
+void __stdcall LoadGafFile(void* obj, const char* name);
+void __stdcall LoadGafIntoSlot(void* obj, const char* name, int index);
+void __stdcall SetTextKeyColor(int value);
+void __stdcall SetFont(int font);
 void ClearPictureCache();
-int __stdcall GetPreferenceInt(const char* name, int param_2);
+int __stdcall GetPreferenceInt(const char* name, int defaultValue);
 
 // FUNCTION: 0x491200
 void InitGame()
@@ -809,7 +809,7 @@ struct Display_00491a70 {
 };
 
 void __stdcall SetResolution(int x, int y);
-void __stdcall SetOffscreenSurface(int param_1);
+void __stdcall SetOffscreenSurface(int surface);
 
 // FUNCTION: 0x491a70
 void Force640x480Surfaces()

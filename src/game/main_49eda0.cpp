@@ -39,13 +39,13 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                            LPSTR lpCmdLine, int nCmdShow);
 int __stdcall ExceptionFilter(EXCEPTION_POINTERS* exception, const char* thread);
 bool __cdecl IsDebugKeyword(const char* arg);
-void __stdcall Onl_LoadConfigFile(char* param_1);
+void __stdcall Onl_LoadConfigFile(char* file);
 void __stdcall SetBypassDriveScan(int val);
 void __stdcall SetCommandLineUnusedFlagL(int val);
 void __stdcall SetHostGameName(int flag, char* text);
-void __stdcall SetDirectConnectAddress(char* param_1);
-void __stdcall SetDirectPlayProvider(int param_1);
-void __stdcall SetPacketRate(int param_1);
+void __stdcall SetDirectConnectAddress(char* address);
+void __stdcall SetDirectPlayProvider(int provider);
+void __stdcall SetPacketRate(int rate);
 char* __stdcall Translate(char* text);
 void SetNoDirectSound();
 void SetUseWindowsSound();

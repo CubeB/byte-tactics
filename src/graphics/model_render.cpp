@@ -70,7 +70,12 @@ union Vec3 {
 
 struct Vec3f { float x; float y; float z; };
 
-#include "../util/angles.h"
+// The three shorts of a unit's base angles, or of its short position.
+struct Vector3s {
+    short x;                           // +0x0
+    short y;                           // +0x2
+    short z;                           // +0x4
+};
 
 // A 16-byte rectangle: a projected vertex with its shade, or a point of a
 // 16.16 polygon.
@@ -283,7 +288,7 @@ public:
 #pragma pack(push, 1)
 struct Unit_459200 {
     char unknown_0[0x64];
-    Angles16 angles;                   // +0x64
+    Vector3s angles;                   // +0x64
     int pos_x;                         // +0x6a
     int pos_y;                         // +0x6e
     int pos_z;                         // +0x72
@@ -319,7 +324,7 @@ struct Model_459200 {
     Unit_459200* owner;                // +0x0c
     GafFrame* bitmap;                  // +0x10
     GafFrame* shadow;                  // +0x14
-    Angles16 angles;                   // +0x18
+    Vector3s pos;                      // +0x18
     Piece_459c70* root;                // +0x1e
     Piece_459c70 pieces[1];            // +0x22
 };
@@ -386,7 +391,7 @@ Piece_459c70* __stdcall LinkStateEntries(Model_459200* state, Object3do* obj, Pi
 // Defined at the end of this file, out of address order.
 void __fastcall PoseModel(Model_459200* state, Piece_459c70* entry, int flag);
 void __fastcall TransformPieces(Model_459200* model, Piece_459c70* piece,
-                                Angles16* angles, Vec3* box, int force);
+                                Vector3s* pos, Vec3* box, int force);
 
 // FUNCTION: 0x458160
 UnitTable* UnitTable::Construct(void)
@@ -1096,13 +1101,13 @@ int __fastcall RestorePieceVertices(Piece_459c70* piece, int force)
     return result;
 }
 
-// Nonzero when the state's angles are 8 or more away from `angles` on any axis.
-// Takes a pointer to the angles: other signatures change the register use.
-static inline int FarFrom(Model_459200* state, const Angles16* angles)
+// Nonzero when the state's position is 8 or more away from `pos` on any axis.
+// Takes a pointer to the position: other signatures change the register use.
+static inline int FarFrom(Model_459200* state, const Vector3s* pos)
 {
-    return abs((short)(state->angles.pitch - angles->pitch)) >= 8
-        || abs((short)(state->angles.heading - angles->heading)) >= 8
-        || abs((short)(state->angles.bank - angles->bank)) >= 8;
+    return abs((short)(state->pos.z - pos->z)) >= 8
+        || abs((short)(state->pos.y - pos->y)) >= 8
+        || abs((short)(state->pos.x - pos->x)) >= 8;
 }
 
 // FUNCTION: 0x45ab10
@@ -1111,7 +1116,7 @@ void __stdcall UpdateObjectState(Unit_459200* unit)
     Model_459200* state = unit->state;
     if (FarFrom(state, &unit->angles)) {
         // One 6-byte struct copy.
-        state->angles = unit->angles;
+        state->pos = unit->angles;
         state->animDirty = 1;
         state->root->modified = 0;
         if (state->root->flags.bits.colored) {
@@ -1132,7 +1137,7 @@ void __stdcall DrawUnit(void* context, Unit_459200* unit)
         Model_459200* state = unit->state;
         if (FarFrom(state, &unit->angles)) {
             // One 6-byte struct copy.
-            state->angles = unit->angles;
+            state->pos = unit->angles;
             state->animDirty = 1;
             state->root->modified = 0;
             if (state->root->flags.bits.colored) {
@@ -1148,7 +1153,7 @@ void __stdcall DrawUnit(void* context, Unit_459200* unit)
             if (!(u->flags & 0x20000)) {
                 Model_459200* child = u->state;
                 if (FarFrom(child, &u->angles)) {
-                    child->angles = u->angles;
+                    child->pos = u->angles;
                     child->animDirty = 1;
                     child->root->modified = 0;
                     if (child->root->flags.bits.colored) {
@@ -1257,7 +1262,7 @@ Piece_459c70* __stdcall LinkStateEntries(Model_459200* state, Object3do* obj, Pi
 
 // FUNCTION: 0x45b150
 void __fastcall TransformPieces(Model_459200* owner, Piece_459c70* piece,
-                             Angles16* angles, Vec3* delta, int deep)
+                             Vector3s* angles, Vec3* delta, int deep)
 {
     for (;;) {
         if (piece->modified == 0) {
@@ -1298,14 +1303,14 @@ void __fastcall PoseModel(Model_459200* model, Piece_459c70* piece, int force)
     if (piece->child)
         PoseModel(model, piece->child, 1);
 
-    Angles16 angles;
-    angles.bank = piece->short_14;
-    angles.pitch = piece->short_10;
-    angles.heading = piece->short_12;
+    Vector3s pos;
+    pos.x = piece->short_14;
+    pos.z = piece->short_10;
+    pos.y = piece->short_12;
     if (!force) {
-        angles.bank += model->angles.bank;
-        angles.pitch += model->angles.pitch;
-        angles.heading += model->angles.heading;
+        pos.x += model->pos.x;
+        pos.z += model->pos.z;
+        pos.y += model->pos.y;
     }
 
     Object3do* object = piece->object;
@@ -1314,7 +1319,7 @@ void __fastcall PoseModel(Model_459200* model, Piece_459c70* piece, int force)
     box.y = piece->rot_y + object->box_y;
     box.z = piece->rot_z + object->box_z;
 
-    TransformPieces(model, piece, &angles, &box, 0);
+    TransformPieces(model, piece, &pos, &box, 0);
 
     if (force && piece->sibling)
         PoseModel(model, piece->sibling, 1);

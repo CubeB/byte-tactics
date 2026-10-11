@@ -78,6 +78,8 @@ struct WeaponDef {
 struct Holder_00453640;
 struct Layer_004538f0;
 struct Net_4517b0;
+// The forward declaration takes one symbol id: Unused_00452960 has one parameter fewer.
+struct ChatPacket;
 class UnitSync;
 
 // The 0x2a44 flag word 0x452cc0 reads as 16 bits.
@@ -262,6 +264,7 @@ struct Game {
     union {
         unsigned char* recvPacketPtr;  // +0x2a38
         unsigned char* packet;
+        ChatPacket* chat;
     };
     union {
         unsigned short numPlayers;     // +0x2a3c
@@ -372,8 +375,14 @@ struct SideDataPacket {
     PlayerInfo data;                   // +0x1
 };
 
-// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
-void Unused_00450f90(int a, int b, int c, int d, int e, int f);
+// The packets that start with a player id at +0x1: reject (0x1b), drop (0x1c)
+// and alliance (0x24). net_game_453d40.cpp reads them with the same layout;
+// reject and alliance carry one more byte at +0x5.
+struct PlayerIdPacket {
+    unsigned char type;                // +0x0
+    int id;                            // +0x1
+    unsigned char value;               // +0x5, the reject reason or the ally team
+};
 
 #pragma pack(pop)
 
@@ -871,10 +880,10 @@ int __stdcall AddNetPlayer(int param_1)
                 packet.type = 0x20;
                 BroadcastPacket(q->id, &packet, sizeof(packet));
                 if (q->active != 0 && (q->type == 1 || q->type == 2)) {
-                    unsigned char* msg = g_game->recvPacketPtr;
-                    msg[0] = 0x24;
-                    *(int*)(msg + 1) = q->id;
-                    msg[5] = q->alliance;
+                    PlayerIdPacket* msg = (PlayerIdPacket*)g_game->recvPacketPtr;
+                    msg->type = 0x24;
+                    msg->id = q->id;
+                    msg->value = q->alliance;
                     BroadcastPacket(q->id, msg, 6);
                     if (g_usePacketManager != 0) {
                         g_packetManager.SendAllQueued(1);
@@ -1007,10 +1016,10 @@ void BroadcastPlayerInfo()
                 packet.type = 0x20;
                 BroadcastPacket(player->id, &packet, sizeof(packet));
                 if (IsPlaying_00450f90(player)) {
-                    unsigned char* msg = g_game->recvPacketPtr;
-                    msg[0] = 0x24;
-                    *(int*)(msg + 1) = player->id;
-                    msg[5] = player->alliance;
+                    PlayerIdPacket* msg = (PlayerIdPacket*)g_game->recvPacketPtr;
+                    msg->type = 0x24;
+                    msg->id = player->id;
+                    msg->value = player->alliance;
                     BroadcastPacket(player->id, msg, 6);
                     if (g_usePacketManager != 0) {
                         g_packetManager.SendAllQueued(1);
@@ -1027,9 +1036,8 @@ void BroadcastPlayerInfo()
 void __stdcall BuildGameInfo(char* name, int* d, int* c, int* b, int* a)
 {
     PlayerInfo* info = g_game->players[g_game->localPlayer].info;
-    char* p = (char*)info;
-    p[0xa7] = g_game->version;
-    p += 0x99;
+    info->versionMajor = g_game->version;
+    char* p = (char*)&info->memory;
     p[0xf] = g_game->versionMinor;
     unsigned short w = *(unsigned short*)(p + 2);
     p += 4;
@@ -1165,18 +1173,18 @@ struct Guid_4517b0 {
     int data[4];
 };
 
-struct Net2_4517b0 {
-    unsigned int size;                 // +0x0, DPNAME dwSize
-    unsigned int flags;                // +0x4
-    char* shortName;                   // +0x8
-    char* longName;                    // +0xc
+// The session description behind the connection's +0x8 (DPSESSIONDESC2;
+// hapinet.cpp has the whole record).
+struct SessionDesc_004517b0 {
+    char unknown_0[0x30];
+    char* lpszSessionName;             // +0x30
 };
 
 struct Net_4517b0 {
     char unknown_0[4];
     unsigned int flags;                // +0x4
-    char* desc;                        // +0x8
-    Net2_4517b0* name;                 // +0xc
+    SessionDesc_004517b0* desc;        // +0x8
+    DPNAME* name;                      // +0xc
 };
 
 // The display object of 0x451640 and 0x4517b0: one type for both views.
@@ -1250,11 +1258,15 @@ struct Gui_00453a50 {
     void (__stdcall* onFrame)(void*); // +0x1c
 };
 
-// Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
-void Unused_4517b0(int a, int b, int c, int d, int e, int f);
+// The chat message (0x05): the type, then the text. net_game_453d40.cpp
+// reads the text from +0x1 as well.
+struct ChatPacket {
+    unsigned char type;                // +0x0
+    char text[0x40];                   // +0x1
+};
 
 // Unused here: the symbol ids this declaration takes keep the allocation (docs/c2-regalloc.md).
-void Unused_00452960(int a, int b, int c, int d, int e, int f);
+void Unused_00452960(int a, int b, int c, int d, int e);
 
 struct AllyFlagsPacket {
     unsigned char type;                // +0x0
@@ -1438,14 +1450,14 @@ int __stdcall JoinLobbyGame(Player* p)
     int result = 0;
     char* name = 0;
 
-    if (HAPINET_passwordrequired((char*)g_game + 0x14) != 0)
-        name = (char*)p->info + 0x80;
+    if (HAPINET_passwordrequired(g_game->net) != 0)
+        name = p->info->password;
 
     int count = 10;
     if (IsOnlineConfigLoaded() != 0 && DAT_00512c8c > 1) {
         unsigned int n = DAT_00512c8c;
         count = n < 10 ? n : 10;
-        *(int*)((char*)g_game + 0x4f1) = count;
+        g_game->netMode = count;
     }
 
     Args_00451640* args = (Args_00451640*)GameAllocIgnoreTag("LOBBY JOIN INFO", 0x1c);
@@ -1485,7 +1497,7 @@ int __stdcall JoinLobbyGame(Player* p)
 // FUNCTION: 0x451770
 void __stdcall JoinLobbyGameThread(Args_00451640* args)
 {
-    args->result = HAPINET_createorjoinlobbygame((char*)g_game + 0x14, args->name, args->arg_4, args->arg_8,
+    args->result = HAPINET_createorjoinlobbygame(g_game->net, args->name, args->arg_4, args->arg_8,
                                 args->arg_c, args->arg_10, args->arg_14);
 }
 
@@ -1508,13 +1520,13 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
             if (v == 0)
                 s = DAT_005119b8;
 
-            Net2_4517b0* n2 = net->name;
+            DPNAME* n2 = net->name;
             if (n2 != 0) {
-                char* t = n2->shortName;
+                char* t = n2->lpszShortNameA;
                 if (t != 0 && *t != 0) {
                     s = t;
                 } else {
-                    char* t2 = n2->longName;
+                    char* t2 = n2->lpszLongNameA;
                     if (t2 != 0 && *t2 != 0)
                         s = t2;
                 }
@@ -1530,7 +1542,7 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                 // hasPassword must be a 16-bit 1-bit field, not a byte field.
                 p->info->hasPassword = 1;
                 // Cast on a reloaded dplConnection, not a cached local.
-                if ((*(unsigned char*)((char*)g_game->dplConnection + 4) & 2) != 0)
+                if ((*(unsigned char*)&g_game->dplConnection->flags & 2) != 0)
                     lstrcpynA(g_game->password, &g_onlineLobbyPassword, 0xb);
             }
 
@@ -1568,13 +1580,13 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                 FatalError(Translate("Unable to connect to DirectPlay lobby."));
             }
         } else {
-            result = HAPINET_joingame((Net_4517b0*)((char*)g_game + 0x14), guid);
+            result = HAPINET_joingame((Net_4517b0*)g_game->net, guid);
         }
         if (result == 0)
             return 0;
 
         CreateLocalPlayer(player, 1);
-        HAPINET_enumplayers((Net_4517b0*)((char*)g_game + 0x14), 0, (void*)EnumPlayersCallback, 0, 0);
+        HAPINET_enumplayers((Net_4517b0*)g_game->net, 0, (void*)EnumPlayersCallback, 0, 0);
         if (g_game->flags_2a44 & 1) {
             for (int i = 0; i < 10; i++) {
                 Player* q = &g_game->players[i];
@@ -1584,10 +1596,10 @@ int __stdcall JoinNetGame(Guid_4517b0 guid, int player)
                     packet.type = 0x20;
                     BroadcastPacket(q->id, &packet, sizeof(packet));
                     if (q->active != 0 && (q->state == 1 || q->state == 2)) {
-                        unsigned char* msg = g_game->recvPacketPtr;
-                        msg[0] = 0x24;
-                        *(int*)(msg + 1) = q->id;
-                        msg[5] = q->alliance;
+                        PlayerIdPacket* msg = (PlayerIdPacket*)g_game->recvPacketPtr;
+                        msg->type = 0x24;
+                        msg->id = q->id;
+                        msg->value = q->alliance;
                         BroadcastPacket(q->id, msg, 6);
                         if (g_usePacketManager != 0)
                             g_packetManager.SendAllQueued(1);
@@ -1679,7 +1691,7 @@ int __stdcall SendPacketToPlayer(int from, int to, unsigned char* packet, int si
         if (target->active == 0 || (target->state != 1 && target->state != 2)) {
             if (g_usePacketManager != 0)
                 return g_packetManager.QueuePacket(from, to, packet, size);
-            if (HAPINET_sendpacket((char*)g_game + 0x14, from, to, packet, size) != 0)
+            if (HAPINET_sendpacket(g_game->net, from, to, packet, size) != 0)
                 return 0;
             CountMessage(packet[0], size, 1);
             CountPacket(size, 0, 1);
@@ -1722,7 +1734,7 @@ int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
         if (g_game->duplicatePlayerTypeFlag == 0) {
             if (g_usePacketManager != 0)
                 return g_packetManager.QueueOnChannel(id, g_packetChannels, (int)packet, size);
-            if (HAPINET_sendpacket((char*)g_game + 0x14, id, 0, packet, size) != 0)
+            if (HAPINET_sendpacket(g_game->net, id, 0, packet, size) != 0)
                 return 0;
             CountMessage(packet[0], size, 1);
             CountPacket(size, 0, 1);
@@ -2059,9 +2071,9 @@ int __stdcall BroadcastPlayerLeft(int id)
 {
     if (LookupPlayer(id) == 10)
         return 0;
-    unsigned char* msg = g_game->recvPacketPtr;
-    msg[0] = 0x1c;
-    *(int*)(msg + 1) = id;
+    PlayerIdPacket* msg = (PlayerIdPacket*)g_game->recvPacketPtr;
+    msg->type = 0x1c;
+    msg->id = id;
     unsigned char index = LookupPlayer(id);
     Player* player = &g_game->players[index];
     if ((player->active != 0 && player->flag_73 == 3)
@@ -2219,10 +2231,10 @@ int __stdcall BroadcastAllyTeam(Player* player)
     if (!IsPlaying_00452bd0(player)) {
         return 0;
     }
-    unsigned char* msg = g_game->recvPacketPtr;
-    msg[0] = 0x24;
-    *(int*)(msg + 1) = player->id;
-    msg[5] = player->alliance;
+    PlayerIdPacket* msg = (PlayerIdPacket*)g_game->recvPacketPtr;
+    msg->type = 0x24;
+    msg->id = player->id;
+    msg->value = player->alliance;
     int result = BroadcastPacket(player->id, msg, 6);
     if (g_usePacketManager != 0) {
         g_packetManager.SendAllQueued(1);
@@ -2378,7 +2390,7 @@ void __stdcall RemovePlayer(int id)
             Remove_00452cc0(p);
     } else {
         if (IsPlaying_00452cc0(p))
-            HAPINET_removeplayer((char*)&g_game->session[0], p->id);
+            HAPINET_removeplayer(g_game->net, p->id);
         Remove_00452cc0(p);
     }
     g_game->numPlayers--;
@@ -2444,10 +2456,10 @@ int __stdcall RejectPlayer(int id, unsigned char value)
     if (p == 0)
         return 0;
 
-    unsigned char* msg = g_game->recvPacketPtr;
-    msg[0] = 0x1b;
-    *(int*)(msg + 1) = -1;
-    msg[5] = value;
+    PlayerIdPacket* msg = (PlayerIdPacket*)g_game->recvPacketPtr;
+    msg->type = 0x1b;
+    msg->id = -1;
+    msg->value = value;
 
     if (p->active != 0
         && (p->state == 1 || p->state == 2)
@@ -2456,7 +2468,7 @@ int __stdcall RejectPlayer(int id, unsigned char value)
             for (int i = 0; i < 10; i++) {
                 if (g_game->players[i].active != 0
                     && (g_game->players[i].state == 1 || g_game->players[i].state == 2)) {
-                    *(int*)(msg + 1) = g_game->players[i].id;
+                    msg->id = g_game->players[i].id;
                     BroadcastPacket(FindActiveId_00453010(), msg, 6);
                     RemovePlayer(p->id);
                     g_game->players[i].rejectReason = value;
@@ -2464,13 +2476,13 @@ int __stdcall RejectPlayer(int id, unsigned char value)
             }
             result = 1;
         } else {
-            *(int*)(msg + 1) = p->id;
+            msg->id = p->id;
             BroadcastPacket(FindActiveId_00453010(), msg, 6);
             RemovePlayer(p->id);
             result = 1;
         }
     } else if (p->active != 0 && p->state == 3 && p->rejectReason == 0) {
-        *(int*)(msg + 1) = id;
+        msg->id = id;
         result = BroadcastPacket(FindActiveId_00453010(), msg, 6);
         if (p->active != 0 && p->state == 3 && p->info->kind == 1) {
             unsigned char c = p->lobbyDataSynced;
@@ -2518,8 +2530,8 @@ int __stdcall SendChatPacket(char* text)
     // original (the caller ignores it).
     int result;
     int i;
-    g_game->recvPacketPtr[0] = 5;
-    strncpy((char*)g_game->recvPacketPtr + 1, text, 0x40);
+    g_game->chat->type = 5;
+    strncpy(g_game->chat->text, text, 0x40);
 
     int target = FindTarget(g_game);
 
@@ -2561,7 +2573,7 @@ int __stdcall ReceiveNetPacket(void)
     size = g_game->recvPacketSize;
     if (g_usePacketManager != 0) {
         while (1) {
-            int result = g_packetManagerReceiver.ReceiveFrame((char*)g_game + 0x14, g_game->recvPacketPtr, &size);
+            int result = g_packetManagerReceiver.ReceiveFrame(g_game->net, g_game->recvPacketPtr, &size);
             if (result == 0) {
                 CountMessage(*g_game->recvPacketPtr, size, 0);
                 return 1;
@@ -2575,7 +2587,7 @@ int __stdcall ReceiveNetPacket(void)
         }
     } else {
         while (1) {
-            int result = HAPINET_receivepacket((char*)g_game + 0x14, g_game->recvPacketPtr, &size);
+            int result = HAPINET_receivepacket(g_game->net, g_game->recvPacketPtr, &size);
             if (result == 0) {
                 CountMessage(*g_game->recvPacketPtr, size, 0);
                 CountPacket(size, 0, 0);
@@ -2717,9 +2729,9 @@ static __inline unsigned char FindSlot_00453a50(int id)
 // FUNCTION: 0x453a50
 void __stdcall OpenTimeoutDialog(int id)
 {
-    if (IsScreenNamed((char*)g_game + 0x519, "TIMEOUT.GUI")) {
+    if (IsScreenNamed(g_game->menu, "TIMEOUT.GUI")) {
         if (id == -1) {
-            CloseTopScreen((char*)g_game + 0x519);
+            CloseTopScreen(g_game->menu);
         }
         return;
     }
@@ -2732,7 +2744,7 @@ void __stdcall OpenTimeoutDialog(int id)
         return;
     }
 
-    Gui_00453a50* gui = (Gui_00453a50*)LoadGuiLayer((char*)g_game + 0x519,
+    Gui_00453a50* gui = (Gui_00453a50*)LoadGuiLayer(g_game->menu,
                                                     "TIMEOUT.GUI", 0x800);
     void* entries = gui->entries;
     gui->callback = &HandleTimeoutDialog;
@@ -2743,16 +2755,16 @@ void __stdcall OpenTimeoutDialog(int id)
     memset(p, 0, 0x780);
 
     OutEntry_00453a50* out = (OutEntry_00453a50*)FindGadgetChecked(entries, "OUTPUT");
-    ConfigureListBoxByName((char*)g_game + 0x519, "OUTPUT", g_loungeChatter,
+    ConfigureListBoxByName(g_game->menu, "OUTPUT", g_loungeChatter,
                  (int)out->height / (GetFontLineHeight() + 2), 0);
 
     gui->onFrame = &UpdateTimeoutDialog;
-    BeginTextEdit((char*)g_game + 0x519, FindGadgetIndex(entries, "TALK", 3));
+    BeginTextEdit(g_game->menu, FindGadgetIndex(entries, "TALK", 3));
 
-    SetTranslatedTextByName((char*)g_game + 0x519, "NAME",
+    SetTranslatedTextByName(g_game->menu, "NAME",
                  g_game->players[i].name, 0);
-    SetKeyboardInput((char*)g_game + 0x519, 1);
-    RenderLayer((char*)g_game + 0x519, 0x40);
+    SetKeyboardInput(g_game->menu, 1);
+    RenderLayer(g_game->menu, 0x40);
 }
 
 static inline int IsTimedOut(Player* p, unsigned int now)
@@ -3089,10 +3101,10 @@ void SendNetHeartbeat()
                 BroadcastPacket(p->id, (unsigned char*)&msg, 0xba);
 
                 if (p->active != 0 && (p->type == 1 || p->type == 2)) {
-                    unsigned char* buf2 = g_game->recvPacketPtr;
-                    buf2[0] = 0x24;
-                    *(int*)(buf2 + 1) = p->id;
-                    buf2[5] = p->alliance;
+                    PlayerIdPacket* buf2 = (PlayerIdPacket*)g_game->recvPacketPtr;
+                    buf2->type = 0x24;
+                    buf2->id = p->id;
+                    buf2->value = p->alliance;
                     BroadcastPacket(p->id, buf2, 6);
                     if (g_usePacketManager != 0)
                         g_packetManager.SendAllQueued(1);
@@ -3109,10 +3121,10 @@ void SendNetHeartbeat()
 // Two halves, keyed on the message's own flag at +0x05. When it is clear this
 // is the first sighting: stamp the message with the current tick count, send
 // it to the player id in the header (the first argument is the local lobby
-// dpid from g_game + 0x4cd), and give the packets back to the network layer.
+// dpid from g_game->lobby1), and give the packets back to the network layer.
 // When it is already set the message is a later update: find the sending
 // player in the table, and if they are an active client (state 1 or 2) record
-// the round trip into the slot of the player in g_game + 0x4c9.
+// the round trip into the slot of the player in g_game->lobby2.
 static inline int GetPlayerId_00456de0(unsigned char i)
 {
     if (i != 10 && g_game->players[i].type)
@@ -3656,17 +3668,17 @@ void __stdcall HandlePlayerEconomy(PlayerViewStatePacket* packet, Player* player
 // FUNCTION: 0x457710
 int InitLobbiedConnection()
 {
-    if (*(int*)((char*)g_game + 0x4e5) != 0)
+    if (g_game->dplConnection != 0)
         return 1;
 
-    if (HAPINET_initlobbiedconnection((char*)g_game + 0x14)) {
-        HAPINET_initmultiplaydefaults((char*)g_game + 0x14);
-        *(int*)((char*)g_game + 0x4f1) = 10;
+    if (HAPINET_initlobbiedconnection(g_game->net)) {
+        HAPINET_initmultiplaydefaults(g_game->net);
+        g_game->netMode = 10;
         if (InitPacketManager(2, 100)) {
             SetMissionType(3);
-            char* name = *(char**)(*(char**)(*(char**)((char*)g_game + 0x4e5) + 8) + 0x30);
+            char* name = g_game->dplConnection->desc->lpszSessionName;
             if (name != 0) {
-                strncpy((char*)g_game + 0x14, name, 0x10);
+                strncpy(g_game->net, name, 0x10);
                 return 1;
             }
 
@@ -3689,7 +3701,7 @@ int InitLobbiedConnection()
             int len = strlen(username);
             if (15 - len >= 7)
                 sprintf(username + len, "_%02d%02d%02d", local->tm_hour, local->tm_min, local->tm_sec);
-            strcpy((char*)g_game + 0x14, username);
+            strcpy(g_game->net, username);
             return 1;
         }
     }

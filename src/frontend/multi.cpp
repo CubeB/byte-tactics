@@ -346,7 +346,7 @@ struct Game {
     char unknown_2[0x10 - 2];          // +0x02
     void* sound;                       // +0x10
     union {                            // +0x14
-        Net_00443100 net;              // the HAPINET_ wrappers' view
+        Net_00443100 session;              // the HAPINET_ wrappers' view
         struct {
             char unknown_14[0x499 - 0x14]; // +0x14
             int field_499;             // +0x499
@@ -626,7 +626,7 @@ shown:
     FlipScreen();
     FlipScreen();
 
-    count = HAPINET_getgames((char*)&g_game->net, g_game->desc, 0);
+    count = HAPINET_getgames((char*)&g_game->session, g_game->desc, 0);
     CloseTopScreen(&g_game->gui);
     if (count < 0)
         return 0;
@@ -716,16 +716,16 @@ shown:
         } while (--left);
     }
 
-    ConfigureListBoxByName(&g_game->gui, "GAMENAME", (char*)g_game->data16[1], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "PLAYERS", (char*)g_game->data16[2], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "MAPNAME", (char*)g_game->data16[3], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "STATUS", (char*)g_game->data16[4], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "METAL", (char*)g_game->data16[6], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "ENERGY", (char*)g_game->data16[7], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "COMMANDER", (char*)g_game->data16[9], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "LOS", (char*)g_game->data16[11], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "PING", (char*)g_game->data16[8], g_game->net.gameCount, 0);
-    ConfigureListBoxByName(&g_game->gui, "FULLMAP", (char*)g_game->data16[10], g_game->net.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "GAMENAME", (char*)g_game->data16[1], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "PLAYERS", (char*)g_game->data16[2], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "MAPNAME", (char*)g_game->data16[3], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "STATUS", (char*)g_game->data16[4], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "METAL", (char*)g_game->data16[6], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "ENERGY", (char*)g_game->data16[7], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "COMMANDER", (char*)g_game->data16[9], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "LOS", (char*)g_game->data16[11], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "PING", (char*)g_game->data16[8], g_game->session.gameCount, 0);
+    ConfigureListBoxByName(&g_game->gui, "FULLMAP", (char*)g_game->data16[10], g_game->session.gameCount, 0);
 
     i = FindGadgetIndex(gadget->entries, "GAMENAME", 2);
     if (i != -1)
@@ -1407,14 +1407,14 @@ int __stdcall BuildCompoundAddress(int* addressOut, int* sizeOut)
         count = 1;
     }
 
-    result = HAPINET_createcompoundaddress(&g_game->net, elements, count, 0, &size);
+    result = HAPINET_createcompoundaddress(&g_game->session, elements, count, 0, &size);
     if (result != 0x8877001e) goto cleanup;
     block = (HGLOBAL)GameAllocIgnoreTag("COMPOUND ADDR", size);
     if (block == 0) {
         result = 0x8007000e;
         goto cleanup;
     }
-    result = HAPINET_createcompoundaddress(&g_game->net, elements, count, block, &size);
+    result = HAPINET_createcompoundaddress(&g_game->session, elements, count, block, &size);
     if (result < 0) {
         // Label inside this body, reached by goto: the shared cleanup block is the true arm.
 cleanup:
@@ -1520,7 +1520,7 @@ void OpenTcpDialog()
     dialog->owner = g_game;
     dialog->cb1c = 0;
     LoadPictureCached(0, 0, 0, 0);
-    HAPINET_initlobbiedconnection(&g_game->net);
+    HAPINET_initlobbiedconnection(&g_game->session);
     FindGadgetIndex(dialog->entries, "ADDRESS", 3);
     char* address = GetGadgetText(&g_game->gui, "ADDRESS", 0);
     int direct = g_cmdlineTcpJoinAddress[0];
@@ -1891,7 +1891,7 @@ void __stdcall OpenModemDialog()
     gadget->handler = HandleModemDialogClick;
     gadget->owner = g_game;
     LoadPictureCached(0, 0, 0, 0);
-    HAPINET_initlobbiedconnection(&g_game->net);
+    HAPINET_initlobbiedconnection(&g_game->session);
     r = HAPINET_createdplayinterface(&iid, (Net_00443100*)&net);
     if (r >= 0) {
         r = HAPINET_getplayeraddress((Net_00443100*)&net, 0, 0, &size);
@@ -1903,7 +1903,7 @@ void __stdcall OpenModemDialog()
                     g_modemInfo = (char*)GameAllocIgnoreTag("MODEMINFO", 0xc8);
                     memset(g_modemInfo, 0, 0xc8);
                     g_modemCount = 0;
-                    r = HAPINET_enumaddress(&g_game->net, (void*)EnumModemAddressCallback, addr, size, 0);
+                    r = HAPINET_enumaddress(&g_game->session, (void*)EnumModemAddressCallback, addr, size, 0);
                     if (g_modemCount == 0) {
                         CloseTopScreen(&g_game->gui);
                         SetFrontendErrorText("Unable to find any modems");

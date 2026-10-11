@@ -248,7 +248,7 @@ struct Game {
     int field_589;                      // +0x589
     char unknown_58d[0xdcb - 0x58d];
     union {                             // +0xdcb
-        unsigned char palette[16];
+        unsigned char colors[16];
         struct {
             char unknown_dcb[4];
             unsigned char color1;       // +0xdcf
@@ -908,7 +908,7 @@ static inline void DrawLoadingBar(void* gadget, void* lightbar, int index, unsig
 {
     unsigned int color;
     int flash;
-    color = g_game->palette[g_game->progress[index] < 100 ? 12 : 10];
+    color = g_game->colors[g_game->progress[index] < 100 ? 12 : 10];
     SetTextColors(color, GetTextKeyColor());
     if (g_game->progress[index] == 100 && *prev != 100) {
         alphas[slot] = 0x1e;
@@ -1076,7 +1076,7 @@ void LoadingScreenFrame(void)
     // The result stays in a local: it gives the compare against a register.
     int ok = LockScreen(&gadget);
     if (ok != 0) {
-        color = g_game->palette[15];
+        color = g_game->colors[15];
         stamp = GetTicks();
         if (g_loadingBarFlashDecayTick < (int)stamp) {
             g_loadingBarFlashDecayTick = GetTicks();

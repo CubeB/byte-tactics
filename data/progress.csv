@@ -804,7 +804,7 @@ address,size,file,symbol,status,similarity
 0x43def0,359,src/units/unit_scripts.cpp,?GetPieceOffset@@YG?AUVec3@@PAUObject_0043def0@@H@Z,matched,100.0
 0x43e060,74,src/units/unit_scripts.cpp,?GetPiecePosition@@YG?AUVec3@@PAUObject@@H@Z,matched,100.0
 0x43e0b0,202,src/units/unit_scripts.cpp,?GetPieceCenter@@YGXPAUObj_0043e0b0@@PAUVec3@@H@Z,matched,100.0
-0x43e180,96,src/units/unit_scripts.cpp,?GetPieceAngles@@YG?AUOut_0043e180@@PAUObj_0043e180@@H@Z,matched,100.0
+0x43e180,96,src/units/unit_scripts.cpp,?GetPieceAngles@@YG?AUAngles16@@PAUObj_0043e180@@H@Z,matched,100.0
 0x43e1e0,86,src/units/unit_scripts.cpp,?QueryWeaponPiece@@YGHPAUObject@@E@Z,matched,100.0
 0x43e240,145,src/units/unit_scripts.cpp,?GetWeaponPiecePosition@@YGXPAUObject@@PAUVec3@@EH@Z,matched,100.0
 0x43e2e0,217,src/units/unit_scripts.cpp,?GetAimFromPosition@@YGXPAUObject@@PAUVec3@@E@Z,matched,100.0

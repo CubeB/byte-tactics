@@ -319,7 +319,7 @@ struct Game {
     char unknown_2cb6[0x2cc3 - 0x2cb6];
     unsigned char orderMode;           // +0x2cc3
     unsigned short buildTypeIndex;     // +0x2cc4
-    Flags_004197d0 flags;              // +0x2cc6
+    Flags_004197d0 inputFlags;         // +0x2cc6
     CursorState cursor;                // +0x2cc7
     char unknown_2cf3[0x1422b - 0x2cf3];
     int mapPixelWidth;                 // +0x1422b
@@ -358,7 +358,7 @@ struct Game {
     unsigned short unitIndex;          // +0x37e9c
     unsigned short unitDefIndex;       // +0x37e9e
     char unknown_37ea0[0x37ebe - 0x37ea0];
-    Orders orderState;                 // +0x37ebe
+    Orders ordersPanelFlags;           // +0x37ebe
     char unknown_37ec4[0x37eee - 0x37ec4];
     int difficulty;                    // +0x37eee (a guess)
     char unknown_37ef2[0x37f2f - 0x37ef2];
@@ -571,15 +571,15 @@ int UpdatePlacementGhostValidity(void)
     Point16 origin = item->origin;
     g_game->boxEndX = (origin.x << 4) + g_game->boxStartX;
     g_game->boxEndZ = (origin.y << 4) + g_game->boxStartZ;
-    g_game->flags.bits.b6 = CanBuildAt(item, cell, 0, &g_game->players[g_game->localPlayer]);
+    g_game->inputFlags.bits.b6 = CanBuildAt(item, cell, 0, &g_game->players[g_game->localPlayer]);
     unsigned char r;
-    if (g_game->flags.value & 0x40)
+    if (g_game->inputFlags.value & 0x40)
         r = GetBuildSiteHeight();
     else
         r = GetFootprintHeight(item, cell);
     g_game->boxStartHeight = r;
     g_game->boxEndHeight = r;
-    return (g_game->flags.value >> 6) & 1;
+    return (g_game->inputFlags.value >> 6) & 1;
 }
 
 // Finds the GUI entry named after list entry `index` of the game's 0x249-byte
@@ -674,7 +674,7 @@ void __stdcall QueueBuildOrder(char* name, Unit* unit, int count)
 void __stdcall SetOrderIntent(unsigned char mode)
 {
     g_game->orderMode = mode;
-    g_game->flags.value = g_game->flags.value & 0xf7;
+    g_game->inputFlags.value = g_game->inputFlags.value & 0xf7;
 }
 
 // Handles a click on an order button: finds which order the button's name
@@ -684,7 +684,7 @@ void __stdcall SetOrderIntent(unsigned char mode)
 static inline void SetOrderMode(unsigned char mode)
 {
     g_game->orderMode = mode;
-    g_game->flags.value = g_game->flags.value & 0xf7;
+    g_game->inputFlags.value = g_game->inputFlags.value & 0xf7;
 }
 
 // FUNCTION: 0x419be0
@@ -835,85 +835,85 @@ void __stdcall RefreshOrderButtons(Unit* unit)
     }
     index = FindGadgetIndexBySubstring(layer, "CLOAK");
     if (index != -1) {
-        if (g_game->orderState.bits.cloak == 3) {
+        if (g_game->ordersPanelFlags.bits.cloak == 3) {
             SetGrayedOut(menu, index, 1);
         } else {
-            SetGadgetStatus(menu, index, g_game->orderState.bits.cloak);
+            SetGadgetStatus(menu, index, g_game->ordersPanelFlags.bits.cloak);
         }
     }
     index = FindGadgetIndexBySubstring(layer, "ONOFF");
     if (index != -1) {
-        if (g_game->orderState.bits.onOff == 3) {
+        if (g_game->ordersPanelFlags.bits.onOff == 3) {
             SetGrayedOut(menu, index, 1);
         } else {
-            SetGadgetStatus(menu, index, g_game->orderState.bits.onOff);
+            SetGadgetStatus(menu, index, g_game->ordersPanelFlags.bits.onOff);
         }
     }
     index = FindGadgetIndexBySubstring(layer, "MOVEORD");
     if (index != -1) {
-        if (g_game->orderState.bits.moveOrder == 4) {
+        if (g_game->ordersPanelFlags.bits.moveOrder == 4) {
             SetGrayedOut(menu, index, 1);
         } else {
-            SetGadgetStatus(menu, index, g_game->orderState.bits.moveOrder);
+            SetGadgetStatus(menu, index, g_game->ordersPanelFlags.bits.moveOrder);
         }
     }
     index = FindGadgetIndexBySubstring(layer, "FIREORD");
     if (index != -1) {
-        if (g_game->orderState.bits.fireOrder == 4) {
+        if (g_game->ordersPanelFlags.bits.fireOrder == 4) {
             SetGrayedOut(menu, index, 1);
         } else {
-            SetGadgetStatus(menu, index, g_game->orderState.bits.fireOrder);
+            SetGadgetStatus(menu, index, g_game->ordersPanelFlags.bits.fireOrder);
         }
     }
-    if (!g_game->orderState.bits.canMove) {
+    if (!g_game->ordersPanelFlags.bits.canMove) {
         index = FindGadgetIndexBySubstring(layer, "MOVE");
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
     }
-    if (!g_game->orderState.bits.canStop) {
+    if (!g_game->ordersPanelFlags.bits.canStop) {
         index = FindGadgetIndexBySubstring(layer, "STOP");
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
     }
-    if (!g_game->orderState.bits.canAttack) {
+    if (!g_game->ordersPanelFlags.bits.canAttack) {
         index = FindGadgetIndexBySubstring(layer, "ATTACK");
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
     }
-    if (!g_game->orderState.bits.canDefend) {
+    if (!g_game->ordersPanelFlags.bits.canDefend) {
         index = FindGadgetIndexBySubstring(layer, "DEFEND");
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
     }
-    if (!g_game->orderState.bits.canPatrol) {
+    if (!g_game->ordersPanelFlags.bits.canPatrol) {
         index = FindGadgetIndexBySubstring(layer, "PATROL");
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
     }
-    if (!g_game->orderState.bits.canReclaim) {
+    if (!g_game->ordersPanelFlags.bits.canReclaim) {
         index = FindGadgetIndexBySubstring(layer, "RECLAIM");
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
     }
-    if (!g_game->orderState.bits.canRepair) {
+    if (!g_game->ordersPanelFlags.bits.canRepair) {
         index = FindGadgetIndexBySubstring(layer, "REPAIR");
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
     }
-    if (!g_game->orderState.bits.canCapture) {
+    if (!g_game->ordersPanelFlags.bits.canCapture) {
         index = FindGadgetIndexBySubstring(layer, "CAPTURE");
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
     }
-    if (!g_game->orderState.bits.canLoad) {
+    if (!g_game->ordersPanelFlags.bits.canLoad) {
         index = FindGadgetIndexBySubstring(layer, "LOAD");
         if (index != -1) {
             SetGadgetActive(menu, index, 0);
@@ -922,7 +922,7 @@ void __stdcall RefreshOrderButtons(Unit* unit)
         if (index != -1) {
             SetGrayedOut(menu, index, 1);
         }
-        if (!g_game->orderState.bits.canBlast) {
+        if (!g_game->ordersPanelFlags.bits.canBlast) {
             index = FindGadgetIndexBySubstring(layer, "BLAST");
             if (index != -1) {
                 SetGrayedOut(menu, index, 1);
@@ -955,68 +955,68 @@ int __stdcall HandleOrdersPanelClick(Gui* menu, Gadget* entries)
     int index = menu->hotGadgetIndex;
 
     if (Contains(entries, "MOVEORD", index)) {
-        switch (g_game->orderState.bits.moveOrder) {
+        switch (g_game->ordersPanelFlags.bits.moveOrder) {
         case 0:
             IssueOrderToSelection(orders, 0, "STANDING_MOVEORDER", 0, 1, 0);
-            g_game->orderState.bits.moveOrder = 1;
+            g_game->ordersPanelFlags.bits.moveOrder = 1;
             break;
         case 1:
             IssueOrderToSelection(orders, 0, "STANDING_MOVEORDER", 0, 2, 0);
-            g_game->orderState.bits.moveOrder = 2;
+            g_game->ordersPanelFlags.bits.moveOrder = 2;
             break;
         case 2:
         case 3:
             IssueOrderToSelection(orders, 0, "STANDING_MOVEORDER", 0, 0, 0);
-            g_game->orderState.bits.moveOrder = 0;
+            g_game->ordersPanelFlags.bits.moveOrder = 0;
             break;
         }
         PlaySoundByName("setmoveorders", 0);
-        SetGadgetStatus(&g_game->gui, index, g_game->orderState.bits.moveOrder);
+        SetGadgetStatus(&g_game->gui, index, g_game->ordersPanelFlags.bits.moveOrder);
     } else if (Contains(entries, "FIREORD", index)) {
-        switch (g_game->orderState.bits.fireOrder) {
+        switch (g_game->ordersPanelFlags.bits.fireOrder) {
         case 0:
             IssueOrderToSelection(orders, 0, "STANDING_FIREORDER", 0, 1, 0);
-            g_game->orderState.bits.fireOrder = 1;
+            g_game->ordersPanelFlags.bits.fireOrder = 1;
             break;
         case 1:
             IssueOrderToSelection(orders, 0, "STANDING_FIREORDER", 0, 2, 0);
-            g_game->orderState.bits.fireOrder = 2;
+            g_game->ordersPanelFlags.bits.fireOrder = 2;
             break;
         case 2:
         case 3:
             IssueOrderToSelection(orders, 0, "STANDING_FIREORDER", 0, 0, 0);
-            g_game->orderState.bits.fireOrder = 0;
+            g_game->ordersPanelFlags.bits.fireOrder = 0;
             break;
         }
         PlaySoundByName("setfireorders", 0);
-        SetGadgetStatus(&g_game->gui, index, g_game->orderState.bits.fireOrder);
+        SetGadgetStatus(&g_game->gui, index, g_game->ordersPanelFlags.bits.fireOrder);
     } else if (Contains(entries, "STATUS", index) || Contains(entries, "ONOFF", index)) {
-        switch (g_game->orderState.bits.onOff) {
+        switch (g_game->ordersPanelFlags.bits.onOff) {
         case 0:
             IssueOrderToSelection(orders, 0, "ACTIVATE", 0, 0, 0);
-            g_game->orderState.bits.onOff = 1;
+            g_game->ordersPanelFlags.bits.onOff = 1;
             break;
         case 1:
             IssueOrderToSelection(orders, 0, "DEACTIVATE", 0, 0, 0);
-            g_game->orderState.bits.onOff = 0;
+            g_game->ordersPanelFlags.bits.onOff = 0;
             break;
         case 2:
             IssueOrderToSelection(orders, 0, "ACTIVATE", 0, 0, 0);
-            g_game->orderState.bits.onOff = 1;
+            g_game->ordersPanelFlags.bits.onOff = 1;
             break;
         }
         PlaySoundByName("specialorders", 0);
-        SetGadgetStatus(&g_game->gui, index, g_game->orderState.bits.onOff);
+        SetGadgetStatus(&g_game->gui, index, g_game->ordersPanelFlags.bits.onOff);
     } else if (Contains(entries, "CLOAK", index)) {
-        if (g_game->orderState.bits.cloak) {
+        if (g_game->ordersPanelFlags.bits.cloak) {
             IssueOrderToSelection(orders, 0, "CLOAK_OFF", 0, 0, 0);
-            g_game->orderState.bits.cloak = 0;
+            g_game->ordersPanelFlags.bits.cloak = 0;
         } else {
             IssueOrderToSelection(orders, 0, "CLOAK_ON", 0, 0, 0);
-            g_game->orderState.bits.cloak = 1;
+            g_game->ordersPanelFlags.bits.cloak = 1;
         }
         PlaySoundByName("specialorders", 0);
-        SetGadgetStatus(&g_game->gui, index, g_game->orderState.bits.cloak);
+        SetGadgetStatus(&g_game->gui, index, g_game->ordersPanelFlags.bits.cloak);
     } else {
         return 0;
     }
@@ -1058,14 +1058,14 @@ void __stdcall HandleBuildPanelClick(Gui* menu)
         char name[32];
         GetGadgetName(entries, name, menu->hotGadgetIndex);
         if (strstr(name, "PREV")) {
-            g_game->orderState.bits.prev = 1;
+            g_game->ordersPanelFlags.bits.prev = 1;
         } else if (strstr(name, "NEXT")) {
-            g_game->orderState.bits.next = 1;
+            g_game->ordersPanelFlags.bits.next = 1;
         } else if (strstr(name, "ORDERS")) {
-            g_game->orderState.bits.orders = 1;
+            g_game->ordersPanelFlags.bits.orders = 1;
             PlaySoundByName("ordersbutton", 0);
         } else if (strstr(name, "BUILD")) {
-            g_game->orderState.bits.build = 1;
+            g_game->ordersPanelFlags.bits.build = 1;
             PlaySoundByName("buildbutton", 0);
         } else if (id != 0 && g_game->unitDefs[id].mobile == 0) {
             g_game->orderMode = 0xe;
@@ -1295,7 +1295,7 @@ void __stdcall FinishConstruction(Unit* unit, Unit* target)
             && (target->player->type == 1 || target->player->type == 2))
             BroadcastBuilderLink(unit, target);
         if ((unit->flags.raw & 0x10) || (target->flags.raw & 0x10))
-            g_game->orderState.raw |= 0x10;
+            g_game->ordersPanelFlags.raw |= 0x10;
     }
 }
 
@@ -1436,7 +1436,7 @@ void __stdcall StepBuildMenuPageBack(int toggle)
             u->flags.raw = StepPage(f);
         u->flags.raw |= 0x400000;
     }
-    g_game->orderState.lo |= 0x10;
+    g_game->ordersPanelFlags.lo |= 0x10;
 
 nextbuild:
     PlaySoundByName("nextbuildmenu", 0);
@@ -1460,7 +1460,7 @@ void __stdcall OpenBuildMenuPage(int page)
                 unit->flags.bits.buildPage = page > 0;
                 if (page != 0)
                     unit->flags.bits.page = page;
-                g_game->orderState.lo |= 0x10;
+                g_game->ordersPanelFlags.lo |= 0x10;
                 PlaySoundByName("nextbuildmenu", 0);
             }
         }
@@ -1471,7 +1471,7 @@ void __stdcall OpenBuildMenuPage(int page)
 void __stdcall MarkSelectionOrdersDirty(Unit* unit)
 {
     if (unit->playerIndex == g_game->localPlayer && (unit->flags.lo & 0x10)) {
-        g_game->orderState.raw |= 0x10;
+        g_game->ordersPanelFlags.raw |= 0x10;
     }
 }
 
@@ -1506,31 +1506,31 @@ static Unit* GetSelectedUnit()
 // FUNCTION: 0x41c180
 void DispatchOrdersPanelPageFlags()
 {
-    if (g_game->orderState.bits.next) {
-        g_game->orderState.bits.next = 0;
+    if (g_game->ordersPanelFlags.bits.next) {
+        g_game->ordersPanelFlags.bits.next = 0;
         StepBuildMenuPage(0);
         return;
     }
-    if (g_game->orderState.bits.prev) {
-        g_game->orderState.bits.prev = 0;
+    if (g_game->ordersPanelFlags.bits.prev) {
+        g_game->ordersPanelFlags.bits.prev = 0;
         StepBuildMenuPageBack(0);
         return;
     }
-    if (g_game->orderState.bits.build) {
-        g_game->orderState.bits.build = 0;
+    if (g_game->ordersPanelFlags.bits.build) {
+        g_game->ordersPanelFlags.bits.build = 0;
         Unit* unit = GetSelectedUnit();
         if (unit) {
             unit->flags.raw |= 0x400000;
-            g_game->orderState.bits.flag_4 = 1;
+            g_game->ordersPanelFlags.bits.flag_4 = 1;
         }
         return;
     }
-    if (g_game->orderState.bits.orders) {
-        g_game->orderState.bits.orders = 0;
+    if (g_game->ordersPanelFlags.bits.orders) {
+        g_game->ordersPanelFlags.bits.orders = 0;
         Unit* unit = GetSelectedUnit();
         if (unit) {
             unit->flags.raw &= ~0x400000;
-            g_game->orderState.bits.flag_4 = 1;
+            g_game->ordersPanelFlags.bits.flag_4 = 1;
         }
     }
 }

@@ -3,7 +3,7 @@
 // Names are provisional.
 //
 // One Game from the four views (the menu object at +0x519 and the byte and word
-// forms of the network flags at +0x38d75 sit in anonymous unions, as do the
+// forms of the loading flags at +0x38d75 sit in anonymous unions, as do the
 // player records, the loaded/slots block and the map rectangles), one Mission,
 // one PacketManager and the module's classes.
 //
@@ -559,7 +559,7 @@ unsigned short __stdcall GetCellFeature(Cell* cell);
 // - QueryPerformanceCounter's halves: the sum is written straight from the two
 //   fields, `SeedRandom(perfCount.LowPart + perfCount.HighPart)`. Through named
 //   locals the addition lands in the other register.
-// Also kept: the network flags at +0x38d75 written as volatile
+// Also kept: the loading flags at +0x38d75 written as volatile
 // (the field the guide names); the +0x9b bit-6 test as a 1-bit bitfield; the
 // mission-count loop with `i++` before `def += 6`; the ten-player walks with
 // `(unsigned char)i` so the multiply is not strength-reduced; the

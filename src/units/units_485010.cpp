@@ -330,7 +330,7 @@ struct Game {
     Name_004864b0 names[8];            // +0x37f5f
     char unknown_390ef[0x391e9 - 0x390ef];
     Mission* mapInfo;                  // +0x391e9
-    MissionConditions* conditions;     // +0x391ed
+    MissionConditions* victoryConditions;  // +0x391ed
 };
 #pragma pack(pop)
 
@@ -937,7 +937,7 @@ found:
     // Array subscript, not a byte-offset cast: it fixes the SIB operand order.
     g_game->players[player].unitCount++;
     g_game->players[player].unitsCreated++;
-    g_game->conditions->NotifyUnitCreated(unit);
+    g_game->victoryConditions->NotifyUnitCreated(unit);
     return unit;
 }
 
@@ -981,7 +981,7 @@ Unit* __stdcall CreateUnitFromPacket(unsigned char player, Spawn_004861d0* spawn
     // Indexed again from g_game, not through pl: keeps the player index live early.
     g_game->players[player].unitCount++;
     g_game->players[player].unitsCreated++;
-    g_game->conditions->NotifyUnitCreated(unit);
+    g_game->victoryConditions->NotifyUnitCreated(unit);
     return unit;
 }
 
@@ -1165,7 +1165,7 @@ void __stdcall ApplyUnitDeath(UnitKilledPacket* cmd, int local)
         parent = &g_game->units[cmd->attackerUnitId];
     unit->attacker = parent;
     unit->lastAttackerSlot = FindSlotByDpid(cmd->attackerPlayerNetId);
-    g_game->conditions->NotifyUnitDied(unit);
+    g_game->victoryConditions->NotifyUnitDied(unit);
     DeleteOrders(unit, 1);
     RemoveSpeechOfUnit(unit);
     SetUnitSquad(unit, -1);

@@ -731,7 +731,7 @@ address,size,file,symbol,status,similarity
 0x4388d0,89,src/orders/order_queue_4384a0.cpp,?SetAttachedFx@Order@@QAEXPAVOrderFx@@@Z,matched,100.0
 0x438930,196,src/orders/order_queue_4384a0.cpp,?AttachApproachRadiusGoal@Order@@QAEXPAHH@Z,matched,100.0
 0x438a00,205,src/orders/order_queue_4384a0.cpp,?AttachRingApproachGoal@Order@@QAEXPAUVec3_0043a1f0@@HH@Z,matched,100.0
-0x438ad0,191,src/orders/order_queue_4384a0.cpp,?AttachBuildFootprintMarker@Order@@QAEXUPoint_00438ad0@@0@Z,matched,100.0
+0x438ad0,191,src/orders/order_queue_4384a0.cpp,?AttachBuildFootprintMarker@Order@@QAEXUPoint16@@0@Z,matched,100.0
 0x438b90,69,src/orders/order_queue_4384a0.cpp,?MergeFlagsFromTable@Order@@QAEXH@Z,matched,100.0
 0x438be0,27,src/orders/order_queue_4384a0.cpp,?GetOrderFlags@@YGHPAX@Z,matched,100.0
 0x438c00,660,src/ingame/markers.cpp,?DrawBuildFootprint@@YGXPAXPAUView@@PAUOrder@@PAUPos@@H@Z,matched,100.0
@@ -1715,10 +1715,10 @@ address,size,file,symbol,status,similarity
 0x480250,520,src/units/squads.cpp,?SetUnitSquad@@YGXPAUUnit@@H@Z,matched,100.0
 0x480460,120,src/units/squads.cpp,?OrderSquad@@YGXPAUPlayerView@@HEHPAUUnit@@HHH@Z,matched,100.0
 0x4804e0,40,src/units/unit_script_calls.cpp,?StepTowards@@YGHHHH@Z,matched,100.0
-0x480510,83,src/units/unit_script_calls.cpp,?StepPointTowards@@YG?AUPoint_00480510@@U1@0F@Z,matched,100.0
-0x480570,49,src/units/unit_script_calls.cpp,?ChebyshevDistance@@YGHUPoint_00480570@@0@Z,matched,100.0
-0x4805b0,366,src/units/unit_script_calls.cpp,?ClampPointToSegment@@YGXPAUPoint_004805b0@@U1@1@Z,matched,100.0
-0x480720,78,src/units/unit_script_calls.cpp,?OctantBetween@@YGDUPoint_00480720@@0@Z,matched,100.0
+0x480510,83,src/units/unit_script_calls.cpp,?StepPointTowards@@YG?AUPoint16@@U1@0F@Z,matched,100.0
+0x480570,49,src/units/unit_script_calls.cpp,?ChebyshevDistance@@YGHUPoint16@@0@Z,matched,100.0
+0x4805b0,366,src/units/unit_script_calls.cpp,?ClampPointToSegment@@YGXPAUPoint16@@U1@1@Z,matched,100.0
+0x480720,78,src/units/unit_script_calls.cpp,?OctantBetween@@YGDUPoint16@@0@Z,matched,100.0
 0x480770,932,src/units/unit_script.cpp,?GetUnitValue@UnitScript@@UAEHHHHHH@Z,matched,100.0
 0x480b20,268,src/units/unit_script.cpp,?SetUnitValue@UnitScript@@UAEXHH@Z,matched,100.0
 0x480c30,31,src/units/unit_script.cpp,?GetPieceTranslation@UnitScript@@UAEHHH@Z,matched,100.0
@@ -2681,7 +2681,7 @@ address,size,file,symbol,status,similarity
 0x4c0070,301,src/graphics/draw.cpp,?DrawCircle@@YGXPAUSurface@@HHHH@Z,matched,100.0
 0x4c01a0,353,src/graphics/draw.cpp,?DrawDashedCircle@@YGXPAUSurface@@HHHHHH@Z,matched,100.0
 0x4c0310,28,src/graphics/draw.cpp,?FillPolygon@@YGXPAUSurface@@PAUPoint@@HE@Z,matched,100.0
-0x4c0330,932,src/graphics/draw_4c0330.cpp,?ScanFillPolygon@@YGHPAUSurface@@PAUPoint_004c0330@@HE@Z,matched,100.0
+0x4c0330,932,src/graphics/draw_4c0330.cpp,?ScanFillPolygon@@YGHPAUSurface@@PAUPoint@@HE@Z,matched,100.0
 0x4c06e0,200,src/graphics/draw.cpp,?FillFlatSpan@@YGXHPAUSpan@@PAUGafFrame@@E@Z,matched,100.0
 0x4c07b0,106,src/graphics/draw.cpp,?DrawPolygon@@YGHPAUSurface@@PAUVec3@@HH@Z,matched,100.0
 0x4c0820,613,src/graphics/draw.cpp,?DrawPolygonEdges@@YGHPAUGafFrame@@PAUVec3@@HH@Z,matched,100.0

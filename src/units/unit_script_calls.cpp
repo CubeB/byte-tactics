@@ -2,25 +2,12 @@
 
 #include <stdlib.h>
 
-struct Point_00480510 {
-    short x;
-    short y;
-};
+#include "../util/vec3.h"
 
-struct Point_00480570 {
-    short x;
-    short y;
-};
-
-struct Point_004805b0 {
-    short x;
-    short y;
-};
-
-struct Point_00480720 {
-    short x;
-    short y;
-};
+// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
+int __stdcall CheckDirectXVersion(int, int, int, int, int);
+void __stdcall EnumPlayersCallback(int, int, int, int, int);
+void __stdcall EmitBubbles(int, int, int, short);
 
 struct Diff_00480570 { int dx; int dy; };
 
@@ -29,7 +16,7 @@ struct Diff_00480570 { int dx; int dy; };
 // makes the last case branchless. <stdlib.h> sets the load order of to.x and
 // from.x.
 // FUNCTION: 0x480720
-char __stdcall OctantBetween(Point_00480720 from, Point_00480720 to)
+char __stdcall OctantBetween(Point16 from, Point16 to)
 {
     int dx = to.x - from.x;
     int dy = to.y - from.y;
@@ -73,8 +60,8 @@ int __stdcall StepTowards(int value, int target, int step)
 }
 
 // Moves a 16-bit point one step towards a target on each axis.
-// FUNCTION: 0x480510 ?StepPointTowards@@YG?AUPoint_00480510@@U1@0F@Z
-Point_00480510 __stdcall StepPointTowards(Point_00480510 p, Point_00480510 target, short step)
+// FUNCTION: 0x480510
+Point16 __stdcall StepPointTowards(Point16 p, Point16 target, short step)
 {
     if (target.x < p.x)
         p.x -= step;
@@ -87,7 +74,7 @@ Point_00480510 __stdcall StepPointTowards(Point_00480510 p, Point_00480510 targe
     return p;
 }
 
-static inline Diff_00480570 Sub(Point_00480570 a, Point_00480570 b)
+static inline Diff_00480570 Sub(Point16 a, Point16 b)
 {
     Diff_00480570 d;
     d.dx = a.x - b.x;
@@ -95,45 +82,10 @@ static inline Diff_00480570 Sub(Point_00480570 a, Point_00480570 b)
     return d;
 }
 
-// FUNCTION: 0x480570 ?ChebyshevDistance@@YGHUPoint_00480570@@0@Z
-int __stdcall ChebyshevDistance(Point_00480570 a, Point_00480570 b)
-{
-    Diff_00480570 d = Sub(a, b);
-    int dx = abs(d.dx);
-    int dy = abs(d.dy);
-    if (dx > dy) dy = dx;
-    return dy;
-}
-
-// The original calls its two real neighbours, ChebyshevDistance (the larger of the
-// two absolute coordinate differences) and StepPointTowards (step a point towards
-// a target), and /Ob2 inlines both. They are defined here as in their own
-// matched files, with no FUNCTION line (static inline or not makes no
-// difference). ChebyshevDistance needs its real body: the `Sub` helper
-// returning a Diff struct, with the max written as a ternary (as in 0x480570).
-// Sub with the if-form, or the ternary without Sub, does not match here.
-static inline Diff_00480570 Sub(Point_004805b0 a, Point_004805b0 b)
-{
-    Diff_00480570 d;
-    d.dx = a.x - b.x;
-    d.dy = a.y - b.y;
-    return d;
-}
-
-Point_004805b0 __stdcall StepPointTowards(Point_004805b0 p, Point_004805b0 target, short step)
-{
-    if (target.x < p.x)
-        p.x -= step;
-    else if (target.x > p.x)
-        p.x += step;
-    if (target.y < p.y)
-        p.y -= step;
-    else if (target.y > p.y)
-        p.y += step;
-    return p;
-}
-
-int __stdcall ChebyshevDistance(Point_004805b0 a, Point_004805b0 b)
+// The max stays a ternary: ClampPointToSegment inlines this body, and the
+// if form does not match there.
+// FUNCTION: 0x480570
+int __stdcall ChebyshevDistance(Point16 a, Point16 b)
 {
     Diff_00480570 d = Sub(a, b);
     int dx = abs(d.dx);
@@ -142,7 +94,7 @@ int __stdcall ChebyshevDistance(Point_004805b0 a, Point_004805b0 b)
 }
 
 // FUNCTION: 0x4805b0
-void __stdcall ClampPointToSegment(Point_004805b0* p, Point_004805b0 b, Point_004805b0 c)
+void __stdcall ClampPointToSegment(Point16* p, Point16 b, Point16 c)
 {
     int d1 = ChebyshevDistance(*p, b);
     int d2 = ChebyshevDistance(*p, c);

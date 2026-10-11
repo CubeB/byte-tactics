@@ -12,11 +12,7 @@
 #include <memory.h>
 
 #include "surface.h"
-
-struct Point_004c0330 {
-    int x;
-    int y;
-};
+#include "../util/point.h"
 
 struct Span_004c0330 {
     int left;                          // +0x0
@@ -37,7 +33,7 @@ int __stdcall ClipRectangle(Surface* surface, Rect* r);
 // Not gathered into draw.cpp: merged, dy stays in a register where the original
 // spills it, which takes 4 bytes off the frame and moves the block codegen.
 // FUNCTION: 0x4c0330
-int __stdcall ScanFillPolygon(Surface* surface, Point_004c0330* points, int n, unsigned char color)
+int __stdcall ScanFillPolygon(Surface* surface, Point* points, int n, unsigned char color)
 {
     Surface screen;
     Rect clip;

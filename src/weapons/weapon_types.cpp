@@ -148,7 +148,7 @@ void __stdcall LoadWeaponType(TdfRecord* parser) {
     // The short fields are unsigned short, so the casts are too: a (short) cast
     // stored to one changes the inlining further down.
     w->range = parser->GetFieldInt("range", 0x7fff);
-    w->radius = parser->GetFieldInt("coverage", 0);
+    w->coverage = parser->GetFieldInt("coverage", 0);
     w->reloadTime = (unsigned short)(parser->GetFieldDouble("reloadtime", 0.0) * 30.0);
     w->energyPerShot = (float)parser->GetFieldDouble("energypershot", 0.0);
     w->metalPerShot = (float)parser->GetFieldDouble("metalpershot", 0.0);

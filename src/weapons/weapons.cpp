@@ -2053,7 +2053,7 @@ Proj_0049d120* __stdcall FindTargetableProjectile(Table_0049d120* table, int ind
     // load hoists into the prologue.
     if (!entry->active)
         return 0;
-    int radius = entry->def->radius << 16;
+    int radius = entry->def->coverage << 16;
     // projs is read before projCount: keeps g_game in ecx.
     Proj_0049d120* proj = (Proj_0049d120*)g_game->projectiles;
     int count = g_game->projCount;

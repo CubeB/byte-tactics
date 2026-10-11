@@ -35,21 +35,7 @@ public:
     int SpendEnergyAndMetal(float energy, float metal);
 };
 
-struct UnitDef_00401360 {
-    char unknown_0[0x1c2];
-    float energyMake;                  // +0x1c2
-    float energyUse;                   // +0x1c6
-    float metalMake;                   // +0x1ca
-    float extractsMetal;               // +0x1ce
-    float windGenerator;               // +0x1d2
-    float tidalGenerator;              // +0x1d6
-    float cost;                        // +0x1da
-    float costActive;                  // +0x1de
-    float energyStorage;               // +0x1e2
-    float metalStorage;                // +0x1e6
-    char unknown_1ea[0x22d - 0x1ea];
-    unsigned char makesMetal;          // +0x22d
-};
+#include "../units/unit_def.h"
 
 #include "../network/player.h"
 
@@ -57,7 +43,7 @@ struct Unit {
     char unknown_0[0x58];
     float extraction;                  // +0x58
     char unknown_5c[0x92 - 0x5c];
-    UnitDef_00401360* def;             // +0x92
+    UnitDef* def;                      // +0x92
     char unknown_96[0xb0 - 0x96];
     unsigned int workTime;             // +0xb0
     char unknown_b4[0xbc - 0xb4];
@@ -310,32 +296,32 @@ void __stdcall UpdatePlayerEconomy(Player* p)
             continue;
         if (u->flags & 0x20000000) {
             if (u->activateFlags & 1) {
-                int ok = UseEnergy(u, u->def->energyUse);
+                int ok = UseEnergy(u, u->def->energyuse);
                 if (u->def->extractsMetal > 0) {
                     if (ok)
                         AddIncome(u, &u->resourceSlot.res[1].produced, u->extraction);
                 } else if (u->def->makesMetal) {
                     if (ok)
                         AddIncome(u, &u->resourceSlot.res[1].produced, u->def->makesMetal);
-                } else if (u->def->windGenerator > 0) {
-                    AddIncomeW(u, &u->resourceSlot.res[0].produced, g_game->windFraction * u->def->windGenerator);
-                } else if (u->def->tidalGenerator > 0) {
-                    AddIncomeDB(u, &u->resourceSlot.res[0].produced, g_game->tidal * u->def->tidalGenerator);
+                } else if (u->def->windgenerator > 0) {
+                    AddIncomeW(u, &u->resourceSlot.res[0].produced, g_game->windFraction * u->def->windgenerator);
+                } else if (u->def->tidalgenerator > 0) {
+                    AddIncomeDB(u, &u->resourceSlot.res[0].produced, g_game->tidal * u->def->tidalgenerator);
                 }
             }
         } else if ((u->activateFlags & 1) || (u->flags & 0xc) > 0) {
-            UseEnergyD(u, u->def->energyUse);
+            UseEnergyD(u, u->def->energyuse);
         }
         if (u->buildLeft == 0) {
-            AddIncomeD(u, &u->resourceSlot.res[0].produced, u->def->energyMake);
-            AddIncome(u, &u->resourceSlot.res[1].produced, u->def->metalMake);
-            p->metalCapacity += u->def->metalStorage;
-            p->energyCapacity += u->def->energyStorage;
+            AddIncomeD(u, &u->resourceSlot.res[0].produced, u->def->energymake);
+            AddIncome(u, &u->resourceSlot.res[1].produced, u->def->metalmake);
+            p->metalCapacity += u->def->metalstorage;
+            p->energyCapacity += u->def->energystorage;
         }
         if (!(p->active && p->type == 3)) {
             if (u->bit11) {
                 if (!(u->flags & 0x1000) && u->workTime <= g_game->gameTick) {
-                    int cost = (int)((u->flags & 0xc) > 0 ? u->def->costActive : u->def->cost);
+                    int cost = (int)((u->flags & 0xc) > 0 ? u->def->cloakcostmoving : u->def->cloakcost);
                     ((Unit*)u)->SetStateBits(4, u->resourceSlot.SpendEnergy(cost));
                 } else
                     ((Unit*)u)->SetStateBits(4, 0);

@@ -116,7 +116,7 @@ public:
     unsigned char capacity;            // +0x22a
     char transportcapacity;            // +0x22b
     unsigned char draft;               // +0x22c
-    char makesMetal;                   // +0x22d
+    unsigned char makesMetal;          // +0x22d
     unsigned char buildMenuPageCount;  // +0x22e
     unsigned char mobile;              // +0x22f
     char defaultmissiontype;           // +0x230

@@ -198,23 +198,7 @@ struct Piece_459c70 {
 };
 #pragma pack(pop)
 
-// The unit def's type flags at +0x241 (Thaldren's UnitTypeFlags): bit 25 is noshadow and
-// bit 30 is digger.
-#pragma pack(push, 1)
-union UnitTypeFlags_459200 {
-    unsigned int word;
-    struct {
-        unsigned int hi : 30;
-        unsigned int digger : 1;
-        unsigned int lo : 1;
-    } bits;
-};
-
-struct UnitDef_459200 {
-    char unknown_0[0x241];
-    UnitTypeFlags_459200 flags;        // +0x241
-};
-#pragma pack(pop)
+#include "../units/unit_def.h"
 
 struct Model_459200;
 struct Unit_459200;
@@ -312,7 +296,7 @@ struct Unit_459200 {
     int carrier;                       // +0x86
     Unit_459200* cargo;                // +0x8a
     Unit_459200* cargoNext;            // +0x8e
-    UnitDef_459200* def;               // +0x92
+    UnitDef* def;                      // +0x92
     char unknown_96[8];
     Model_459200* state;               // +0x9e
     char unknown_a2[4];
@@ -360,13 +344,6 @@ public:
     // own types, and the merged context still moves its summing loop's lea.
     void DrawLitPieces(GafFrame* bitmap, Model_459200* list, int kind, int useColor);
 };
-
-// Unused here: the symbol ids these declarations take keep MeasureModel's
-// allocation, standing in for the three view classes merged above
-// (docs/c2-regalloc.md).
-void WriteScreenshot(char*, char*, int, int, int, int);
-int ScanDirectory(char*, char*, char*, int, int, int);
-int AccessRegistryValue(char*, char*, unsigned char*, unsigned long*, unsigned long, unsigned long);
 
 // Unused here: the symbol ids these declarations take keep the allocation,
 // standing in for the four view classes merged into CMemoryCache above
@@ -446,7 +423,7 @@ void UnitTable::Destroy()
 // doubled-bitmap test, once per projected vertex.
 static __inline int shade_bias(Unit_459200* owner)
 {
-    bool c = ((owner->def->flags.word >> 30) & 1) != 0;
+    bool c = ((owner->def->flags1 >> 30) & 1) != 0;
     return c ? 125 : 50;
 }
 

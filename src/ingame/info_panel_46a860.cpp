@@ -68,8 +68,9 @@ struct Rect_0046a860 {
 };
 
 struct WeaponDef_0046a860;
-struct UnitDef_0046a860;
 struct Unit_0046a860;
+
+#include "../units/unit_def.h"
 
 #pragma pack(push, 1)
 // A weapon type (Thaldren: WeaponDef); only the reload time is read here.
@@ -78,26 +79,11 @@ struct WeaponDef_0046a860 {
     unsigned short reloadTime;        // +0xe4
 };
 
-// A unit's type (Thaldren: UnitDef, 0x249 bytes), the elements of the table
-// at g_game+0x1439b.
-struct UnitDef_0046a860 {
-    char name[0x40];                  // +0x000
-    char description[0x40];           // +0x040
-    char unknown_80[0x186 - 0x80];
-    float energyCost;                 // +0x186
-    float metalCost;                  // +0x18a
-    char unknown_18e[0x1fa - 0x18e];
-    unsigned int maxHealth;           // +0x1fa
-    char unknown_1fe[0x241 - 0x1fe];
-    unsigned int f241;                // +0x241
-    unsigned int f245;                // +0x245
-};
-
 // A unit, 0x118 bytes, the elements of the array at g_game+0x14357. The two
 // signednesses of +0x108 both appear in this file, so the field is a union.
 struct Unit_0046a860 {
     char unknown_0[0x92];
-    UnitDef_0046a860* def;            // +0x92
+    UnitDef* def;                     // +0x92
     Player_0046a860* player;          // +0x96
     char unknown_9a[0xa6 - 0x9a];
     unsigned short unitDefIndex;      // +0xa6
@@ -259,7 +245,7 @@ struct Game {
     char unknown_1435b[0x14367 - 0x1435b];
     int count;                            // +0x14367
     char unknown_1436b[0x1439b - 0x1436b];
-    UnitDef_0046a860* unitDefs;           // +0x1439b
+    UnitDef* unitDefs;                    // +0x1439b
     char unknown_1439f[0x147a7 - 0x1439f];
     int baseHeight;                       // +0x147a7
     char unknown_147ab[0x14833 - 0x147ab];
@@ -428,7 +414,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         text[0x10] = 0;
         unsigned short type = FindUnitTypeId(text);
         if (type != 0) {
-            UnitDef_0046a860* entry = g_game->unitDefs + type;
+            UnitDef* entry = g_game->unitDefs + type;
             if (_strcmpi(text, "CORBUILD") != 0) {
                 sprintf(text, "%s  M:%d E:%d", entry, (int)entry->metalCost,
                         (int)entry->energyCost);
@@ -444,8 +430,8 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         if (unit->unitDefIndex != 0) {
             char* playerMap = (char*)&g_game->players[g_game->playerIndex];
             if (IsUnitVisibleToPlayer(playerMap, unit)) {
-                UnitDef_0046a860* definition = unit->def;
-                unsigned int unitFlags = definition->f245;
+                UnitDef* definition = unit->def;
+                unsigned int unitFlags = definition->flags2;
                 int flagsOk = ((unitFlags & 0x20000) | ((unitFlags >> 1) & 0x20000)) >> 0x11;
                 int gameMode = g_game->mapInfo->GetGameType();
                 if (gameMode == 3 && flagsOk)
@@ -457,7 +443,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                 SetTextColors(0x53, GetTextKeyColor());
                 DrawString(surface, (unsigned char*)text, titleX, yOffset + panel->rcUnitName.top, -1);
                 if (unit->player->index == g_game->playerIndex ||
-                    !(unit->def->f241 & 0x4000)) {
+                    !(unit->def->flags1 & 0x4000)) {
                     int maximum = unit->def->maxHealth;
                     DrawBar_0046a860(surface, &panel->rcDamageBar, unit->health,
                                      maximum, yOffset, (unsigned char*)palette);
@@ -527,7 +513,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
                     DrawString(surface, (unsigned char*)target->def, targetX,
                                  panel->rcUnitName2.top + yOffset, -1);
                     if (target->player->index == g_game->playerIndex ||
-                        !(target->def->f241 & 0x4000)) {
+                        !(target->def->flags1 & 0x4000)) {
                         int maximum = target->def->maxHealth;
                         DrawBar_0046a860(surface, &panel->rcDamageBar2, target->health,
                                          maximum, yOffset, (unsigned char*)palette);

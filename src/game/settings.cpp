@@ -68,12 +68,7 @@ struct MissionFlags_0042f9a0 {
     unsigned short allMissions : 1;      // bit 0
 };
 
-struct UnitDef_00431740 {
-    char unknown_0[0x20];
-    char name[0x241 - 0x20];           // +0x20
-    unsigned int flags;                // +0x241
-    char unknown_245[0x249 - 0x245];
-};
+#include "../units/unit_def.h"
 
 #include "../sound/sound.h"
 
@@ -91,7 +86,7 @@ struct Game {
     char unknown_1434e[0x1438f - 0x1434e];
     int unitDefCount;                    // +0x1438f
     char unknown_14393[0x1439b - 0x14393];
-    UnitDef_00431740* unitDefs;          // +0x1439b
+    UnitDef* unitDefs;                   // +0x1439b
     char unknown_1439f[0x37eee - 0x1439f];
     int difficulty;                      // +0x37eee
     int side;                            // +0x37ef2
@@ -651,13 +646,13 @@ void ApplyUseOnlyUnits()
     {
         ProtectBlockReadWrite(g_game->unitDefs);
         for (int i = 1; i < g_game->unitDefCount; i++)
-            g_game->unitDefs[i].flags &= 0xff7fffff;
+            g_game->unitDefs[i].flags1 &= 0xff7fffff;
         parser.ResetCurrentRecord();
         for (int j = 0; parser.SelectRecordAt(j); j++, parser.ResetCurrentRecord()) {
             parser.current->CopyRecordName(name, 0x100);
             for (int k = 0; k < g_game->unitDefCount; k++) {
-                if (_strcmpi(g_game->unitDefs[k].name, name) == 0) {
-                    g_game->unitDefs[k].flags |= 0x800000;
+                if (_strcmpi(g_game->unitDefs[k].unitname, name) == 0) {
+                    g_game->unitDefs[k].flags1 |= 0x800000;
                     break;
                 }
             }

@@ -1417,7 +1417,7 @@ int AllocScoreTables();
 
 // Unused here: real functions declared to keep the file's symbol count.
 void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n);
-int __stdcall AddNetPlayer(int param_1);
+int __stdcall AddNetPlayer(int id);
 void ApplyBrightnessAndVolume();
 
 // FUNCTION: 0x4c7a20

@@ -32,6 +32,7 @@ struct CellPos_0049a120 {
 
 #include "weapon_def.h"
 
+// Not units/unit_def.h: the header takes 0x49a120 out of its symbol-id window.
 struct UnitDef_0049a120 {
     char unknown_0[0x15e];
     Vec3_0049a120 boxMin;              // +0x15e

@@ -43,9 +43,9 @@ class PacketChannel;
 
 class PacketManager {
 public:
-    int SendAllQueued(int param_1);
-    int QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4);
-    int QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4);
+    int SendAllQueued(int force);
+    int QueuePacket(int frame, int dpid, void* data, unsigned int len);
+    int QueueOnChannel(int frame, PacketChannel* channel, int data, int len);
     void SetDefaultSendPacing(int param);
 };
 
@@ -401,7 +401,7 @@ void __stdcall HAPINET_updategameinfo(void* obj, char* name, char* data, int d, 
 void __stdcall HAPINET_initmultiplaydefaults(void* net);
 void __stdcall HAPINET_initconnection(void* net, void* connection);
 int __stdcall HAPINET_quitgame(void* net);
-void __stdcall HAPINET_uninitmultiplay(void* param_1);
+void __stdcall HAPINET_uninitmultiplay(void* net);
 int __stdcall InitPacketManager(int a, int b);
 bool IsReporterDllLoaded();
 void __stdcall RemovePlayer(int id);
@@ -409,12 +409,12 @@ void ShutdownScoreTables();
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void __stdcall QuitApp(char* message);
 char* __stdcall Translate(char* text);
-void __stdcall AddMessage(char* text, int param_2, int param_3, char param_4);
+void __stdcall AddMessage(char* text, int key, int value, char last);
 void SendLobbySyncRequests();
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void __stdcall SetupPlayerSlot(unsigned char player, char type);
 int GetTicks();
-void __stdcall ReportGameEvent(int param_1);
+void __stdcall ReportGameEvent(int msg);
 void __stdcall OpenMessageBox(void* menu, const char* text, int a, int b, int c);
 
 // FUNCTION: 0x44fd40
@@ -802,13 +802,13 @@ static inline unsigned char FindSlot_00450a10(int id)
 }
 
 // FUNCTION: 0x450a10
-int __stdcall AddNetPlayer(int param_1)
+int __stdcall AddNetPlayer(int id)
 {
     unsigned char slot;
-    if (param_1 == -1) {
+    if (id == -1) {
         slot = 10;
     } else {
-        slot = FindSlot_00450a10(param_1);
+        slot = FindSlot_00450a10(id);
     }
     int flag = 0;
     if (slot != 10) {
@@ -851,9 +851,9 @@ int __stdcall AddNetPlayer(int param_1)
     // Destinations precomputed before the branch: keeps the strcpy source scan canonical.
     char* d_full = p->fullName;
     char* d_name = p->name;
-    if (param_1 != -1) {
+    if (id != -1) {
         size = 0x400;
-        result = HAPINET_getplayername(g_game->net, param_1, buf, &size);
+        result = HAPINET_getplayername(g_game->net, id, buf, &size);
         if (result == 0) {
             strcpy(d_full, ((DPNAME*)buf)->lpszShortNameA);
             strcpy(d_name, ((DPNAME*)buf)->lpszLongNameA);
@@ -868,7 +868,7 @@ int __stdcall AddNetPlayer(int param_1)
     }
     SetupPlayerSlot(slot, g_game->players[slot].type);
     p->rejectReason = 0;
-    p->id = param_1;
+    p->id = id;
     p->lastHeard = GetTicks();
     g_game->numPlayers++;
     if (g_game->flags_2a44_w & 1) {
@@ -1329,7 +1329,7 @@ extern EntryFunc g_packetHandlerType2;
 extern int g_packetSizes[45];
 
 void* __cdecl GameAllocIgnoreTag(char* tag, int size);
-int __stdcall InitPacketTables(Class_00451fd0* param_1);
+int __stdcall InitPacketTables(Class_00451fd0* obj);
 void __stdcall EnumPlayersCallback(int id, int unused1, int unused2, int unused3, int unused4);
 int __stdcall JoinLobbyGame(Player* p);
 void __stdcall JoinLobbyGameThread(Args_00451640* args);
@@ -1351,7 +1351,7 @@ int __stdcall HAPINET_passwordrequired(void* net);
 int IsOnlineConfigLoaded(void);
 void __stdcall SetCursorMode(int n);
 void __cdecl GameFreeThunk(void* p);
-void* __cdecl GameReallocTagged(void* param_1, const char* name, unsigned int param_3);
+void* __cdecl GameReallocTagged(void* ptr, const char* name, unsigned int size);
 int __stdcall HAPINET_createorjoinlobbygame(void* obj, char* name, int a, int b, int c, int d, int e);
 void __stdcall HAPINET_createnewgame(void* obj, char* name, char* data, int d, int c, int b, int a);
 void ResetPlayerSlots(void);
@@ -1372,11 +1372,11 @@ void __stdcall CreateUnitFromPacket(unsigned char p, void* packet);
 void __stdcall ReceiveUnitStates(Player* player, void* packet);
 void __stdcall ApplyAttachUnit(void* packet);
 void __stdcall ApplyUnitDamage(void* packet);
-void __stdcall ApplyUnitDeath(void* packet, int param_2);
+void __stdcall ApplyUnitDeath(void* packet, int local);
 void __stdcall ApplyWeaponFirePacket(Player* player, void* packet);
 void __stdcall ApplyProjectileHitPacket(Player* player, void* packet);
-void __stdcall KillFeature(int x, int y, int param_3);
-void __stdcall StartFeatureBurning(int x, int y, int param_3);
+void __stdcall KillFeature(int x, int y, int flag);
+void __stdcall StartFeatureBurning(int x, int y, int flag);
 int __stdcall GetMapCell(int x, int y);
 void __stdcall DamageFeature(int cell, int x, int y, WeaponDef* weapon);
 void __stdcall FinishConstruction(Unit* unit, Unit* builder);
@@ -1389,10 +1389,10 @@ void __stdcall SetGameSpeed(int speed, int param_2);
 void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsCurrentGadgetNamed(Gadget_004538f0* gadget, char* name);
 Entry_004538f0* __stdcall FindGadgetChecked_B(Entry_004538f0* entries, char* name);
-int __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to);
+int __stdcall SendChatMessage(Player* from, char* text, int key, char* to);
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall BeginTextEdit(void* menu, int index);
-void __stdcall ClearSelectedGadget(void* param_1);
+void __stdcall ClearSelectedGadget(void* gui);
 void __stdcall MarkChanged(void* menu);
 int __stdcall IsScreenNamed(void* obj, const char* name);
 void* __stdcall LoadGuiLayer(void* obj, const char* name, int size);
@@ -1759,7 +1759,7 @@ int __stdcall BroadcastPacket(int id, unsigned char* packet, int size)
 }
 
 // FUNCTION: 0x451fd0
-int __stdcall InitPacketTables(Class_00451fd0* param_1)
+int __stdcall InitPacketTables(Class_00451fd0* obj)
 {
     g_packetModes[9] = 4;
     g_packetModes[44] = 4;
@@ -1885,10 +1885,10 @@ int __stdcall InitPacketTables(Class_00451fd0* param_1)
     g_packetSizes[42] = 2;
     g_packetHandlers[42] = DefaultPacketHandler;
     g_packetModes[42] = 7;
-    param_1->lobbySyncTick = GetTicks();
-    param_1->recvPacketSize = 0x2000;
-    param_1->buffer = (int*)GameAllocIgnoreTag(s_PACKET_DATA_00506524, 0x2000);
-    return 0 != param_1->buffer;
+    obj->lobbySyncTick = GetTicks();
+    obj->recvPacketSize = 0x2000;
+    obj->buffer = (int*)GameAllocIgnoreTag(s_PACKET_DATA_00506524, 0x2000);
+    return 0 != obj->buffer;
 }
 
 // FUNCTION: 0x452370
@@ -2943,10 +2943,10 @@ void Unused_00457d30(int a, int b, int c, int d, int e, int f);
 extern char g_cmdlineHostGameName[];
 extern char DAT_00512c98[];
 
-int __stdcall HAPINET_guaranteepackets(int param_1);
-int __stdcall RequestPlayerColor(int param_1);
-void __stdcall SleepMilliseconds(unsigned int param_1);
-void __stdcall SendPlayerEconomy(Player* from, Player* to, unsigned char param_3);
+int __stdcall HAPINET_guaranteepackets(int enable);
+int __stdcall RequestPlayerColor(int color);
+void __stdcall SleepMilliseconds(unsigned int ms);
+void __stdcall SendPlayerEconomy(Player* from, Player* to, unsigned char flag);
 void __stdcall TransferEnergy(unsigned char from, unsigned char to, float amount, int flag);
 void __stdcall TransferMetal(unsigned char from, unsigned char to, float amount, int flag);
 int __stdcall HAPINET_initlobbiedconnection(void* p);
@@ -3419,7 +3419,7 @@ static inline int PlayerReady(Player* p)
 }
 
 // FUNCTION: 0x456ee0
-void __stdcall SendShareMetal(unsigned char from, unsigned char to, int param_3)
+void __stdcall SendShareMetal(unsigned char from, unsigned char to, int amount)
 {
     Player* a = &g_game->players[from];
     Player* b = &g_game->players[to];
@@ -3430,7 +3430,7 @@ void __stdcall SendShareMetal(unsigned char from, unsigned char to, int param_3)
         packet.subtype = 1;
         packet.fromNetId = PlayerDpid(from);
         packet.toNetId = PlayerDpid(to);
-        packet.amount = param_3;
+        packet.amount = amount;
         SendPacketToPlayer(PlayerDpid(from), PlayerDpid(to), &packet, sizeof(packet));
     }
 }
@@ -3709,9 +3709,9 @@ int InitLobbiedConnection()
 }
 
 // FUNCTION: 0x4578d0
-void __stdcall SetPacketRate(int param_1)
+void __stdcall SetPacketRate(int rate)
 {
-    g_packetManager.SetDefaultSendPacing(param_1);
+    g_packetManager.SetDefaultSendPacing(rate);
 }
 
 // Leaves the game: if the "leaving game" flag at +0x2a44 is set, drops every

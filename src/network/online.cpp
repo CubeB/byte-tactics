@@ -9,12 +9,12 @@
 extern int g_onlineConfigLoaded;
 extern HMODULE g_onlineDll;
 
-void __stdcall Translate(unsigned char* param_1);
+void __stdcall Translate(unsigned char* text);
 
 // FUNCTION: 0x45b480
-void __stdcall OnlineTranslate(unsigned char* param_1)
+void __stdcall OnlineTranslate(unsigned char* text)
 {
-    Translate(param_1);
+    Translate(text);
 }
 
 // FUNCTION: 0x45b640

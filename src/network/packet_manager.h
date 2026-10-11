@@ -14,9 +14,9 @@ class PacketChannel;
 class PacketManager {
 public:
     void NopRet_D();
-    int SendAllQueued(int param_1);
-    void* QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4);
-    int QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4);
+    int SendAllQueued(int force);
+    void* QueuePacket(int frame, int dpid, void* data, unsigned int len);
+    int QueueOnChannel(int frame, PacketChannel* channel, int data, int len);
     void SetDefaultSendPacing(int rate);
     void HandleIntegrityNop(int, int, int);
 };

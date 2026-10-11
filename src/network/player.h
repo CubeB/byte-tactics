@@ -85,7 +85,7 @@ struct Player {
     unsigned short flags;              // +0x149
 
     void FreeSideDataAndFogSightCounts();
-    void SetType(int param_1);
+    void SetType(int newType);
 };
 #pragma pack(pop)
 

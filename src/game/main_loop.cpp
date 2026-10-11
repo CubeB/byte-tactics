@@ -29,9 +29,7 @@ struct Flags_38d75 {
 
 #include "../ingame/frame_timers.h"
 
-struct Sub_00496b10 {
-    char unknown_0[0xa6];
-};
+#include "../gui/gui.h"
 
 struct Sub_00496db0 {
     char unknown_0[0x96];
@@ -167,8 +165,8 @@ struct Player {                        // 0x14b bytes, array at g_game+0x1b63
 // slots), and two name the Mission pointer at +0x391e9 (obj, net).
 struct Game {
     char unknown_0[0x519];
-    Sub_00496b10 gui;                          // +0x519
-    char unknown_5bf[0x1b63 - 0x5bf];
+    Gui gui;                                   // +0x519
+    char unknown_120f[0x1b63 - 0x120f];
     union {
         Player players[10];                // +0x1b63
         struct {
@@ -308,14 +306,14 @@ void __cdecl LeaveNetGameCallback(int param);
 void __stdcall SetCloseHandler(void (__cdecl *callback)(int), int param);
 void MenuFrame();
 void EnterMainMenuState();
-void __stdcall EnableKeyCommands(Sub_00496b10* p);
+void __stdcall EnableKeyCommands(Gui* p);
 void RefreshUnitInfo();
 void RunFrontendStateMachine();
 void HideSoftwareCursor();
 void PreBattleFrame();
 void CampaignSetupFrame();
 void LoadingScreenFrame();
-void __stdcall BlitMenuLayers(Sub_00496b10* sub, unsigned int* dest, int* clip);
+void __stdcall BlitMenuLayers(Gui* sub, unsigned int* dest, int* clip);
 int __stdcall BroadcastPacket(int player, void* data, int size);
 void SendNetHeartbeat();
 void __stdcall SetupPlayerSlot(unsigned char player, unsigned char kind);

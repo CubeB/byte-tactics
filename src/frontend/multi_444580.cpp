@@ -20,15 +20,12 @@ struct Entry_00444580 {                 // a gadget of the menu, 0x15b bytes
     char choice[0x15b - 0xcc];          // +0xcc (entry 0 only)
 };
 
-struct Holder_00444580 {
+struct Layer {
     int unknown_0;
     Entry_00444580* entries;            // +0x4
 };
 
-struct Menu_00444580 {
-    char unknown_0[0x18];
-    Holder_00444580* holder;            // +0x18
-};
+#include "../gui/gui.h"
 
 struct Gadget_00444580 {
     int unknown_0;
@@ -49,9 +46,8 @@ struct Game_00444580 {
     char net[0x4f9 - 0x14];             // +0x14
     int count;                          // +0x4f9
     char unknown_4fd[0x519 - 0x4fd];
-    Menu_00444580 menu;                 // +0x519
-    char unknown_535[0x5cb - 0x535];
-    char field_5cb[0x2a4b - 0x5cb];     // +0x5cb
+    Gui gui;                            // +0x519
+    char unknown_120f[0x2a4b - 0x120f];
     void* descriptions;                 // +0x2a4b
     char unknown_2a4f[0x2a9f - 0x2a4f];
     void* guids;                        // +0x2a9f
@@ -95,7 +91,7 @@ static int __stdcall CloneServiceSlot(Entry_00444580* entries, int from, short y
 {
     int index = ++entries[0].count;
     entries[index] = entries[from];
-    SetTranslatedText(&g_game->menu, index, source, 0);
+    SetTranslatedText(&g_game->gui, index, source, 0);
     strcpy(entries[index].name, name);
     entries[index].y = y;
     entries[index].active = 1;
@@ -111,11 +107,11 @@ void ActivatePlayerGadgets(char*);
 // FUNCTION: 0x444580
 void FillProviderList()
 {
-    if (g_game->menu.holder != 0 && strcmp(g_game->menu.holder->entries->name, "SELPROV.GUI") == 0)
-        CloseTopScreen(&g_game->menu);
+    if (g_game->gui.layer != 0 && strcmp(g_game->gui.layer->entries->name, "SELPROV.GUI") == 0)
+        CloseTopScreen(&g_game->gui);
     SetPaletteColors(g_game->paletteRgba, 0, 0x100);
-    RemapPaletteToClosestIndices(&g_game->menu, g_game->paletteRgba, g_game->field_5cb);
-    Gadget_00444580* menu = LoadGuiLayer(&g_game->menu, "SELPROV.GUI", 0x80);
+    RemapPaletteToClosestIndices(&g_game->gui, g_game->paletteRgba, g_game->gui.palette);
+    Gadget_00444580* menu = LoadGuiLayer(&g_game->gui, "SELPROV.GUI", 0x80);
     menu->handler = HandleSelectProviderClick;
     menu->userData = (int)g_game;
     LoadPictureCached("selconnect2", 1, 0, 0);
@@ -153,8 +149,8 @@ void FillProviderList()
         }
     }
     strcpy(entries->choice, "SELECT");
-    ConfigureListBoxByName(&g_game->menu, "DPLAY", g_game->descriptions, g_game->count, 0);
+    ConfigureListBoxByName(&g_game->gui, "DPLAY", g_game->descriptions, g_game->count, 0);
     OrLabelAttribs();
-    SetKeyboardInput(&g_game->menu, 1);
-    RenderLayer(&g_game->menu, 0x40);
+    SetKeyboardInput(&g_game->gui, 1);
+    RenderLayer(&g_game->gui, 0x40);
 }

@@ -6749,7 +6749,7 @@ void __stdcall SetCurrentGuiContext(Gui* ctx)
     ctx->inputEnabled = 1;
     ctx->gaf = 0;
     ctx->fallback = 0;
-    ctx->cachedBgName = 0;
+    ctx->cachedBgName[0] = 0;
     ctx->knobDragging = 0;
     ctx->hoverGadgetIndex = -1;
     memset(ctx->values, 0, 12);

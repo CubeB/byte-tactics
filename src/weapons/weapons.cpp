@@ -846,6 +846,11 @@ struct CellPos_0049a120 {
 };
 
 #pragma pack(push, 1)
+// Unused here: real functions declared for their symbol ids, which keep
+// 0x49a890 and 0x49aa80 matching (docs/c2-regalloc.md).
+int CloakOnOrder(char*, int, int);
+int GetUnitCount(int, unsigned int);
+
 struct Holder_0049a120;
 
 struct Unit_0049a120 {

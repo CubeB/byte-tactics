@@ -1,14 +1,17 @@
 // Decompiled by Opus, Claude Opus 5.5, GPT-5.6 Astra, deepseek-v4.1-flash, GPT-6, deepseek-v4.1, GPT-6.1-sol, xiaomi/mimo-v2.6-pro, Space Bunny Free, GPT-6 Astra, Sonnet, space-bunny-free and GPT-6.1-Sol. Names are provisional.
-// The VTOL order handlers that share this file's symbol context, in address
-// order: landing (0x40f2a0), standby (0x40f7d0), move (0x40fa20), unload
-// (0x411560), landing on a pad (0x411840), evade (0x413bc0), mobile build
-// (0x413d80), repair (0x414e70, 0x415250) and the visitor 0x4158d0, with the
-// helpers they share: PrepVtolClimb, DirectionFromAngle, CellToWorldPos, the
-// LandingPadList constructor and the externs below.
+// The VTOL order handlers that share this file's symbol context: landing
+// (0x40f2a0), standby (0x40f7d0), move (0x40fa20), unload (0x411560), landing
+// on a pad (0x411840), mobile build (0x413d80), repair (0x414e70, 0x415250)
+// and the visitor 0x4158d0, with the helpers they share: PrepVtolClimb,
+// DirectionFromAngle, CellToWorldPos, the LandingPadList constructor and the
+// externs below. Evade (0x413bc0) comes first, and pickup (0x4111b0) and the
+// hovering attack (0x413470) last, out of address order: 0x413bc0 holds only
+// while the file's symbol total stays below a limit, which these two nearly
+// use up (about 14 symbol ids are left), so no other handler fits.
 // The module's other handlers (0x40f790, 0x40fbe0, 0x4103e0, 0x410850,
-// 0x410c70, 0x410e70, 0x4111b0, 0x4118e0, 0x411f50, 0x412710, 0x412d40,
-// 0x413470, 0x414380, 0x414770, 0x414a80 and 0x4152f0) each match only in
-// their own file's symbol context, so they stay in files of their own.
+// 0x410c70, 0x410e70, 0x4118e0, 0x411f50, 0x412710, 0x412d40, 0x414380,
+// 0x414770, 0x414a80 and 0x4152f0) stay in files of their own; the reasons
+// are in docs/split-modules.md.
 // 0x40f790 (AddVec3) merges only with 79 more symbol ids in front of it, and
 // they move 0x413d80 and 0x415250 off their windows. 0x410c70 swaps the base
 // and index of its owner load at any filler count, and its inlined vector
@@ -616,6 +619,48 @@ static inline Unit* OrderTarget(Order* order)
     return order->target.owner;
 }
 
+// VTOL evade order handler. State 0 and state 1 fly to a point beside the
+// aircraft's heading, one and then two weapon ranges away, on a random side.
+// Defined first in the file: its register allocation follows the file's
+// symbol total and holds only while the total stays below a limit, which the
+// functions after it would otherwise pass (docs/c2-regalloc.md).
+// FUNCTION: 0x413bc0
+int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
+{
+    int range=unit->weapons[0].def->range;
+    if (order->targetUnit && !(flags&0x10008)) {
+    unsigned int state=0; state=order->state;
+    switch(state) {
+    case 0:
+        if (unit->motion && (unit->def->flags&0x800)) {
+            order->side=RandomInt(2);
+            Vec3 pos;
+        if (order->side) pos=unit->pos+Offset(unit->heading-0x4000,range<<16);
+        else pos=unit->pos+Offset(unit->heading+0x4000,range<<16);
+            Class_0044e2d0* move=new Class_0044e2d0(order,pos);
+            ((Class_0044e730*)move)->SetApproachRadius(128);
+            order->SetAttachedFx((int)move);
+            order->flags=0x100e8;
+            return 1;
+        }
+        goto invalid;
+    case 1: {
+        Vec3 pos;
+        if (order->side) pos=unit->pos+Offset(unit->heading-0x4000,range<<17);
+        else pos=unit->pos+Offset(unit->heading+0x4000,range<<17);
+        Class_0044e2d0* move=new Class_0044e2d0(order,pos);
+        ((Class_0044e730*)move)->SetApproachRadius(128);
+        order->SetAttachedFx((int)move);
+        order->flags=0x100e8;
+        return 1;
+    }
+    case 2: break;
+    default: invalid: return 7;
+    }
+    }
+    return 5;
+}
+
 // Stops a unit (ClaimWeapons(3), AttachUnitToPiece when +0x86 is set, then
 // SetStateBits(1, 1)); for units whose type has mode 1 in the low bits of
 // +0x2e, also attaches a new Class_0044e2d0 at the unit's position to the
@@ -912,12 +957,6 @@ static inline int Patrol(Unit* unit, Order* order, int flags)
 // free pad when damaged (VTOL_LANDING, as in 0x412710), or takes the next
 // queued order.
 // Kept: the flags/health block's register allocation depends on this include.
-// VTOL transport (air lift) order handler. Fails when there is no target,
-// with flags 0x10048, or when the target sits below sea level. State 0
-// prepares the order ("Loading"; PrepVtolClimb), state 1 flies to the target,
-// state 2 asks the script for the attach piece (QueryTransport), state 3
-// starts BeginTransport and hovers down to the piece's height, state 4 ends
-// the pickup (EndTransport when cancelled) and state 5 finishes.
 // The target's top (its def's max.y) is at or below the sea. An inline
 // helper that re-reads order->target: written inline, MSVC keeps target->def
 // in ecx for state 3 and every register choice changes.
@@ -1049,53 +1088,6 @@ static inline int IsAhead(Unit* unit, Order* order)
 // when the target lies ahead (IsAhead) it makes a strafing run, otherwise it
 // circles, leading the target by its velocity, and after 90 ticks of that
 // it queues VTOL_EVADE.
-// VTOL attack order handler for a unit target. With flags 0x10008, or with
-// no target and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge
-// player it heads for the map centre. State 0 prepares the order
-// ("Attacking"; PrepVtolClimb), state 1 flies to a random point halfway to
-// the target, state 2 attacks, state 3 circles the target, alternating
-// sides, and lands on a free pad when damaged (VTOL_LANDING).
-//
-// Suspected original bug: that same branch builds a Class_0044e2d0 waypoint
-// and sets its speed, but never passes it to the order (no SetAttachedFx
-// call, unlike every other branch), so the object leaks.
-// FUNCTION: 0x413bc0
-int __stdcall VtolEvadeOrder(Unit* unit,Order* order,int flags)
-{
-    int range=unit->weapons[0].def->range;
-    if (order->targetUnit && !(flags&0x10008)) {
-    unsigned int state=0; state=order->state;
-    switch(state) {
-    case 0:
-        if (unit->motion && (unit->def->flags&0x800)) {
-            order->side=RandomInt(2);
-            Vec3 pos;
-        if (order->side) pos=unit->pos+Offset(unit->heading-0x4000,range<<16);
-        else pos=unit->pos+Offset(unit->heading+0x4000,range<<16);
-            Class_0044e2d0* move=new Class_0044e2d0(order,pos);
-            ((Class_0044e730*)move)->SetApproachRadius(128);
-            order->SetAttachedFx((int)move);
-            order->flags=0x100e8;
-            return 1;
-        }
-        goto invalid;
-    case 1: {
-        Vec3 pos;
-        if (order->side) pos=unit->pos+Offset(unit->heading-0x4000,range<<17);
-        else pos=unit->pos+Offset(unit->heading+0x4000,range<<17);
-        Class_0044e2d0* move=new Class_0044e2d0(order,pos);
-        ((Class_0044e730*)move)->SetApproachRadius(128);
-        order->SetAttachedFx((int)move);
-        order->flags=0x100e8;
-        return 1;
-    }
-    case 2: break;
-    default: invalid: return 7;
-    }
-    }
-    return 5;
-}
-
 // FUNCTION: 0x413d80
 int __stdcall VtolMobileBuildOrder(Unit* unit,Order* order,int flags)
 {
@@ -1357,4 +1349,220 @@ void RepairableUnitVisitor::CollectRepairableUnit(Unit* unit)
     if (unit->health >= unit->def->maxHealth && unit->buildLeft == 0.0f) return;
     if (unit->lastAttackerSlot == owner->index && unit->lastDamageType == 5) return;
     units->push_back(unit);
+}
+
+// The whole part (high 16 bits) of a 16.16 coordinate.
+static inline short Whole(const int& v) { return ((short*)&v)[1]; }
+
+static inline Vec3 Sum(const Vec3& a, const Vec3& b)
+{
+    Vec3 r = a;
+    r.x += b.x; r.y += b.y; r.z += b.z;
+    return r;
+}
+
+static inline Vec3 Diff(const Vec3& a, const Vec3& b)
+{
+    Vec3 r = a;
+    r.x -= b.x; r.y -= b.y; r.z -= b.z;
+    return r;
+}
+
+// VTOL attack order handler for a unit target. With flags 0x10008, or with
+// no target and order flag 0x200, it queues VTOL_SEEKATTACK; on the map-edge
+// player it heads for the map centre. State 0 prepares the order
+// ("Attacking"; PrepVtolClimb), state 1 flies to a random point halfway to
+// the target, state 2 attacks, state 3 circles the target, alternating
+// sides, and lands on a free pad when damaged (VTOL_LANDING).
+//
+// Suspected original bug: that same branch builds a Class_0044e2d0 waypoint
+// and sets its speed, but never passes it to the order (no SetAttachedFx
+// call, unlike every other branch), so the object leaks.
+// FUNCTION: 0x413470
+int __stdcall AirToGroundHoverOrder(Unit* unit, Order* order, int flags)
+{
+    if (flags & 0x10008) {
+        if (order->next == 0 && (unit->flags & 0x300000))
+            AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", order->target.owner, &order->pos, 0, 0, 0));
+        return 5;
+    }
+    if (order->target.owner == 0 && (order->flags_42 & 0x200)) {
+        if (order->next == 0)
+            AppendOrderToTail(unit, new Order("VTOL_SEEKATTACK", 0, &unit->pos, 0, 0, 0));
+        return 5;
+    }
+    if (unit->spatialBucket == g_game->overflowBucket) {
+        Vec3 centre;
+        centre.x = g_game->mapPixelWidth / 2 << 16;
+        centre.z = g_game->mapPixelHeight / 2 << 16;
+        short angle = GetHeadingBetween(&unit->pos, &centre);
+        Vec3 dest = AddVec3(unit->pos, Offset(angle, 0x3200000));
+        Class_0044e2d0* obj = new Class_0044e2d0(order, dest);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
+        order->flags |= 0xe0;
+        order->SetAttachedFx((int)obj);
+        return 2;
+    }
+    // short& references: they fix the first _hypot's load order.
+    short& ox = order->x;
+    short& oz = order->z;
+    if (order->range && (int)_hypot(unit->pos.xw - ox, unit->pos.zw - oz) >= order->range)
+        return 5;
+    int range = unit->weapons[0].def->range;
+    unsigned int state = 0;
+    state = order->state;
+    switch (state) {
+    case 0:
+        if (unit->motion && (unit->def->flags & 0x800)) {
+            order->AnnounceStatusIfFlagged("Attacking");
+            PrepVtolClimb(unit, order, 0);
+            return 1;
+        }
+        break;
+    case 1: {
+        unit->ReleaseWeapons(3);
+        int dist = (int)_hypot(order->target.owner->pos.x - unit->pos.x, order->target.owner->pos.z - unit->pos.z);
+        int angle = GetHeadingBetween(&unit->pos, &order->target.owner->pos);
+        Vec3 off = Offset(RandomInt(0x4000) + angle - 0x2000, dist / 2);
+        Vec3 p = Sum(unit->pos, off);
+        Class_0044e2d0* obj = new Class_0044e2d0(order, p);
+        ((Class_0044e730*)obj)->SetApproachRadius(0x80);
+        order->SetAttachedFx((int)obj);
+        order->flags = 0x100e8;
+        return 1;
+    }
+    case 2: {
+        unit->ClaimWeapons(0);
+        SetWeaponTargetUnit(unit, order->target.owner, 0);
+        Class_0044e2d0* obj = new Class_0044e2d0(order, order->target.owner->pos);
+        ((Class_0044e730*)obj)->SetApproachRadius(range);
+        order->SetAttachedFx((int)obj);
+        order->flags = 0x100e8;
+        order->side = 0;
+        order->misses = 0;
+        return 1;
+    }
+    case 3: {
+        if (!WeaponCanReachUnit(unit, order->target.owner, 0))
+            order->misses++;
+        if (order->misses >= 2) {
+            order->misses = 0;
+            Vec3 off = Offset(RandomInt(0x10000), range << 16);
+            Vec3 p = AddComponentwise(order->target.owner->pos, off);
+            // The new waypoint is never given to the order (see the header).
+            Class_0044e2d0* obj = new Class_0044e2d0(order, p);
+            ((Class_0044e730*)obj)->SetApproachRadius(0x80);
+            order->flags |= 0x110e8;
+            return 2;
+        }
+        int a = GetHeadingBetween(&unit->pos, &order->target.owner->pos);
+        int angle;
+        if (order->side) {
+            angle = a + 0x2000;
+            order->side = 0;
+        } else {
+            angle = a - 0x2000;
+            order->side = 1;
+        }
+        Vec3 off = Offset(angle, range * 2 / 3 << 16);
+        Vec3 p = Diff(order->target.owner->pos, off);
+        Class_0044e330* obj = new Class_0044e330(order, order->target.owner, p);
+        // The setters live in Class_0044e2d0; obj is another constructor view of the same object.
+        ((Class_0044e730*)obj)->SetApproachRadius(0x10);
+        ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
+        order->SetAttachedFx((int)obj);
+        order->flags = 0x100e8;
+        if ((unsigned int)unit->health < (unit->def->maxHealth >> 2) * 3) {
+            std::vector<Unit*> v;
+            GetFactoriesInRadius(unit->player->index, &unit->pos, 0xf00, &v);
+            if (!v.empty()) {
+                order->SetAttachedFx(0);
+                Unit* target = v[RandomInt(v.size())];
+                AppendOrder(unit, new Order("VTOL_LANDING", target, 0, 0, 0, 0));
+                order->flags = 0;
+                return 0;
+            }
+        }
+        return 2;
+    }
+    }
+    return 7;
+}
+
+// VTOL transport (air lift) order handler. Fails when there is no target,
+// with flags 0x10048, or when the target sits below sea level. State 0
+// prepares the order ("Loading"; PrepVtolClimb), state 1 flies to the target,
+// state 2 asks the script for the attach piece (QueryTransport), state 3
+// starts BeginTransport and hovers down to the piece's height, state 4 ends
+// the pickup (EndTransport when cancelled) and state 5 finishes.
+// FUNCTION: 0x4111b0
+int __stdcall VtolPickupOrder(Unit* unit, Order* order, int flags)
+{
+    Unit* target = order->target.owner;
+    if (target && !(flags & 0x10048)) {
+        if (BelowSeaLevel(order)) {
+            QueueUnitSpeech(unit, 7, "Transport mission failed");
+            return 8;
+        }
+        if (unit->cargo)
+            return 8;
+        switch (order->state) {
+        case 0:
+            if (unit->motion && (unit->def->flags & 0x800)) {
+                if (target->footprint.x > (short)unit->def->capacity) {
+                    QueueUnitSpeech(unit, 7, "Unit is too heavy to transport");
+                    return 8;
+                }
+                order->AnnounceStatusIfFlagged("Loading");
+                PrepVtolClimb(unit, order, 0);
+                return 1;
+            }
+            break;
+        case 1: {
+            Class_0044e190* obj = new Class_0044e190(order, order->target.owner);
+            // The setters live in Class_0044e2d0; obj is another constructor view of the same object.
+            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
+            ((Class_0044e730*)obj)->SetApproachRadius(0x30);
+            order->SetAttachedFx((int)obj);
+            order->flags = 0x100e8;
+            return 1;
+        }
+        case 2:
+            order->AnnounceStatusIfFlagged("Preparing for transport");
+            order->piece = -1;
+            unit->script->QueryScript("QueryTransport", &order->piece, 0, 0, 0);
+            order->flags = 0x100e8;
+            return 1;
+        case 3: {
+            int height = target->def->modelMaxY;
+            unit->script->StartScriptWithArgs("BeginTransport", 0, 1, 1, height, 0, 0, 0);
+            SendScriptCallByName(unit, "BeginTransport", 1, height, 0, 0, 0);
+            Vec3 offset = GetPieceOffset(unit, order->piece);
+            Class_0044e250* obj = new Class_0044e250(order, order->target.owner, -1);
+            ((Class_0044e6c0*)obj)->SetAltitude(-offset.yw);
+            order->SetAttachedFx((int)obj);
+            order->flags = 0x100ea;
+            return 1;
+        }
+        case 4: {
+            // Suspected original bug: the waypoint built below is never
+            // handed to the order (no SetAttachedFx call), so it leaks.
+            if (flags & 0x42) {
+                unit->script->StartScript("EndTransport", 0, 0);
+                return 8;
+            }
+            AttachUnitToPiece(target, unit, order->piece, 0);
+            QueueUnitSpeech(unit, 12, 0);
+            Class_0044e2d0* obj = new Class_0044e2d0(order, unit->pos);
+            ((Class_0044e6c0*)obj)->SetAltitude(unit->def->altitude);
+            order->flags |= 0xe0;
+            return 1;
+        }
+        case 5:
+            return 5;
+        }
+        return 7;
+    }
+    QueueUnitSpeech(unit, 7, "Transport mission failed");
+    return 8;
 }

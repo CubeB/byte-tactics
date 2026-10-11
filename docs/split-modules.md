@@ -57,6 +57,18 @@ reason is what stopped it. A module whose row list is empty is one file.
 | network/unit_sync | src/network/unit_sync_46f7a0.cpp | `// FLAGS: /Gi`, which the merged file cannot carry; it also needs a hand-written `std::vector`. |
 | orders/vtol_orders | src/orders/vtol_orders_40f790.cpp | The two reference arguments take the other registers; it matches only with 79 more symbol ids before it (one count in 0 to 127), and those move 0x413d80 and 0x415250 off their windows. |
 | orders/vtol_orders | src/orders/vtol_orders_410c70.cpp | Merged, its owner load takes the other base and index at every count from 0 to 79 more ids, and its inlined vector code moves 0x413bc0 off its window. |
+| orders/vtol_orders | src/orders/vtol_orders_40fbe0.cpp | Merged it matches only with 8 or more declarations in front of it, and it adds about 117 symbol ids, where the 14 left under 0x413bc0's limit are all the module has. |
+| orders/vtol_orders | src/orders/vtol_orders_4103e0.cpp | Its `empty()` calls the out-of-line `size()` of the file's hand-written `std::vector<Unit*>`; with the module's real `<vector>` it is 1120 bytes against 1102 (85.1%). |
+| orders/vtol_orders | src/orders/vtol_orders_410850.cpp | Its health test follows the front-end id of `Unit`, which the module's include set fixes elsewhere; merged it stays at 81.6 to 82.7% for every count from 0 to 112 declarations in front of it. |
+| orders/vtol_orders | src/orders/vtol_orders_410e70.cpp | Merged, the landing block's `std::vector<Unit*>` temporary expands differently (850 bytes against 824, 62.1%). |
+| orders/vtol_orders | src/orders/vtol_orders_4118e0.cpp | Merged, esi and edi swap roles through the whole function (80.8 to 81.3%) at every count from 0 to 112 declarations in front of it. |
+| orders/vtol_orders | src/orders/vtol_orders_411f50.cpp | Merged it matches with 8 to 16 declarations in front of it, but it adds 102 symbol ids plus those, where the 14 left under 0x413bc0's limit are all the module has. |
+| orders/vtol_orders | src/orders/vtol_orders_412710.cpp | Merged it needs its own `Vec3` sum (copy, then `+=`) and a plain `UnitList` for the pads, and it matches only with 48 or more declarations in front of it. |
+| orders/vtol_orders | src/orders/vtol_orders_412d40.cpp | Merged, the two whole-part multiplies of its inlined `IsAhead` take the other operand order (97.5 to 99.4% for 0 to 112 declarations in front of it); it also adds 69 symbol ids. |
+| orders/vtol_orders | src/orders/vtol_orders_414380.cpp | Too large for the module: 0x413bc0 holds only while the file's symbol total stays within about 170 ids of its old size, and 0x413470 and 0x4111b0 use all but 14 of them. |
+| orders/vtol_orders | src/orders/vtol_orders_414770.cpp | Too large for the module, same limit as vtol_orders_414380.cpp. |
+| orders/vtol_orders | src/orders/vtol_orders_414a80.cpp | Too large for the module, same limit as vtol_orders_414380.cpp. |
+| orders/vtol_orders | src/orders/vtol_orders_4152f0.cpp | Too large for the module, same limit as vtol_orders_414380.cpp. |
 | ai/ai_player | src/ai/ai_player_407d40.cpp | The constructor's vtable stores need the plain view of SpatialTimer apart from the module's virtual one. |
 | ai/ai_player | src/ai/ai_player_407e70.cpp | SpatialTimer's slot 0 and scalar deleting destructor need the derived view of SpatialTimer apart from the module's. |
 | ai/ai_player | src/ai/ai_player_408090.cpp | The joined file folds the cell index's width load into the imul, so the function is two bytes short. |

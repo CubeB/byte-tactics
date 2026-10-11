@@ -2116,8 +2116,8 @@ address,size,file,symbol,status,similarity
 0x49d9c0,429,src/weapons/weapons.cpp,?FireLineOfSightWeapon@@YGHPAUUnit@@PAUAim_0049d9c0@@0PAUVec3@@@Z,matched,100.0
 0x49db70,486,src/weapons/weapons.cpp,?FireVLaunchWeapon@@YGHPAUObject_0049db70@@PAUShot_0049db70@@0PAUVec3@@@Z,matched,100.0
 0x49dd60,430,src/weapons/weapons.cpp,?FireDroppedWeapon@@YGHPAUUnit@@PAUAim_0049dd60@@0PAUVec3@@@Z,matched,100.0
-0x49df10,249,src/weapons/weapons.cpp,?SpawnProjectile@@YGHPAUUnit_0049df10@@PAUVec3@@1H@Z,matched,100.0
-0x49e010,88,src/weapons/weapons.cpp,?SetWeaponFireHandler@@YGXPAUInfo_0049e010@@@Z,matched,100.0
+0x49df10,249,src/weapons/weapons.cpp,?SpawnProjectile@@YGHPAUWeaponDef@@PAUVec3@@1H@Z,matched,100.0
+0x49e010,88,src/weapons/weapons.cpp,?SetWeaponFireHandler@@YGXPAUWeaponDef@@@Z,matched,100.0
 0x49e070,293,src/weapons/weapons.cpp,?InitUnitWeaponSlots@@YGXPAUUnit@@@Z,matched,100.0
 0x49e1a0,969,src/weapons/weapons.cpp,?UpdateUnitWeapons@@YGXPAUUnit@@@Z,matched,100.0
 0x49e570,53,src/weapons/weapons.cpp,?SubtractVec3@@YGXPAH0000@Z,matched,100.0

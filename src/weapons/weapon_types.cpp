@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../util/tdf.h"
+#include "weapon_def.h"
 
 // 3.14159265358979 / 180 is exactly the exe's 0.017453292519943278.
 #define PI 3.14159265358979
@@ -48,8 +49,7 @@ struct Entry_00432cf0 {
 
 #pragma pack(push, 1)
 // The damage table, kept sorted by name.
-class Map_0042e440 {
-  public:
+struct Table_00499cd0 {
     char less;                     // +0x0
     std::vector<Entry_00432cf0> v; // +0x1
 
@@ -68,93 +68,12 @@ class Map_0042e440 {
 };
 #pragma pack(pop)
 
-void __stdcall SetWeaponFireHandler(void*);
-
+void __stdcall SetWeaponFireHandler(WeaponDef*);
 
 #pragma pack(push, 1)
-struct Weapon_0042e440 {
-    char name[0x20];               // +0x000
-    char name2[0x40];              // +0x020
-    char pad_60[4];                // +0x060
-    Map_0042e440* sub;            // +0x064
-    int weaponvelocity;            // +0x068
-    int startvelocity;             // +0x06c
-    int weaponacceleration;        // +0x070
-    void* text;                    // +0x074
-    void* anim1;                   // +0x078
-    void* anim2;                   // +0x07c
-    char model[0x40];              // +0x080
-    float energypershot;           // +0x0c0
-    float metalpershot;            // +0x0c4
-    float minbarrelangle;          // +0x0c8
-    int shakemagnitude;            // +0x0cc
-    int shakeduration;             // +0x0d0
-    short damage;                  // +0x0d4
-    short areaofeffect;            // +0x0d6
-    float edgeeffectiveness;       // +0x0d8
-    int range;                     // +0x0dc
-    int coverage;                  // +0x0e0
-    short reloadtime;              // +0x0e4
-    short weapontimer;             // +0x0e6
-    short turnrate;                // +0x0e8
-    short burst;                   // +0x0ea
-    short burstrate;               // +0x0ec
-    short sprayangle;              // +0x0ee
-    short duration;                // +0x0f0
-    short randomdecay;             // +0x0f2
-    unsigned short soundstart;     // +0x0f4
-    unsigned short soundhit;       // +0x0f6
-    unsigned short soundwater;     // +0x0f8
-    short smokedelay;              // +0x0fa
-    short flighttime;              // +0x0fc
-    short holdtime;                // +0x0fe
-    char pad_100[4];               // +0x100
-    short accuracy;                // +0x104
-    short tolerance;               // +0x106
-    short pitchtolerance;          // +0x108
-    unsigned char id;              // +0x10a
-    unsigned char firestarter;     // +0x10b
-    unsigned char rendertype;      // +0x10c
-    unsigned char color;           // +0x10d
-    unsigned char color2;          // +0x10e
-    unsigned char pad_10f[2];      // +0x10f
-    unsigned int lineofsight : 1;  // +0x111 bit 0
-    unsigned int ballistic : 1;    // bit 1
-    unsigned int shellweapon : 1;  // bit 2
-    unsigned int beamweapon : 1;   // bit 3
-    unsigned int vlaunch : 1;      // bit 4
-    unsigned int meteor : 1;       // bit 5
-    unsigned int noradar : 1;      // bit 6
-    unsigned int paralyzer : 1;    // bit 7
-    unsigned int dropped : 1;      // bit 8
-    unsigned int startsmoke : 1;   // bit 9
-    unsigned int endsmoke : 1;     // bit 10
-    unsigned int soundtrigger : 1; // bit 11
-    unsigned int guidance : 1;     // bit 12
-    unsigned int tracks : 1;       // bit 13
-    unsigned int unitsonly : 1;    // bit 14
-    unsigned int groundbounce : 1; // bit 15
-    unsigned int waterweapon : 1;  // bit 16
-    unsigned int toairweapon : 1;  // bit 17
-    unsigned int smoketrail : 1;   // bit 18
-    unsigned int turret : 1;       // bit 19
-    unsigned int selfprop : 1;     // bit 20
-    unsigned int propeller : 1;    // bit 21
-    unsigned int noexplode : 1;    // bit 22
-    unsigned int burnblow : 1;     // bit 23
-    unsigned int twophase : 1;     // bit 24
-    unsigned int cruise : 1;       // bit 25
-    unsigned int commandfire : 1;  // bit 26
-    unsigned int noautorange : 1;  // bit 27
-    unsigned int stockpile : 1;    // bit 28
-    unsigned int targetable : 1;   // bit 29
-    unsigned int interceptor : 1;  // bit 30
-    unsigned int : 1;              // bit 31
-};
-
 struct Game {
     char unknown_0[0x2cf3];
-    Weapon_0042e440 weaponDefs[0x100];  // +0x2cf3, stride 0x115
+    WeaponDef weaponDefs[0x100];  // +0x2cf3, stride 0x115
 };
 #pragma pack(pop)
 
@@ -183,8 +102,8 @@ void LoadWeaponTypes()
 {
     int n = 0;
     for (int i = 0; i < 0x100; i++) {
-        Weapon_0042e440* p = &g_game->weaponDefs[i];
-        p->id = n++;
+        WeaponDef* p = &g_game->weaponDefs[i];
+        p->index = n++;
         p->name[0] = 0;
     }
 
@@ -211,95 +130,98 @@ void LoadWeaponTypes()
 
 // Loads one weapon from a .TDF section: the numbers and flags, the model, the
 // explosion animations, the sounds and the DAMAGE sub-section, which goes into
-// a table sorted by unit name (w->sub).
+// a table sorted by unit name (w->table).
 // FUNCTION: 0x42e440
 void __stdcall LoadWeaponType(TdfRecord* parser) {
     char* id = (char*)parser->GetRecordName();
-    Weapon_0042e440* w = &g_game->weaponDefs[parser->GetFieldInt("ID", -1)];
+    WeaponDef* w = &g_game->weaponDefs[parser->GetFieldInt("ID", -1)];
     strcpy(w->name, id);
-    parser->GetFieldString(w->name2, "name", 0x40, DAT_005119b8);
+    parser->GetFieldString(w->description, "name", 0x40, DAT_005119b8);
 
-    w->weaponvelocity =
+    w->speed =
         (int)(parser->GetFieldDouble("weaponvelocity", 0.0) * 2184.5333333333333);
-    w->startvelocity =
+    w->startSpeed =
         (int)(parser->GetFieldDouble("startvelocity", 0.0) * 2184.5333333333333);
-    w->weaponacceleration =
+    w->acceleration =
         (int)(parser->GetFieldDouble("weaponacceleration", 0.0) *
               72.81777777777778);
+    // The short fields are unsigned short, so the casts are too: a (short) cast
+    // stored to one changes the inlining further down.
     w->range = parser->GetFieldInt("range", 0x7fff);
-    w->coverage = parser->GetFieldInt("coverage", 0);
-    w->reloadtime = (short)(parser->GetFieldDouble("reloadtime", 0.0) * 30.0);
-    w->energypershot = (float)parser->GetFieldDouble("energypershot", 0.0);
-    w->metalpershot = (float)parser->GetFieldDouble("metalpershot", 0.0);
-    w->areaofeffect = (short)parser->GetFieldInt("areaofeffect", 0);
-    w->edgeeffectiveness = (float)parser->GetFieldDouble("edgeeffectiveness", 0.0);
-    w->weapontimer = (short)(parser->GetFieldDouble("weapontimer", 0.0) * 30.0);
-    w->noautorange = parser->GetFieldInt("noautorange", 0);
-    w->turnrate =
-        (short)(parser->GetFieldDouble("turnrate", 0.0) * 0.03333333333333333);
-    w->burst = (short)parser->GetFieldInt("burst", 0);
-    w->burstrate = (short)(parser->GetFieldDouble("burstrate", 0.0) * 30.0);
-    w->sprayangle = (short)parser->GetFieldInt("sprayangle", 0);
-    w->duration = (short)(parser->GetFieldDouble("duration", 0.0) * 30.0);
-    w->randomdecay = (short)(parser->GetFieldDouble("randomdecay", 0.0) * 30.0);
-    w->smokedelay = (short)(parser->GetFieldDouble("smokedelay", 0.0) * 30.0);
-    w->flighttime = (short)(parser->GetFieldDouble("flighttime", 0.0) * 30.0);
-    w->holdtime = (short)(parser->GetFieldDouble("holdtime", 0.0) * 30.0);
+    w->radius = parser->GetFieldInt("coverage", 0);
+    w->reloadTime = (unsigned short)(parser->GetFieldDouble("reloadtime", 0.0) * 30.0);
+    w->energyPerShot = (float)parser->GetFieldDouble("energypershot", 0.0);
+    w->metalPerShot = (float)parser->GetFieldDouble("metalpershot", 0.0);
+    w->areaOfEffect = (unsigned short)parser->GetFieldInt("areaofeffect", 0);
+    w->edgeDamage = (float)parser->GetFieldDouble("edgeeffectiveness", 0.0);
+    w->lifetime = (unsigned short)(parser->GetFieldDouble("weapontimer", 0.0) * 30.0);
+    w->flags.b.noAutoRange = parser->GetFieldInt("noautorange", 0);
+    w->turnRate =
+        (unsigned short)(parser->GetFieldDouble("turnrate", 0.0) * 0.03333333333333333);
+    w->burst = (unsigned short)parser->GetFieldInt("burst", 0);
+    w->burstRate = (unsigned short)(parser->GetFieldDouble("burstrate", 0.0) * 30.0);
+    w->spread = (unsigned short)parser->GetFieldInt("sprayangle", 0);
+    w->duration = (unsigned short)(parser->GetFieldDouble("duration", 0.0) * 30.0);
+    w->lifeRand = (unsigned short)(parser->GetFieldDouble("randomdecay", 0.0) * 30.0);
+    w->smokeRate = (unsigned short)(parser->GetFieldDouble("smokedelay", 0.0) * 30.0);
+    w->flightTime = (unsigned short)(parser->GetFieldDouble("flighttime", 0.0) * 30.0);
+    // +0xfe is the TDF holdtime in ticks; the blast code copies it to cameraSnapTicks.
+    w->holdTime = (unsigned short)(parser->GetFieldDouble("holdtime", 0.0) * 30.0);
     // No (float) cast: it costs the scheduler one unit and shifts later bitfield stores.
-    w->minbarrelangle =
+    w->pitch =
         parser->GetFieldDouble("minbarrelangle", -11.25) * (PI / 180);
-    w->firestarter = (unsigned char)parser->GetFieldInt("firestarter", 0);
-    w->rendertype = (unsigned char)parser->GetFieldInt("rendertype", 0);
-    w->color = (unsigned char)parser->GetFieldInt("color", 0);
-    w->color2 = (unsigned char)parser->GetFieldInt("color2", 0);
-    w->soundtrigger = parser->GetFieldInt("soundtrigger", 0);
-    w->guidance = parser->GetFieldInt("guidance", 0);
-    w->tracks = parser->GetFieldInt("tracks", 0);
-    w->lineofsight = parser->GetFieldInt("lineofsight", 0);
+    w->fireStarter = (unsigned char)parser->GetFieldInt("firestarter", 0);
+    w->shotKind = (unsigned char)parser->GetFieldInt("rendertype", 0);
+    w->colour = (unsigned char)parser->GetFieldInt("color", 0);
+    w->colour2 = (unsigned char)parser->GetFieldInt("color2", 0);
+    w->flags.b.soundTrigger = parser->GetFieldInt("soundtrigger", 0);
+    w->flags.b.guidance = parser->GetFieldInt("guidance", 0);
+    w->flags.b.tracks = parser->GetFieldInt("tracks", 0);
+    w->flags.b.lineOfSight = parser->GetFieldInt("lineofsight", 0);
     // Named local: makes the bitfield `or` take the shifted value as destination.
     int ballistic = parser->GetFieldInt("ballistic", 0);
-    w->ballistic = ballistic;
-    w->unitsonly = parser->GetFieldInt("unitsonly", 0);
-    w->groundbounce = parser->GetFieldInt("groundbounce", 0);
-    w->waterweapon = parser->GetFieldInt("waterweapon", 0);
-    w->toairweapon = parser->GetFieldInt("toairweapon", 0);
-    w->smoketrail = parser->GetFieldInt("smoketrail", 0);
-    w->turret = parser->GetFieldInt("turret", 0);
-    w->selfprop = parser->GetFieldInt("selfprop", 0);
-    w->propeller = parser->GetFieldInt("propeller", 0);
-    w->noexplode = parser->GetFieldInt("noexplode", 0);
-    w->burnblow = parser->GetFieldInt("burnblow", 0);
-    w->twophase = parser->GetFieldInt("twophase", 0);
-    w->cruise = parser->GetFieldInt("cruise", 0);
-    w->commandfire = parser->GetFieldInt("commandfire", 0);
-    w->stockpile = parser->GetFieldInt("stockpile", 0);
-    w->targetable = parser->GetFieldInt("targetable", 0);
-    w->interceptor = parser->GetFieldInt("interceptor", 0);
-    w->beamweapon = parser->GetFieldInt("beamweapon", 0);
-    w->shellweapon = parser->GetFieldInt("shellweapon", 0);
+    w->flags.b.ballistic = ballistic;
+    w->flags.b.unitsOnly = parser->GetFieldInt("unitsonly", 0);
+    w->flags.b.groundBounce = parser->GetFieldInt("groundbounce", 0);
+    w->flags.b.waterWeapon = parser->GetFieldInt("waterweapon", 0);
+    w->flags.b.toAirWeapon = parser->GetFieldInt("toairweapon", 0);
+    w->flags.b.smokeTrail = parser->GetFieldInt("smoketrail", 0);
+    w->flags.b.turret = parser->GetFieldInt("turret", 0);
+    w->flags.b.selfProp = parser->GetFieldInt("selfprop", 0);
+    w->flags.b.propeller = parser->GetFieldInt("propeller", 0);
+    w->flags.b.noExplode = parser->GetFieldInt("noexplode", 0);
+    w->flags.b.burnBlow = parser->GetFieldInt("burnblow", 0);
+    w->flags.b.twoPhase = parser->GetFieldInt("twophase", 0);
+    w->flags.b.cruise = parser->GetFieldInt("cruise", 0);
+    w->flags.b.commandFire = parser->GetFieldInt("commandfire", 0);
+    w->flags.b.stockpile = parser->GetFieldInt("stockpile", 0);
+    w->flags.b.targetable = parser->GetFieldInt("targetable", 0);
+    w->flags.b.interceptor = parser->GetFieldInt("interceptor", 0);
+    w->flags.b.beamWeapon = parser->GetFieldInt("beamweapon", 0);
+    w->flags.b.shellWeapon = parser->GetFieldInt("shellweapon", 0);
     // Named local, as for ballistic.
     int dropped = parser->GetFieldInt("dropped", 0);
-    w->dropped = dropped;
-    w->vlaunch = parser->GetFieldInt("vlaunch", 0);
-    w->meteor = parser->GetFieldInt("meteor", 0);
-    w->noradar = parser->GetFieldInt("noradar", 0);
-    w->paralyzer = parser->GetFieldInt("paralyzer", 0);
-    w->startsmoke = parser->GetFieldInt("startsmoke", 0);
-    w->endsmoke = parser->GetFieldInt("endsmoke", 0);
+    w->flags.b.dropped = dropped;
+    w->flags.b.vLaunch = parser->GetFieldInt("vlaunch", 0);
+    w->flags.b.meteor = parser->GetFieldInt("meteor", 0);
+    w->flags.b.noRadar = parser->GetFieldInt("noradar", 0);
+    w->flags.b.paralyzer = parser->GetFieldInt("paralyzer", 0);
+    w->flags.b.startSmoke = parser->GetFieldInt("startsmoke", 0);
+    w->flags.b.endSmoke = parser->GetFieldInt("endsmoke", 0);
     w->accuracy = (short)parser->GetFieldInt("accuracy", 0);
-    w->tolerance = (short)parser->GetFieldInt("tolerance", 0);
-    w->pitchtolerance = (short)parser->GetFieldInt("pitchtolerance", 0);
-    w->shakemagnitude = parser->GetFieldInt("shakemagnitude", 0);
-    w->shakeduration = (int)(parser->GetFieldDouble("shakeduration", 0.0) * 30.0);
+    w->tolerance = (unsigned short)parser->GetFieldInt("tolerance", 0);
+    w->pitchTolerance = (unsigned short)parser->GetFieldInt("pitchtolerance", 0);
+    w->shakeMagnitude = parser->GetFieldInt("shakemagnitude", 0);
+    w->shakeDuration = (int)(parser->GetFieldDouble("shakeduration", 0.0) * 30.0);
 
     char model[0x100];
     if (parser->GetFieldString(model, "model", 0x100, DAT_005119b8) != 0) {
         unsigned char i;
-        unsigned char count = w->id;
+        unsigned char count = w->index;
         for (i = 0; i < count; i++) {
-            if (_strcmpi(model, g_game->weaponDefs[i].model) == 0) {
-                g_game->weaponDefs[count].model[0] = 0;
-                g_game->weaponDefs[count].text = g_game->weaponDefs[i].text;
+            if (_strcmpi(model, g_game->weaponDefs[i].modelName) == 0) {
+                g_game->weaponDefs[count].modelName[0] = 0;
+                g_game->weaponDefs[count].model = g_game->weaponDefs[i].model;
                 goto model_done;
             }
         }
@@ -310,29 +232,29 @@ void __stdcall LoadWeaponType(TdfRecord* parser) {
             FatalError(path);
         MirrorObject(h);
         BindModelTextures(h, model);
-        g_game->weaponDefs[count].text = h;
-        strcpy(g_game->weaponDefs[count].model, model);
+        g_game->weaponDefs[count].model = h;
+        strcpy(g_game->weaponDefs[count].modelName, model);
     } else {
-        w->text = 0;
+        w->model = 0;
     }
 model_done:
-    w->anim1 = 0;
+    w->explosionSeq = 0;
     char gaf[0x100];
     if (parser->GetFieldString(gaf, "explosiongaf", 0x100, DAT_005119b8) != 0 &&
         parser->GetFieldString(model, "explosionart", 0x100, DAT_005119b8) != 0) {
         void* a = LoadAnimGaf(gaf);
         void* r = FindGafEntry(a, model);
         *(unsigned char*)((char*)r + 2) = 0;
-        w->anim1 = r;
+        w->explosionSeq = r;
     }
-    w->anim2 = 0;
+    w->splash = 0;
     if (*(int*)(*(char**)((char*)g_game + 0x391e9) + 0xd44) != 0) {
         if (parser->GetFieldString(gaf, "lavaexplosiongaf", 0x100, DAT_005119b8) != 0 &&
             parser->GetFieldString(model, "lavaexplosionart", 0x100, DAT_005119b8) != 0) {
             void* a = LoadAnimGaf(gaf);
             void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
-            w->anim2 = r;
+            w->splash = r;
         }
     } else {
         if (parser->GetFieldString(gaf, "waterexplosiongaf", 0x100, DAT_005119b8) != 0 &&
@@ -340,36 +262,36 @@ model_done:
             void* a = LoadAnimGaf(gaf);
             void* r = FindGafEntry(a, model);
             *(unsigned char*)((char*)r + 2) = 0;
-            w->anim2 = r;
+            w->splash = r;
         }
     }
     if (parser->GetFieldString(model, "soundstart", 0x100, DAT_005119b8) != 0) {
-        w->soundstart = (unsigned short)LoadSoundByName(0, model);
+        w->sound = (unsigned short)LoadSoundByName(0, model);
     } else {
-        w->soundstart = 0xffff;
+        w->sound = 0xffff;
     }
     if (parser->GetFieldString(model, "soundhit", 0x100, DAT_005119b8) != 0) {
-        w->soundhit = (unsigned short)LoadSoundByName(0, model);
+        w->soundHit = (unsigned short)LoadSoundByName(0, model);
     } else {
-        w->soundhit = 0xffff;
+        w->soundHit = 0xffff;
     }
     if (parser->GetFieldString(model, "soundwater", 0x100, DAT_005119b8) != 0) {
-        w->soundwater = (unsigned short)LoadSoundByName(0, model);
+        w->soundWater = (unsigned short)LoadSoundByName(0, model);
     } else {
-        w->soundwater = 0xffff;
+        w->soundWater = 0xffff;
     }
     TdfRecord* damage = parser->FindSubRecord("DAMAGE");
     if (damage != 0) {
-        w->damage = (short)damage->GetFieldInt("default", 0);
+        w->damage = (unsigned short)damage->GetFieldInt("default", 0);
         int index = 0;
         char* key = damage->GetFieldName(index);
         while (key) {
             if (_strcmpi(key, "default") != 0) {
                 int value = damage->GetFieldInt(key, 0);
-                if (!w->sub)
-                    w->sub = new Map_0042e440;
+                if (!w->table)
+                    w->table = new Table_00499cd0;
                 StringRef name(key);
-                Map_0042e440* m = w->sub;
+                Table_00499cd0* m = w->table;
                 Entry_00432cf0* e = m->LowerBound(name.ptr);
                 // insert called here, not in a helper (inline depth); e assigned
                 // first, then &e->value taken in each arm.
@@ -395,15 +317,15 @@ void FreeWeaponTypes()
 {
     int i = 0;
     while (i < 256) {
-        Weapon_0042e440* o = &g_game->weaponDefs[i];
-        if (strlen(o->model) != 0) {
-            GameFreeThunk(o->text);
-            o->text = 0;
-            o->model[0] = 0;
+        WeaponDef* o = &g_game->weaponDefs[i];
+        if (strlen(o->modelName) != 0) {
+            GameFreeThunk(o->model);
+            o->model = 0;
+            o->modelName[0] = 0;
         }
-        if (o->sub) {
-            delete o->sub;
-            o->sub = 0;
+        if (o->table) {
+            delete o->table;
+            o->table = 0;
         }
         i++;
     }

@@ -1,7 +1,8 @@
 // Decompiled by deepseek-v4.1-flash, finished by GPT-6.1-sol, finished by GPT-6, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by deepseek-v4.1-flash, finished by claude-opus-5-5. Names are provisional.
 //
 // The projectile update loop. One if/else-if chain over the type's flag
-// bits (b20 guided, b0 straight, b1 timed drift, b8 drift, b5 tumbling), with
+// bits (selfProp guided, lineOfSight straight, ballistic timed drift, dropped
+// drift, meteor tumbling), with
 // a burst-fire branch for projectiles whose counter is not 0.
 // Remove() is the inlined "deselect and mark dead" block that 0x49b090 also
 // writes out.
@@ -30,38 +31,7 @@ struct Vec3_0049b720 {
     }
 };
 
-union TypeFlags_0049b720 {
-    unsigned int raw;
-    struct {
-        unsigned int b0 : 1, b1 : 1, b2 : 1, b3 : 1, b4 : 1, b5 : 1, b6 : 1, b7 : 1;
-        unsigned int b8 : 1, b9 : 1, b10 : 1, b11 : 1, b12 : 1, b13 : 1, b14 : 1, b15 : 1;
-        unsigned int b16 : 1, b17 : 1, b18 : 1, b19 : 1, b20 : 1, b21 : 1, b22 : 1, b23 : 1;
-        unsigned int b24 : 1, b25 : 1, b26 : 1, b27 : 1, b28 : 1, b29 : 1, b30 : 1, b31 : 1;
-    } b;
-};
-
-struct WeaponDef {
-    char unknown_0[0x68];
-    unsigned int maxSpeed;             // +0x68
-    char unknown_6c[4];
-    unsigned int accel;                // +0x70
-    char unknown_74[0x7c - 0x74];
-    void* splash;                      // +0x7c
-    char unknown_80[0xe6 - 0x80];
-    unsigned short lifetime;           // +0xe6
-    char unknown_e8[0xec - 0xe8];
-    unsigned short burstRate;          // +0xec
-    unsigned short spread;             // +0xee
-    unsigned short f0;                 // +0xf0
-    unsigned short lifeRand;           // +0xf2
-    unsigned short sound;              // +0xf4
-    char unknown_f6[0xfa - 0xf6];
-    unsigned short smokeRate;          // +0xfa
-    unsigned short fc;                 // +0xfc
-    unsigned short deathSound;         // +0xfe
-    char unknown_100[0x111 - 0x100];
-    TypeFlags_0049b720 flags;          // +0x111
-};
+#include "weapon_def.h"
 
 struct Weapon_0049b720 {
     char unknown_0[0x10];
@@ -184,7 +154,7 @@ static inline void Remove(Proj_0049b720* p)
 {
     if (p == g_game->cameraFollowTrackObj) {
         g_game->cameraSnapPos = g_game->cameraFollowTrackObj->pos;
-        g_game->cameraSnapTicks = p->type->deathSound;
+        g_game->cameraSnapTicks = p->type->holdTime;
         g_game->cameraFollowTrackObj = 0;
     }
     p->flags.dead = 1;
@@ -218,7 +188,7 @@ void UpdateProjectiles()
                 if (q) {
                     *q = *p;
                     q->f42 = g_game->gameTick;
-                    if (type->flags.b.b11)
+                    if (type->flags.b.soundTrigger)
                         PlaySoundAt(type->sound, &p->pos, 0);
                     if (type->lifetime != 0)
                         q->f46 = g_game->gameTick + type->lifetime;
@@ -229,7 +199,7 @@ void UpdateProjectiles()
                     q->counter = 0;
                     if (type->spread != 0) {
                         short ang = RandomInt(type->spread) + (short)(p->heading - (type->spread >> 1));
-                        int t = FUN_004b7123(p->pitch, type->maxSpeed);
+                        int t = FUN_004b7123(p->pitch, type->speed);
                         p->vel.x = -FUN_004b70ef(ang, t);
                         p->vel.z = -FUN_004b7123(ang, t);
                     }
@@ -240,25 +210,25 @@ void UpdateProjectiles()
             continue;
         }
 
-        if (type->flags.b.b21)
+        if (type->flags.b.propeller)
             p->f64 += 0x400;
 
-        if (type->flags.b.b20) {
+        if (type->flags.b.selfProp) {
             if (p->f46 > g_game->gameTick) {
-                if ((type->flags.raw & 0x10000) && p->pos.yw.hi >= g_game->seaLevel) {
+                if (type->flags.b.waterWeapon && p->pos.yw.hi >= g_game->seaLevel) {
                     Fall(&p->vel);
                     p->pitch = 0;
                 } else {
                     int seek = 0;
-                    if (p->speed < type->maxSpeed) {
-                        p->speed += type->accel;
-                        if (p->speed > type->maxSpeed)
-                            p->speed = type->maxSpeed;
+                    if (p->speed < type->speed) {
+                        p->speed += type->acceleration;
+                        if (p->speed > type->speed)
+                            p->speed = type->speed;
                     }
-                    if (type->flags.b.b24) {
+                    if (type->flags.b.twoPhase) {
                         if (p->flags.state > 0)
                             seek = 1;
-                    } else if (type->flags.b.b12) {
+                    } else if (type->flags.b.guidance) {
                         seek = 1;
                     }
                     if (seek) {
@@ -271,15 +241,15 @@ void UpdateProjectiles()
                     p->vel.x = -FUN_004b70ef(p->heading, t);
                     p->vel.z = -FUN_004b7123(p->heading, t);
                 }
-            } else if (type->flags.b.b23) {
+            } else if (type->flags.b.burnBlow) {
                 DetonateProjectile(p, 0);
             } else {
                 Fall(&p->vel);
-                if (type->flags.b.b24) {
+                if (type->flags.b.twoPhase) {
                     if (p->flags.state == 0) {
-                        p->f46 = g_game->gameTick + p->type->fc;
+                        p->f46 = g_game->gameTick + p->type->flightTime;
                         p->flags.state++;
-                        if (!(p->type->flags.raw & 0x2000)) {
+                        if (!p->type->flags.b.tracks) {
                             p->f56 = 0;
                             p->f4e = 0;
                         }
@@ -288,27 +258,27 @@ void UpdateProjectiles()
             }
             p->pos += p->vel;
             CheckProjectileCollision(type, p);
-        } else if (type->flags.b.b0) {
+        } else if (type->flags.b.lineOfSight) {
             if (p->f46 > g_game->gameTick) {
                 p->pos += p->vel;
-                if (type->flags.b.b3) {
+                if (type->flags.b.beamWeapon) {
                     if (p->flags.b0)
                         p->start += p->vel;
-                    else if (g_game->gameTick > p->f42 + type->f0)
+                    else if (g_game->gameTick > p->f42 + type->duration)
                         p->flags.b0 = 1;
                 }
                 CheckProjectileCollision(type, p);
             } else {
                 Remove(p);
             }
-        } else if (type->flags.b.b1) {
+        } else if (type->flags.b.ballistic) {
             if (type->lifetime != 0) {
                 if (p->f46 > g_game->gameTick) {
                     p->pos += p->vel;
                     p->pos += g_game->wind;
                     p->vel.y -= g_game->gravity;
                     CheckProjectileCollision(type, p);
-                } else if (type->flags.b.b23) {
+                } else if (type->flags.b.burnBlow) {
                     DetonateProjectile(p, 0);
                 } else {
                     EmitWhiteSmoke(&p->pos, 9);
@@ -320,12 +290,12 @@ void UpdateProjectiles()
                 p->vel.y -= g_game->gravity;
                 CheckProjectileCollision(type, p);
             }
-        } else if (type->flags.b.b8) {
+        } else if (type->flags.b.dropped) {
             p->pos += p->vel;
             p->pos += g_game->wind;
             p->vel.y -= g_game->gravity;
             CheckProjectileCollision(type, p);
-        } else if (type->flags.b.b5) {
+        } else if (type->flags.b.meteor) {
             p->pos += p->vel;
             p->roll += ((short*)&p->vel.x)[1] << 8;
             p->pitch += ((short*)&p->vel.z)[1] << 8;
@@ -333,7 +303,7 @@ void UpdateProjectiles()
         }
 
         if (!p->flags.dead) {
-            if ((type->flags.raw & 0x40000) && p->f46 > g_game->gameTick && p->f4a < g_game->gameTick) {
+            if (type->flags.b.smokeTrail && p->f46 > g_game->gameTick && p->f4a < g_game->gameTick) {
                 EmitWhiteSmoke(&p->pos, 9);
                 p->f4a += type->smokeRate;
             }

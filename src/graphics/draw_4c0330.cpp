@@ -13,6 +13,8 @@
 
 #include "surface.h"
 
+// Not util/point.h: including it moves the symbol count and 0x4c0330 spills dy
+// differently.
 struct Point_004c0330 {
     int x;
     int y;

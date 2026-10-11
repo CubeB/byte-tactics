@@ -28,10 +28,7 @@ struct UnitRec_0047cc30 {               // 0x118 bytes
 
 #include "cell.h"
 
-struct Point_0047cc30 {
-    short x;
-    short y;
-};
+#include "../util/vec3.h"
 
 struct Position_0047cc30 {
     int x;
@@ -54,9 +51,9 @@ struct Obj_0047cc30 {
     int field_26;                       // +0x26
     char unknown_2a[0x6a - 0x2a];
     Position_0047cc30 position;         // +0x6a
-    Point_0047cc30 pos;                 // +0x76
+    Point16 pos;                 // +0x76
     char unknown_7a[4];
-    Point_0047cc30 footprint;           // +0x7e
+    Point16 footprint;           // +0x7e
     Owner_0047cc30* spatialBucket;      // +0x82
     int carrier;                        // +0x86
     char unknown_8a[4];
@@ -91,8 +88,8 @@ struct Game {
 
 extern Game* g_game;
 
-void __stdcall UpdateCellHeightRange(Point_0047cc30 pos, Point_0047cc30 size);
-void __stdcall RefreshAllPassMaps(Point_0047cc30 pos, Point_0047cc30 size);
+void __stdcall UpdateCellHeightRange(Point16 pos, Point16 size);
+void __stdcall RefreshAllPassMaps(Point16 pos, Point16 size);
 
 static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
 {
@@ -118,7 +115,7 @@ static void SetOwner_0047cc30(Obj_0047cc30* obj, Owner_0047cc30* nw)
 // FUNCTION: 0x47cc30
 void __stdcall AddUnitToMap(Obj_0047cc30* obj)
 {
-    Point_0047cc30 size = obj->footprint;
+    Point16 size = obj->footprint;
     if (obj->motion != 0)
         *(int*)(obj->motion + 0x26) = g_game->gameTick;
     {
@@ -172,10 +169,10 @@ void __stdcall AddUnitToMap(Obj_0047cc30* obj)
                 }
                 cell += g_game->mapWidthTiles - size.x;
             }
-            Point_0047cc30 grown;
+            Point16 grown;
             grown.x = size.x + 2;
             grown.y = size.y + 2;
-            Point_0047cc30 pad;
+            Point16 pad;
             pad.x = obj->pos.x - 1;
             pad.y = obj->pos.y - 1;
             UpdateCellHeightRange(pad, grown);

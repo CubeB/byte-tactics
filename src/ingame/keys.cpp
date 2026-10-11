@@ -18,21 +18,20 @@
 
 #pragma pack(push, 1)
 
-// The object Game+0x531 points at, as 0x495860 named it.
-struct Struct_00495860 {
+// The layer Gui+0x18 (Game+0x531) points at, as 0x495860 named it: the gadget
+// array pointer is read as an int here.
+struct Layer {
     int unknown_0;
     int value;                       // +0x4
 };
 
-// 0x4958c0's name for the same object; the Game field below uses it.
-// Keep the name: the extra front-end symbol decides 0x495a30's frame layout.
-typedef Struct_00495860 Struct_004958c0;
+// 0x4958c0's name for the same object. Unused, but keep it: the extra
+// front-end symbol decides 0x495a30's frame layout.
+typedef Layer Struct_004958c0;
 
 class Mission;
 
-struct Sub_495e90 {
-    char unknown_0[0x10];
-};
+#include "../gui/gui.h"
 
 struct Flags_00495e90_37ebe {
     unsigned short b0 : 1;
@@ -74,7 +73,6 @@ union Flags_00495e90_3923b {
 // Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
 void EnumPlayersCallback(int, int, int, int, int);
 int StepTowards(int, int, int);
-void NopRetC(int, int, int);
 
 struct Player_495e90 {
     int valid;                          // +0x00
@@ -118,10 +116,8 @@ struct SrcHolder_00495a30 {
 
 struct Game {
     char unknown_0[0x519];
-    Sub_495e90 gui;                     // +0x519
-    char unknown_529[0x531 - 0x529];
-    Struct_004958c0* layer;             // +0x531
-    char unknown_535[0x1b63 - 0x535];
+    Gui gui;                            // +0x519
+    char unknown_120f[0x1b63 - 0x120f];
     Player_495e90 players[10];          // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;          // +0x2a42
@@ -194,7 +190,7 @@ extern char g_pathSepBackslash[];
 extern char DAT_005119b8[];
 
 int __stdcall FindGadgetIndexBySubstring(int value, const char* name);
-void __stdcall ClearGroupStatus(Sub_495e90* gui, int handle);
+void __stdcall ClearGroupStatus(Gui* gui, int handle);
 int __stdcall HAPI_FindFirst(const char* path, void* findData, int a, int b);
 int __stdcall HAPI_FindNext(int handle, void* findData);
 void __stdcall HAPI_FindClose(int handle);
@@ -216,8 +212,8 @@ int PopKey(void);
 int __stdcall IsKeyDown(int key);
 void ClearSelection(void);
 void __stdcall PopUntilNamedLayout(int param);
-void __stdcall CloseTopScreen(Sub_495e90* gui);
-int __stdcall IsScreenNamed(Sub_495e90* gui, char* name);
+void __stdcall CloseTopScreen(Gui* gui);
+int __stdcall IsScreenNamed(Gui* gui, char* name);
 void SaveSettings(void);
 void __stdcall PlaySoundByName(const char* name, int param);
 void OpenTalkDialog(void);
@@ -242,7 +238,7 @@ void __stdcall RestoreCameraPosition(int param);
 void CycleMessageUnits(void);
 void ResetChatHudIndices(void);
 void __stdcall SetGameSpeed(int speed, int broadcast);
-void __stdcall SetDescListCleanupFlag(Sub_495e90* gui, int param);
+void __stdcall SetDescListCleanupFlag(Gui* gui, int param);
 int GetLocalDpid(void);
 void __stdcall BroadcastPacket(int id, void* packet, int size);
 void ToggleTabMenu(void);
@@ -262,7 +258,7 @@ void SelectStopOrder(void)
 
     g_game->orderMode = 1;
     g_game->inputFlags &= 0xdf;
-    index = FindGadgetIndexBySubstring(g_game->layer->value, "STOP");
+    index = FindGadgetIndexBySubstring(g_game->gui.layer->value, "STOP");
     if (index != -1) {
         ClearGroupStatus(&g_game->gui, index);
     }
@@ -280,7 +276,7 @@ void __stdcall SetOrSelectStopOrder(int set)
     }
     g_game->orderMode = 1;
     g_game->inputFlags &= 0xdf;
-    index = FindGadgetIndexBySubstring(g_game->layer->value, "STOP");
+    index = FindGadgetIndexBySubstring(g_game->gui.layer->value, "STOP");
     if (index != -1) {
         ClearGroupStatus(&g_game->gui, index);
     }
@@ -477,7 +473,7 @@ void HandleGameKey(void)
             if (g_game->orderMode != 1) {
                 g_game->orderMode = 1;
                 g_game->inputFlags = g_game->inputFlags & 0xdf;
-                int handle = FindGadgetIndexBySubstring(g_game->layer->value, "STOP");
+                int handle = FindGadgetIndexBySubstring(g_game->gui.layer->value, "STOP");
                 if (handle != -1)
                     ClearGroupStatus(&g_game->gui, handle);
             } else {

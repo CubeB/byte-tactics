@@ -11,15 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <memory.h>
 
-// A 16-byte rectangle, the argument of the clip helpers and the edge drawers.
-struct Rect {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
+#include "rect.h"
 
 // A point of the 2D outlines.
 #include "../util/point.h"
@@ -31,16 +24,7 @@ struct Vec3 {
     int z;
 };
 
-// A 0x30-byte surface: the size, the pitch and the pixel buffer, with the
-// clip rectangle at +0x1c. A locked screen descriptor has the same shape.
-struct Surface {
-    int width;                         // +0x0
-    int height;                        // +0x4
-    int pitch;                         // +0x8
-    char* pixels;                      // +0xc
-    int unknown_10[8];                 // +0x10 to +0x2f
-    Rect* GetClipRect(Rect* out);
-};
+#include "surface.h"
 
 // The software renderer's target: the row width at +0, the pixel buffer at
 // +0x10 and the depth buffer at +0x14.
@@ -148,6 +132,14 @@ void __stdcall PlotSpanEnds(int row, Span* span, GafFrame* surf,
                             unsigned char color);
 void __stdcall FillFlatSpan(int row, Span* span, GafFrame* surf,
                             unsigned char color);
+// Unused here: real blitter declarations from the gaf module whose symbol ids
+// keep the allocation of the later fills after the Surface view became
+// surface.h (docs/c2-regalloc.md).
+void __cdecl BlitRectKeyed(Surface* dst, Surface* src, Rect* rect, Rect* pos,
+                           int colour);
+void __cdecl BlitRect(Surface* dst, Surface* src, Rect* rect, Rect* pos);
+void __cdecl BlitRectRemapDest(Surface* dst, Surface* src, Rect* rect,
+                               Rect* pos, int colour, unsigned char* table);
 
 
 // Draws into `surface`, or into the screen (locked with LockScreen and
@@ -594,7 +586,7 @@ int __stdcall FadeRectangle(Surface* surface, Rect* rect, int level)
     if (clipped) {
         // height is computed before p.
         int height = rect->bottom - rect->top + 1;
-        char* p = screen.pixels + (screen.width * rect->top + rect->left);
+        char* p = (char*)screen.pixels + (screen.width * rect->top + rect->left);
         unsigned char* table;
         unsigned char* t;
         // t is computed in each branch, not once after the merge.

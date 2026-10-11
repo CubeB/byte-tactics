@@ -2536,7 +2536,7 @@ address,size,file,symbol,status,similarity
 0x4b7b00,755,src/util/commands.cpp,?insert@?$vector@VCommandEntry@@V?$allocator@VCommandEntry@@@std@@@std@@QAEXPAVCommandEntry@@IABV3@@Z,matched,100.0
 0x4b7e00,33,src/util/commands.cpp,?AssignEntry@CommandEntry@@QAEPAXPAH@Z,matched,100.0
 0x4b7e30,33,src/util/commands.cpp,??0CommandEntry@@QAE@ABV0@@Z,matched,100.0
-0x4b7e60,121,src/graphics/gaf.cpp,?ClipRects@@YGXPAURect_004b7e60@@00@Z,matched,100.0
+0x4b7e60,121,src/graphics/gaf.cpp,?ClipRects@@YGXPAURect@@00@Z,matched,100.0
 0x4b7ee0,23,src/graphics/gaf.cpp,?GetGafSequenceFrame@@YGHPAUHandle_004b7ee0@@@Z,matched,100.0
 0x4b7f00,39,src/graphics/gaf.cpp,?SetGafSequenceFrame@@YGHPAUObj_004b7f00@@H@Z,matched,100.0
 0x4b7f30,36,src/graphics/gaf.cpp,?GetGafFrame@@YGHPAGH@Z,matched,100.0
@@ -2681,7 +2681,7 @@ address,size,file,symbol,status,similarity
 0x4c0070,301,src/graphics/draw.cpp,?DrawCircle@@YGXPAUSurface@@HHHH@Z,matched,100.0
 0x4c01a0,353,src/graphics/draw.cpp,?DrawDashedCircle@@YGXPAUSurface@@HHHHHH@Z,matched,100.0
 0x4c0310,28,src/graphics/draw.cpp,?FillPolygon@@YGXPAUSurface@@PAUPoint@@HE@Z,matched,100.0
-0x4c0330,932,src/graphics/draw_4c0330.cpp,?ScanFillPolygon@@YGHPAVSurface@@PAUPoint_004c0330@@HE@Z,matched,100.0
+0x4c0330,932,src/graphics/draw_4c0330.cpp,?ScanFillPolygon@@YGHPAUSurface@@PAUPoint_004c0330@@HE@Z,matched,100.0
 0x4c06e0,200,src/graphics/draw.cpp,?FillFlatSpan@@YGXHPAUSpan@@PAUGafFrame@@E@Z,matched,100.0
 0x4c07b0,106,src/graphics/draw.cpp,?DrawPolygon@@YGHPAUSurface@@PAUVec3@@HH@Z,matched,100.0
 0x4c0820,613,src/graphics/draw.cpp,?DrawPolygonEdges@@YGHPAUGafFrame@@PAUVec3@@HH@Z,matched,100.0

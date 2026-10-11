@@ -7,24 +7,11 @@
 // vertex to the bottom one) and the right edges (forwards) into a table of
 // per-scanline x positions with 16.16 steps, and finally fills each scanline
 // span clipped to the rect. Returns 1 when something was drawn.
-#include <string.h>
+// memset is the only call; the smaller header keeps the symbol ids in range
+// after the Surface view became surface.h (docs/c2-regalloc.md).
+#include <memory.h>
 
-struct Rect_004c0330 {
-    int left;
-    int top;
-    int right;
-    int bottom;
-};
-
-class Surface {
-public:
-    int unknown_0[2];
-    int pitch;                         // +0x8
-    unsigned char* pixels;             // +0xc
-    int unknown_10[8];                 // 0x30 bytes, the lock descriptor
-
-    Rect_004c0330* GetClipRect(Rect_004c0330* out);
-};
+#include "surface.h"
 
 struct Point_004c0330 {
     int x;
@@ -40,13 +27,20 @@ struct Span_004c0330 {
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
 
+// Unused here: real declarations from the draw module whose symbol ids keep
+// ScanFillPolygon's allocation after the Surface view became surface.h
+// (docs/c2-regalloc.md).
+int __stdcall ClipLine(Surface* dst, int* x0, int* y0, int* x1, int* y1);
+void __cdecl BlitLine(Surface* dst, int x0, int y0, int x1, int y1, int color);
+int __stdcall ClipRectangle(Surface* surface, Rect* r);
+
 // Not gathered into draw.cpp: merged, dy stays in a register where the original
 // spills it, which takes 4 bytes off the frame and moves the block codegen.
 // FUNCTION: 0x4c0330
 int __stdcall ScanFillPolygon(Surface* surface, Point_004c0330* points, int n, unsigned char color)
 {
     Surface screen;
-    Rect_004c0330 clip;
+    Rect clip;
     Span_004c0330 span[0x800];
     int locked;
     int minY;

@@ -65,9 +65,8 @@ struct Gui {
     int pathsReady;                     // +0xcc6
     int changed;                        // +0xcca
     int clickStatusCache;               // +0xcce
-    int fallback;                       // +0xcd2
-    char cachedBgName;                  // +0xcd6
-    char unknown_cd7[0xcf6 - 0xcd7];
+    void* fallback;                     // +0xcd2, the fallback draw surface
+    char cachedBgName[0x20];            // +0xcd6, the cached background bitmap name
 };
 
 #pragma pack(pop)

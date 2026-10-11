@@ -76,11 +76,11 @@ struct World_00425b80 {
 };
 
 // The front-end's current screen layer, the object at g_game+0x531: the
-// gadget records at +0x4 (Dialog_004263b0.gadgets, Holder_428b60.entries,
+// gadget records at +0x4 (Layer.gadgets, Holder_428b60.entries,
 // Terrain_00425b80.world), the handler at +0x8 and the per-tick callback at
 // +0x1c, and the picture surface at +0x24 (Owner_00428730.surface,
 // Terrain_00425b80.smoke).
-struct Dialog_004263b0 {
+struct Layer {
     char unknown_0[4];
     char* gadgets;                     // +0x4
     void (__stdcall* handler)(void*);  // +0x8
@@ -91,11 +91,7 @@ struct Dialog_004263b0 {
     void* surface;                     // +0x24
 };
 
-// The layer stack at g_game+0x519: the current layer at +0x18.
-struct Sub_004263b0 {
-    char unknown_0[0x18];
-    Dialog_004263b0* current;          // +0x18
-};
+#include "../gui/gui.h"
 
 // One gadget record (0x15b bytes each) of a layer; the first record is the
 // header with the count.
@@ -148,12 +144,8 @@ struct Game {
     char unknown_14[0x4e5 - 0x14];
     int dplConnection;                 // +0x4e5
     char unknown_4e9[0x519 - 0x4e9];
-    Sub_004263b0 gui;                  // +0x519
-    char unknown_535[0xdda - 0x535];
-    unsigned char shadowColor;         // +0xdda
-    char unknown_ddb[0x11eb - 0xddb];
-    void* surface;                     // +0x11eb
-    char surfaceName[0x1b63 - 0x11ef]; // +0x11ef
+    Gui gui;                           // +0x519
+    char unknown_120f[0x1b63 - 0x120f];
     Player players[10];                // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
@@ -250,7 +242,7 @@ extern int g_cdPlayerDialogShown;
 extern Entry_00428730 g_pictureCache[10];
 
 int CodeChecksumFailed(void);
-void __stdcall OpenMessageBox(Sub_004263b0* sub, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(Gui* sub, char* text, int param_3, int param_4, int param_5);
 int __stdcall GetTextPixelWidth(char* text);
 void __stdcall SetOffscreenSurface(int param_1);
 void __stdcall FillSurface(int param_1, int param_2);
@@ -271,19 +263,19 @@ int __stdcall IsCurrentGadgetNamed(Gadget_00425d80* gadget, char* name);
 void __stdcall ClearSelectedGadget(void* param_1);
 char* __stdcall Translate(char* text);
 Display_00425d80* __stdcall GetDisplay(void);
-void __stdcall CloseTopScreen(Sub_004263b0* sub);
+void __stdcall CloseTopScreen(Gui* sub);
 void HideSoftwareCursor();
 void Force640x480Surfaces();
-Dialog_004263b0* __stdcall LoadGuiLayer(Sub_004263b0* sub, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Gui* sub, const char* name, int flags);
 void __stdcall PlayLoopingSoundByName(const char* name, int param_2);
-void __stdcall EnableKeyCommands(Sub_004263b0* sub);
+void __stdcall EnableKeyCommands(Gui* sub);
 void* __stdcall HAPI_LoadFile(char* name, int flag);
-void __stdcall RemapPaletteToClosestIndices(Sub_004263b0* sub, int value, void* palette);
-void __stdcall RenderLayer(Sub_004263b0* sub, int value);
-void __stdcall SetKeyboardInput(Sub_004263b0* sub, int value);
+void __stdcall RemapPaletteToClosestIndices(Gui* sub, int value, void* palette);
+void __stdcall RenderLayer(Gui* sub, int value);
+void __stdcall SetKeyboardInput(Gui* sub, int value);
 void __stdcall SetFont(void* param);
-void __stdcall SetGadgetActiveByName(Sub_004263b0* sub, const char* name, int value);
-void __stdcall SetGadgetTextByName(Sub_004263b0* sub, const char* name, const char* text);
+void __stdcall SetGadgetActiveByName(Gui* sub, const char* name, int value);
+void __stdcall SetGadgetTextByName(Gui* sub, const char* name, const char* text);
 int __stdcall FindGadgetIndex(char* gadgets, const char* name, int type);
 int GetTextKeyColor();
 void __stdcall SetTextColors(unsigned int a, int b);
@@ -524,7 +516,7 @@ void PresentFrontendFrame()
 // FUNCTION: 0x425b80
 void UpdateMenuSparks()
 {
-    Dialog_004263b0* terrain = g_game->gui.current;
+    Layer* terrain = g_game->gui.layer;
     if (terrain->surface != 0) {
         unsigned char* src = ((Map_00425b80*)terrain->surface)->cells;
         Smoke_00425b80* s = g_menuSparks;
@@ -733,7 +725,7 @@ void __stdcall HandleCloseCdPlayerChoice(Gadget_00426190* gadget)
 // FUNCTION: 0x426200
 void __stdcall OpenCloseCdPlayerDialog()
 {
-    Dialog_004263b0* gadget = LoadGuiLayer(&g_game->gui, "YESORNO.GUI", 0x100);
+    Layer* gadget = LoadGuiLayer(&g_game->gui, "YESORNO.GUI", 0x100);
     if (gadget != 0) {
         SetKeyboardInput(&g_game->gui, 1);
         char* entries = gadget->gadgets;
@@ -765,7 +757,7 @@ static char* Lookup_004263b0(const char* name)
 // FUNCTION: 0x4263b0
 void __stdcall OpenMainMenu()
 {
-    while (g_game->gui.current != 0) {
+    while (g_game->gui.layer != 0) {
         CloseTopScreen(&g_game->gui);
     }
 
@@ -775,7 +767,7 @@ void __stdcall OpenMainMenu()
     FlipScreen();
     Force640x480Surfaces();
 
-    Dialog_004263b0* dialog = LoadGuiLayer(&g_game->gui, "MAINMENU.GUI", 0x80);
+    Layer* dialog = LoadGuiLayer(&g_game->gui, "MAINMENU.GUI", 0x80);
     dialog->handler = (void (__stdcall*)(void*))HandleMainMenuClick;
     dialog->data = 0;
     dialog->cb1c = UpdateMenuSparks;
@@ -805,12 +797,12 @@ void __stdcall OpenMainMenu()
     SetGadgetActiveByName(&g_game->gui, "DebugString", 1);
     SetGadgetTextByName(&g_game->gui, "DebugString", palpath);
 
-    char* gadgets = g_game->gui.current->gadgets;
+    char* gadgets = g_game->gui.layer->gadgets;
     int width = GetTextPixelWidth(palpath);
     short* px = (short*)(gadgets + 0x15b * FindGadgetIndex(gadgets, "DebugString", 5) + 0x13);
     *px += -(width / 2);
 
-    SetTextColors(g_game->shadowColor, GetTextKeyColor());
+    SetTextColors(g_game->gui.colours[15], GetTextKeyColor());
     ShowSoftwareCursor();
     ClearMouseEventQueue();
 
@@ -1555,11 +1547,11 @@ void FreePictureCache()
         if (g_pictureCache[i].surface != 0) {
             FreeSurface(g_pictureCache[i].surface);
             GameFreeThunk(g_pictureCache[i].data);
-            if (g_game->surface == g_pictureCache[i].surface) {
-                g_game->surface = 0;
+            if (g_game->gui.fallback == g_pictureCache[i].surface) {
+                g_game->gui.fallback = 0;
             }
-            if (g_game->gui.current != 0 && g_game->gui.current->surface == g_pictureCache[i].surface) {
-                g_game->gui.current->surface = 0;
+            if (g_game->gui.layer != 0 && g_game->gui.layer->surface == g_pictureCache[i].surface) {
+                g_game->gui.layer->surface = 0;
             }
             g_pictureCache[i].surface = 0;
             g_pictureCache[i].data = 0;
@@ -1653,21 +1645,21 @@ int __stdcall LoadPictureCached(const char* name, int param_2, int param_3, int 
 after:
     // Nested if, one trailing return 0: both failure exits share one return block.
     if (param_4 == 0) {
-        if (g_game->gui.current != 0) {
+        if (g_game->gui.layer != 0) {
             SetBackgroundSurface((int)&g_game->gui, (int)surface);
             if (param_3 != 0)
                 SetPaletteColors((unsigned char*)data, 0, 0x100);
         } else {
-            g_game->surface = surface;
+            g_game->gui.fallback = surface;
             if (name != 0)
-                strcpy(g_game->surfaceName, name);
+                strcpy(g_game->gui.cachedBgName, name);
         }
         if (surface != 0 || name == 0) {
             if (name != 0) {
-                strcpy(g_game->surfaceName, name);
+                strcpy(g_game->gui.cachedBgName, name);
                 return 1;
             }
-            g_game->surfaceName[0] = 0;
+            g_game->gui.cachedBgName[0] = 0;
             return 1;
         }
     }
@@ -1677,7 +1669,7 @@ after:
 // FUNCTION: 0x428b60
 void OrLabelAttribs(void)
 {
-    Entry_428b60* entries = (Entry_428b60*)g_game->gui.current->gadgets;
+    Entry_428b60* entries = (Entry_428b60*)g_game->gui.layer->gadgets;
     for (int i = 1; i <= entries->count; i++) {
         if (entries[i].type == 5) {
             entries[i].attribs |= 8;

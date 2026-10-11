@@ -272,7 +272,7 @@ struct SideName {
 
 // The mouse record at g_game+0x2c76 (24 bytes): copied by 0x41cc60, read by
 // 0x41cd50. build_placement.cpp names the same record View.
-struct MouseRecord {
+struct MouseEvent {
     int x;                             // +0x0
     int y;                             // +0x4
     unsigned int keyFlags;             // +0x8
@@ -280,7 +280,7 @@ struct MouseRecord {
 };
 
 struct CursorState {
-    MouseRecord start;                 // +0x0, the mouse when the scroll began
+    MouseEvent start;                 // +0x0, the mouse when the scroll began
     int flag;                          // +0x18
     POINT center;                      // +0x1c
     POINT savedScroll;                 // +0x24
@@ -309,7 +309,7 @@ struct Game {
     char unknown_2a44[0x2c76 - 0x2a44];
     union {
         char orders[0x2c92 - 0x2c76];  // +0x2c76
-        MouseRecord view;              // +0x2c76, copied by UpdateMouseScroll
+        MouseEvent view;              // +0x2c76, copied by UpdateMouseScroll
     };
     int boxStartX;                     // +0x2c92
     int boxStartHeight;                // +0x2c96
@@ -1906,7 +1906,7 @@ void UpdateMouseScroll()
     // All fields go through one pointer c, and the quarter offsets keep their own
     // locals dx, dy: both fix the load order and register use.
     CursorState* c = &g_game->cursor;
-    MouseRecord r = g_game->view;
+    MouseEvent r = g_game->view;
     int dx = (r.x - c->center.x) / 4;
     int x = (dx + c->savedScroll.x) * 16;
     int dy = (r.y - c->center.y) / 4;

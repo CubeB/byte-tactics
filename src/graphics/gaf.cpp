@@ -13,17 +13,11 @@
 #include <string.h>
 #include <math.h>
 
-// A 16-byte rectangle: clip bounds and blit rectangles.
-struct Rect_004b7e60 {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
+#include "rect.h"
 
 // Clips `rect` to `bounds`, moving `other` by the same amounts.
 // FUNCTION: 0x4b7e60
-void __stdcall ClipRects(Rect_004b7e60* other, Rect_004b7e60* rect, Rect_004b7e60* bounds)
+void __stdcall ClipRects(Rect* other, Rect* rect, Rect* bounds)
 {
     int d;
     d = rect->left - bounds->left;
@@ -135,24 +129,7 @@ unsigned short __stdcall GetGafFrameDuration(Obj_004b7f70* param1)
     return result;
 }
 
-// A 0x30-byte surface descriptor: an allocated image's header, the screen
-// lock's output, and the blitters' source and destination. Its pixels follow
-// at +0x30. GetClipRect is defined in surface.cpp.
-struct Surface {
-    int width;                         // +0x0
-    int height;                        // +0x4
-    int pitch;                         // +0x8
-    unsigned char* pixels;             // +0xc
-    int zPriority;                     // +0x10
-    int colorKey;                      // +0x14
-    unsigned short x;                  // +0x18
-    unsigned short y;                  // +0x1a
-    Rect_004b7e60 clip;                // +0x1c
-    unsigned int flag0 : 1;            // +0x2c bit 0
-    unsigned int flag1 : 1;            // +0x2c bit 1
-
-    Rect_004b7e60* GetClipRect(Rect_004b7e60* out);
-};
+#include "surface.h"
 
 // A GAF frame header: its size and origin, the colour key, the two flag
 // bytes, the child count, and the pointers to its one or two pixel planes.
@@ -172,12 +149,12 @@ struct GafFrame {
 
 int __stdcall LockScreen(Surface* out);
 int __stdcall UnlockScreen(Surface* s);
-void __cdecl BlitRectKeyed(Surface* dst, Surface* src, Rect_004b7e60* rect,
-                           Rect_004b7e60* pos, int colour);
-void __cdecl BlitRect(Surface* dst, Surface* src, Rect_004b7e60* rect,
-                      Rect_004b7e60* pos);
-void __cdecl BlitCompressed(unsigned char* pixels, int pitch, Rect_004b7e60* rect,
-                            void* plane, Rect_004b7e60* other);
+void __cdecl BlitRectKeyed(Surface* dst, Surface* src, Rect* rect,
+                           Rect* pos, int colour);
+void __cdecl BlitRect(Surface* dst, Surface* src, Rect* rect,
+                      Rect* pos);
+void __cdecl BlitCompressed(unsigned char* pixels, int pitch, Rect* rect,
+                            void* plane, Rect* other);
 void __stdcall DrawFrameBlended(Surface* dst, GafFrame* bmp, int x, int y);
 
 // Draws a bitmap (or a list of nested bitmaps) into `dst`, or into the screen
@@ -209,9 +186,9 @@ void __stdcall DrawFrame(Surface* dst, GafFrame* bmp, int x, int y)
                     DrawFrame(dst, e, x, y);
             }
         } else {
-            Rect_004b7e60 other;
-            Rect_004b7e60 rect;
-            Rect_004b7e60 bounds;
+            Rect other;
+            Rect rect;
+            Rect bounds;
             Surface desc;
             other.left = 0;
             other.right = bmp->width - 1;
@@ -271,9 +248,9 @@ void __stdcall DrawFrameOpaque(Surface* dst, GafFrame* bmp, int x, int y)
                     DrawFrame(dst, e, x, y);
             }
         } else {
-            Rect_004b7e60 other;
-            Rect_004b7e60 rect;
-            Rect_004b7e60 bounds;
+            Rect other;
+            Rect rect;
+            Rect bounds;
             Surface desc;
             other.left = 0;
             other.right = bmp->width - 1;
@@ -353,18 +330,18 @@ struct Src_004b8310 {
 
 // The clip rect and the source descriptor DrawFrameBlended builds together.
 struct Bounds_src_004b8310 {
-    Rect_004b7e60 bounds;
+    Rect bounds;
     Src_004b8310 src;
 };
 
 Display_004b8310* GetDisplay();
-void __cdecl BlitRectBlended(Surface* p, Src_004b8310* src, Rect_004b7e60* rect,
-                             Rect_004b7e60* pos, int colour, unsigned char* palette);
-void __cdecl BlitCompressedLit(unsigned char* pixels, int pitch, Rect_004b7e60* drect,
-                               GafFrame** src, Rect_004b7e60* srect,
+void __cdecl BlitRectBlended(Surface* p, Src_004b8310* src, Rect* rect,
+                             Rect* pos, int colour, unsigned char* palette);
+void __cdecl BlitCompressedLit(unsigned char* pixels, int pitch, Rect* drect,
+                               GafFrame** src, Rect* srect,
                                unsigned char* palette);
-void __cdecl BlitCompressedBlended(unsigned char* pixels, int pitch, Rect_004b7e60* drect,
-                                   GafFrame** src, Rect_004b7e60* srect,
+void __cdecl BlitCompressedBlended(unsigned char* pixels, int pitch, Rect* drect,
+                                   GafFrame** src, Rect* srect,
                                    unsigned char* palette);
 
 // Draws one bitmap (`param_2`, a BITMAPINFO: width/height shorts, x/y origin
@@ -394,8 +371,8 @@ void __stdcall DrawFrameBlended(Surface* param_1, GafFrame* param_2, int x, int 
                 for (int i = 0; i < param_2->count; i++)
                     DrawFrameBlended(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
             } else {
-                Rect_004b7e60 screen_rect;
-                Rect_004b7e60 sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
+                Rect screen_rect;
+                Rect sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
                 int w = param_2->width;
                 int h = param_2->height;
                 screen_rect.left = x - param_2->x;
@@ -428,8 +405,8 @@ void __stdcall DrawFrameBlended(Surface* param_1, GafFrame* param_2, int x, int 
     }
 }
 
-void __cdecl BlitRectRemapDest(Surface* dst, Surface* src, Rect_004b7e60* rect,
-                               Rect_004b7e60* pos, int colour, unsigned char* table);
+void __cdecl BlitRectRemapDest(Surface* dst, Surface* src, Rect* rect,
+                               Rect* pos, int colour, unsigned char* table);
 void __stdcall ResetClipRect(int* param_1);
 
 // Recursively draws a bitmap tree (`param_2`) at x, y into `param_1`, or into
@@ -460,8 +437,8 @@ void __stdcall DrawFrameGray(Surface* param_1, GafFrame* param_2, int x, int y)
                 for (int i = 0; i < param_2->count; i++)
                     DrawFrameGray(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
             } else {
-                Rect_004b7e60 other;
-                Rect_004b7e60 rect;
+                Rect other;
+                Rect rect;
                 other.left = 0;
                 other.right = param_2->width - 1;
                 other.top = 0;
@@ -470,7 +447,7 @@ void __stdcall DrawFrameGray(Surface* param_1, GafFrame* param_2, int x, int y)
                 rect.top = y - param_2->y;
                 rect.right = rect.left + param_2->width - 1;
                 rect.bottom = rect.top + param_2->height - 1;
-                Rect_004b7e60 bounds;
+                Rect bounds;
                 param_1->GetClipRect(&bounds);
                 ClipRects(&other, &rect, &bounds);
                 if (rect.right >= rect.left && rect.bottom >= rect.top &&
@@ -529,9 +506,9 @@ void __stdcall EraseFrameDithered(Surface* dst, GafFrame* bmp, int x, int y, int
                     EraseFrameDithered(dst, e, x, y, parity);
                 }
             } else {
-                Rect_004b7e60 rect;
-                Rect_004b7e60 other;
-                Rect_004b7e60 bounds;
+                Rect rect;
+                Rect other;
+                Rect bounds;
                 other.left = 0;
                 other.top = 0;
                 other.right = bmp->width - 1;
@@ -570,11 +547,6 @@ void __stdcall EraseFrameDithered(Surface* dst, GafFrame* bmp, int x, int y, int
     }
 }
 
-// Unused here: real functions declared to keep the file's symbol count.
-void __stdcall SetCameraPosition(int x, int y, int z);
-void __stdcall RecalculateLineOfSight(int param);
-void __stdcall CollectVisibleUnitIds();
-
 // Initialises a drawing surface description from a frame: width, height,
 // pitch (= width) and pixels, then resets its clip rectangle through
 // ResetClipRect.
@@ -612,7 +584,6 @@ struct Src_004b8ae0 {
 // Unused here: real functions declared to keep the file's symbol count.
 void __stdcall DrawBattleFrame(int param_1, int param_2);
 void __stdcall HAPI_FindClose(int handle);
-void __stdcall InstallOutOfMemoryHandler();
 
 // Initialises a frame from a surface description. The width is written
 // twice in the original (first the surface's width, then its pitch).
@@ -860,10 +831,10 @@ void __stdcall ClearFrame(GafFrame* b, int color)
     }
 }
 
-void __cdecl BlitRectShadow(Surface* dst, Surface* src, Rect_004b7e60* rect,
-                            Rect_004b7e60* pos, int colour, unsigned char* table);
-void __cdecl BlitCompressedShadow(unsigned char* pixels, int pitch, Rect_004b7e60* rect,
-                                  void* plane, Rect_004b7e60* other, unsigned char* table);
+void __cdecl BlitRectShadow(Surface* dst, Surface* src, Rect* rect,
+                            Rect* pos, int colour, unsigned char* table);
+void __cdecl BlitCompressedShadow(unsigned char* pixels, int pitch, Rect* rect,
+                                  void* plane, Rect* other, unsigned char* table);
 
 // Draws a shadow bitmap (or a list of nested shadow bitmaps) into `dst`, or
 // into the screen when `dst` is null: the screen is then locked with
@@ -896,9 +867,9 @@ void __stdcall DrawFrameShadow(Surface* dst, GafFrame* bmp, int x, int y)
                     DrawFrameShadow(dst, e, x, y);
                 }
             } else if (bmp->plane0 != 0) {
-                Rect_004b7e60 other;
-                Rect_004b7e60 rect;
-                Rect_004b7e60 bounds;
+                Rect other;
+                Rect rect;
+                Rect bounds;
                 Surface desc;
                 other.left = 0;
                 other.right = bmp->width - 1;
@@ -986,8 +957,8 @@ void* __stdcall BuildLensFrame(int w, int h, int lens)
     return f;
 }
 
-void __stdcall CopySurfaceRect(void* dst, void* src, Rect_004b7e60* rect,
-                               Rect_004b7e60* pos);
+void __stdcall CopySurfaceRect(void* dst, void* src, Rect* rect,
+                               Rect* pos);
 
 // The swap must go through a reference helper: inline, stores get forwarded.
 static void SwapPtr(unsigned char*& a, unsigned char*& b)
@@ -1021,13 +992,13 @@ void __stdcall DrawLens(void* dst, GafFrame* sprite, int x, int y)
     surface.flag1 = 0;
     ResetClipRect((int*)&surface);
 
-    Rect_004b7e60 srcRect;
+    Rect srcRect;
     srcRect.left = 0;
     srcRect.right = surface.width - 1;
     srcRect.top = 0;
     srcRect.bottom = surface.height - 1;
 
-    Rect_004b7e60 dstRect;
+    Rect dstRect;
     dstRect.left = x - sprite->x;
     dstRect.right = x + surface.width - sprite->x - 1;
     dstRect.top = y - sprite->y;
@@ -1078,13 +1049,13 @@ void __stdcall GrabBackground(void* dst, GafFrame* sprite, int x, int y)
     surface.flag1 = 0;
     ResetClipRect((int*)&surface);
 
-    Rect_004b7e60 srcRect;
+    Rect srcRect;
     srcRect.left = 0;
     srcRect.right = surface.width - 1;
     srcRect.top = 0;
     srcRect.bottom = surface.height - 1;
 
-    Rect_004b7e60 dstRect;
+    Rect dstRect;
     dstRect.left = x - sprite->x;
     dstRect.right = surface.width + x - sprite->x - 1;
     dstRect.top = y - sprite->y;
@@ -1148,9 +1119,9 @@ void __stdcall DrawFrameScaledBlended(Surface* dst, GafFrame* bmp, int x, int y,
             DrawFrameScaledBlended(dst, ((GafFrame**)bmp->plane0)[i], x, y, sx, sy);
     } else {
         // The rects are declared before w and h: sets the order of the edge leas.
-        Rect_004b7e60 src;
-        Rect_004b7e60 dest;
-        Rect_004b7e60 bounds;
+        Rect src;
+        Rect dest;
+        Rect bounds;
         int w = (int)(bmp->width * sx);
         int h = (int)(bmp->height * sy);
         int dx = (int)(bmp->x * sx);
@@ -1220,9 +1191,9 @@ void __stdcall DrawFrameScaled(Surface* dst, GafFrame* bmp, int x, int y, double
         }
     } else {
         // The rects are declared before w and h: sets the order of the edge leas.
-        Rect_004b7e60 src;
-        Rect_004b7e60 dest;
-        Rect_004b7e60 bounds;
+        Rect src;
+        Rect dest;
+        Rect bounds;
         int w = (int)(bmp->width * sx);
         int h = (int)(bmp->height * sy);
         int dx = (int)(bmp->x * sx);
@@ -1560,8 +1531,8 @@ void __stdcall DrawFrameLit(Surface* param_1, GafFrame* param_2, int x, int y, i
                 for (int i = 0; i < param_2->count; i++)
                     DrawFrameBlended(param_1, ((GafFrame**)param_2->plane0)[i], x, y);
             } else {
-                Rect_004b7e60 screen_rect;
-                Rect_004b7e60 sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
+                Rect screen_rect;
+                Rect sprite_rect = { 0, 0, param_2->width - 1, param_2->height - 1 };
                 int w = param_2->width;
                 int h = param_2->height;
                 screen_rect.left = x - param_2->x;

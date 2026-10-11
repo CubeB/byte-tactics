@@ -272,12 +272,12 @@ void MovementClass::ResizePassMap(unsigned int w, unsigned int h)
 }
 
 // FUNCTION: 0x4404c0
-void MovementClass::SetPassMapCell(int param_1, int param_2, int param_3)
+void MovementClass::SetPassMapCell(int x, int y, int value)
 {
-    int shift = (param_2 & 0xf) << 1;
-    int row = (param_2 >> 4) * width + param_1;
+    int shift = (y & 0xf) << 1;
+    int row = (y >> 4) * width + x;
     unsigned int* p = cells + row;
-    *p = (param_3 << shift) | (~(3 << shift) & *p);
+    *p = (value << shift) | (~(3 << shift) & *p);
 }
 
 static inline void setcell(unsigned int* q, int sh, unsigned int val)

@@ -86,12 +86,12 @@ class CobScript
     int StartScriptByIndex(int id, Callback* callback, int update);
     int StartScriptWithArgs(char* name, Callback* callback, int update, int count, int a, int b, int c, int d);
     int StartScriptWithArgsByIndex(int index, Callback* callback, int update, int count, int a, int b, int c, int d);
-    int QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5);
+    int QueryScript(char* name, int* p2, int* p3, int* p4, int* p5);
     // 0x4b0c40: it matches only through the Channel_004b0c40 view, addressing
     // the channels from `this + i * 0xa4`.
     int QueryScriptByIndex(int index, int* p2, int* p3, int* p4, int* p5);
     void RemoveCallback(Callback* callback);
-    void RunScripts(int param_1);
+    void RunScripts(int elapsed);
     void RunThread(unsigned int channel, int elapsed);
     void Wake(unsigned int index)
     {
@@ -101,7 +101,7 @@ class CobScript
     }
     // 0x4b1c00: it matches only indexing the piece record through Piece's
     // e[6][3] view (see the note at its definition).
-    void AnimatePieces(int param_1);
+    void AnimatePieces(int elapsed);
     void SaveScriptState(HapiBank* file);
     int LoadScriptState(HapiBank* file);
 };

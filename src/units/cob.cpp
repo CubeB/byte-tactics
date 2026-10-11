@@ -88,7 +88,7 @@ struct SavedPiece {
 extern int GetTickRate();
 void __cdecl GameFreeThunk(void* p);
 int __stdcall GetCobChecksum(void* param);
-void* __cdecl GameReallocTagged(void* param_1, const char* name, unsigned int param_3);
+void* __cdecl GameReallocTagged(void* ptr, const char* name, unsigned int size);
 char* __cdecl GameAllocIgnoreTag(const char* text, int value);
 int __stdcall RandomInt(int);
 
@@ -273,7 +273,7 @@ int CobScript::StartScriptWithArgs(char* name, Callback* callback, int update, i
 // Index-taking twin of 0x4b0a70 (the name lookup version): StartThread claims
 // one of the 8 channel slots, this stores the value plus a four-deep call
 // frame on the slot's own stack, truncates the slot's stack pointer to
-// param_4 - 1 and refreshes the channels when asked. Compare 0x4b0a10 (same
+// count - 1 and refreshes the channels when asked. Compare 0x4b0a10 (same
 // shape without the frame) and 0x4b0c40.
 //
 // The channel array is viewed from `this + i * 0xa4` with the fields at
@@ -310,9 +310,9 @@ int CobScript::StartScriptWithArgsByIndex(int index, Callback* callback, int upd
 }
 
 // FUNCTION: 0x4b0bc0
-int CobScript::QueryScript(char* name, int* param_2, int* param_3, int* param_4, int* param_5)
+int CobScript::QueryScript(char* name, int* p2, int* p3, int* p4, int* p5)
 {
-    return QueryScriptByIndex(FindScript(name), param_2, param_3, param_4, param_5);
+    return QueryScriptByIndex(FindScript(name), p2, p3, p4, p5);
 }
 
 // Index-taking core of 0x4b0bc0: claims a channel for `index` (0x4b08c0),
@@ -362,13 +362,13 @@ void CobScript::RemoveCallback(Callback* callback)
 
 // Updates every channel with the value (compare the tail of 0x4b0a10).
 // FUNCTION: 0x4b0d60
-void CobScript::RunScripts(int param_1)
+void CobScript::RunScripts(int elapsed)
 {
     if (activeCount) {
         for (int j = 0; j < 8; j++)
-            RunThread(j, param_1);
+            RunThread(j, elapsed);
     }
-    AnimatePieces(param_1);
+    AnimatePieces(elapsed);
 }
 
 // FUNCTION: 0x4b0da0
@@ -888,15 +888,15 @@ void CobScript::RunThread(unsigned int channel, int elapsed)
     }
 }
 
-// Advance every moving piece by param_1 (a percentage) of its per-axis speed:
+// Advance every moving piece by elapsed (a percentage) of its per-axis speed:
 // e[1] is the translation speed toward the e[0] limit, e[5] the turn speed with the
 // e[4] limit, e[3] the current angle, e[2] the wanted angle (-1 means none). Each
 // element that still moves leaves its record's active flag set, and any such flag
 // keeps `changed` (the "something is still animating" flag) at 1.
 // FUNCTION: 0x4b1c00
-void CobScript::AnimatePieces(int param_1)
+void CobScript::AnimatePieces(int elapsed)
 {
-    if (param_1 == 0)
+    if (elapsed == 0)
         return;
     if (changed == 0)
         return;
@@ -908,7 +908,7 @@ void CobScript::AnimatePieces(int param_1)
             for (int j = 0; j <= 2; j++) {
                 if (pieces[i].e[1][j] != 0) {
                     int v = GetPieceTranslation(i, j);
-                    v += param_1 * pieces[i].e[1][j];
+                    v += elapsed * pieces[i].e[1][j];
                     if (pieces[i].e[1][j] > 0) {
                         if (v >= pieces[i].e[0][j]) {
                             v = pieces[i].e[0][j];
@@ -941,7 +941,7 @@ void CobScript::AnimatePieces(int param_1)
                 if (pieces[i].e[3][j] != 0) {
                     int r = GetPieceRotation(i, j);
                     int cur = r;
-                    int step = param_1 * pieces[i].e[3][j];
+                    int step = elapsed * pieces[i].e[3][j];
                     r += step;
                     int want = pieces[i].e[2][j];
                     if (want != -1) {

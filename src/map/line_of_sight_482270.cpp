@@ -34,7 +34,7 @@ void FUN_004161f0(void);
 void InitCommands(void);
 void ResetNetStats(void);
 
-extern char g_losTables[];
+extern LosTables g_losTables;
 
 struct MapSize_482270 {
     unsigned int width;                // +0x0
@@ -108,14 +108,12 @@ void __stdcall AddLineOfSight(SightQuery* params)
         if ((unsigned)y >= grid->height)
             return;
         // Clamp written inline as the GetLosTable argument, with no temporary.
-        LosTable* table = (LosTable*)((LosTables*)g_losTables)
-                          ->GetLosTable(
-                              (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
-                                      < (short)((LosTables*)g_losTables)
-                                            ->GetLosTableCount() - 1
-                                  ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
-                                  : (short)((LosTables*)g_losTables)
-                                        ->GetLosTableCount() - 1);
+        // One cast stays: without it the register allocation of the loop below moves.
+        LosTable* table = (LosTable*)((LosTables*)&g_losTables)->GetLosTable(
+            (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32) <
+                    (short)g_losTables.GetLosTableCount() - 1
+                ? (params->sightDistance / 32 < 0 ? 0 : params->sightDistance / 32)
+                : (short)g_losTables.GetLosTableCount() - 1);
         short count = table->GetLosLineCount();
         short i = 0;
         ((Player_482270*)params->player)->grid.at(x, y)++;

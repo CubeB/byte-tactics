@@ -36,8 +36,8 @@ public:
     char description[0x40];             // +0x040
     char objectname[0x20];              // +0x080
     char f0a0[0x1e];                    // +0x0a0
-    char f0be[0x40];                    // +0x0be
-    char f0fe[0x40];                    // +0x0fe
+    char aiWeight[0x40];                // +0x0be
+    char aiLimit[0x40];                 // +0x0fe
     int f13e;                           // +0x13e
     int f142;                           // +0x142
     int f146;                           // +0x146
@@ -412,8 +412,8 @@ UnitDef& UnitDef::operator=(const UnitDef& src)
     for (i = 0; i < 0x40; i++) description[i] = src.description[i];
     for (i = 0; i < 0x20; i++) objectname[i] = src.objectname[i];
     for (i = 0; i < 0x1e; i++) f0a0[i] = src.f0a0[i];
-    for (i = 0; i < 0x40; i++) f0be[i] = src.f0be[i];
-    for (i = 0; i < 0x40; i++) f0fe[i] = src.f0fe[i];
+    for (i = 0; i < 0x40; i++) aiWeight[i] = src.aiWeight[i];
+    for (i = 0; i < 0x40; i++) aiLimit[i] = src.aiLimit[i];
 
     f13e = src.f13e; f142 = src.f142; f146 = src.f146; f14a = src.f14a;
     f14e = src.f14e; count = src.count; ids = src.ids;

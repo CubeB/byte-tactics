@@ -28,6 +28,7 @@ union Fixed {
 #include "../util/vec3.h"
 #include "../util/point.h"
 #include "../graphics/rect.h"
+#include "../util/angles.h"
 
 // The unit type table entry, the UnitDef at a unit's +0x92.
 struct UnitDef {
@@ -87,7 +88,7 @@ union UnitFlags {
 
 struct Unit {                          // 0x118 bytes
     char unknown_0[0x64];
-    short angles[3];                   // +0x64, bank, heading and pitch
+    Angles16 angles;                   // +0x64
     Fixed pos_x;                       // +0x6a
     Fixed pos_y;                       // +0x6e
     Fixed pos_z;                       // +0x72
@@ -588,7 +589,7 @@ int __stdcall HitTestUnitScreenHull(Unit* obj, Point* p)
     o.x = obj->pos_x.value - (g_game->scrollX << 16);
     o.y = obj->pos_y.value;
     o.z = obj->pos_z.value - (g_game->scrollY << 16);
-    short* angles = obj->angles;
+    short* angles = (short*)&obj->angles;
     for (i = 0; i < 4; i++) {
         Vec3 v;
         RotateByAngles(&corners[i], &v, angles);

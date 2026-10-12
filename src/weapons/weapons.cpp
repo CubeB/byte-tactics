@@ -2882,6 +2882,7 @@ void* DrawLitLine(void*, int, int, int, int, int);
 void* DrawBlendedLine(void*, int, int, int, int, int);
 void OrderSquad(void*, int, unsigned char, int, void*, int, int, int);
 int AddBlinkWord(void*, const char*, int, int, int, int, float, float);
+void CenterCameraOnRadarClick();
 
 // 0x49b090 and 0x49be60 sit here, after the module's other functions, and
 // 0x49be60 after the TdfFile global below.
@@ -3061,16 +3062,12 @@ TdfFile g_tdfGlobalParser;
 
 // 0x49be60 sits after the TdfFile global: its palette and scroll register plan
 // follows the symbol ids.
+#include "../util/angles.h"
+
 #pragma pack(push, 1)
 struct Sprite_0049be60 {
     char unknown_0[0x30];
     void* child;                       // +0x30
-};
-
-struct Angles_0049be60 {
-    short x;
-    short y;
-    short z;
 };
 
 struct Proj_0049be60 {
@@ -3078,7 +3075,7 @@ struct Proj_0049be60 {
     Vec3 pos;                          // +0x4
     Vec3 start;                        // +0x10
     char unknown_1c[0x34 - 0x1c];
-    Angles_0049be60 angles;            // +0x34
+    Angles16 angles;                   // +0x34
     char unknown_3a[0x42 - 0x3a];
     int spawnTick;                     // +0x42
     int time;                          // +0x46
@@ -3213,14 +3210,14 @@ void __stdcall DrawProjectiles(void* surface)
                     int sx = 0x80 + (int)*(short*)((char*)&sp + 2);
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20;
                     DrawFrameBlended(surface, frame0, sx, sy);
-                    Angles_0049be60 rot = p->angles;
-                    rot.y += 0x8000;
-                    rot.z += 0x8000;
+                    Angles16 rot = p->angles;
+                    rot.heading += 0x8000;
+                    rot.pitch += 0x8000;
                     DrawModel3doProjected(surface, &sp, type->model, &rot);
                     Sprite_0049be60* s = (Sprite_0049be60*)type->model;
                     if (0 != s->child && p->time > time) {
                         if (type->flags.b.propeller) {
-                            rot.x = p->propellerSpin;
+                            rot.bank = p->propellerSpin;
                             DrawModel3doProjected(surface, &sp, s->child, &rot);
                         } else {
                             DrawModel3doProjected(surface, &sp, s->child, &rot);
@@ -3241,7 +3238,7 @@ void __stdcall DrawProjectiles(void* surface)
                     int sx = (int)*(short*)((char*)&sp + 2) + 0x80;
                     int sy = (int)*(short*)((char*)&sp + 10) - ((unsigned short)p->groundHeightAvg >> 1) + 0x20;
                     DrawFrameBlended(surface, frame0, sx, sy);
-                    Angles_0049be60 rot3;
+                    Angles16 rot3;
                     DrawModel3doProjected(surface, &sp, type->model, &rot3);
                 } else if (type->shotKind == 4) {
                     if (type->colour < 0xff) {

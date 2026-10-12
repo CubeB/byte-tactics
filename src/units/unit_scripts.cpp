@@ -282,12 +282,6 @@ struct Obj_0043e180 {
 };
 #pragma pack(pop)
 
-struct Out_0043e180 {
-    short x;
-    short y;
-    short z;
-};
-
 // Operand order (object field first, record second) must stay in both helpers.
 static inline short SumY_0043e180(Obj_0043e180* obj, Rec_0043e180* q)
 {
@@ -299,18 +293,17 @@ static inline short SumZ_0043e180(Obj_0043e180* obj, Rec_0043e180* q)
     return obj->angles.pitch + q->b;
 }
 
-// Builds a three-short offset from the object's position fields (+0x64,
-// +0x66, +0x68) and the animation record at obj->recs[index] (+0x9e): the
-// record's +0x32/+0x34 words pair with y/z and the next record's +0 word
-// with x.
+// Builds a piece's angles from the object's angles (+0x64, +0x66, +0x68) and
+// the animation record at obj->recs[index] (+0x9e): the record's +0x32/+0x34
+// words pair with heading/pitch and the next record's +0 word with bank.
 // FUNCTION: 0x43e180
-Out_0043e180 __stdcall GetPieceAngles(Obj_0043e180* obj, int index)
+Angles16 __stdcall GetPieceAngles(Obj_0043e180* obj, int index)
 {
     Rec_0043e180* r = obj->recs;
-    Out_0043e180 p;
-    p.z = SumZ_0043e180(obj, &r[index]);
-    p.y = SumY_0043e180(obj, &r[index]);
-    p.x = obj->angles.bank + r[index + 1].a;
+    Angles16 p;
+    p.pitch = SumZ_0043e180(obj, &r[index]);
+    p.heading = SumY_0043e180(obj, &r[index]);
+    p.bank = obj->angles.bank + r[index + 1].a;
     return p;
 }
 

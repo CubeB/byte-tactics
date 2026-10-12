@@ -1614,6 +1614,7 @@ struct UnitDefFlags_0048dfb0 {
 struct Struct_004907e0;
 
 #include "../orders/unit_motion.h"
+#include "../util/angles.h"
 
 struct Target_00490880 {
     char unknown_0[0x2e];
@@ -1631,9 +1632,8 @@ struct Struct_004907e0 {               // the owner, the object at +0x8
         Target_00490880* target;       // +0x0
         UnitMotion* obj;               // +0x0
     };
-    char pad4[0x66 - 0x4];
-    short heading;                     // +0x66
-    short bank;                        // +0x68
+    char pad4[0x64 - 0x4];
+    Angles16 angles;                   // +0x64
     Vec3 pos;                 // +0x6a
     char pad76[0x82 - 0x76];
     unsigned char* spatialBucket;      // +0x82
@@ -1705,7 +1705,7 @@ PackedGoal::PackedGoal(Struct_004907e0* p)
 {
     pos = p->pos;
     vel = MakeVec3(0, 0, 0);
-    heading = p->heading;
+    heading = p->angles.heading;
 }
 
 // PackedGoal's override of slot 4 (vtable 0x4fd980, inherited by

@@ -8,6 +8,7 @@
 struct Aim_0049d880;
 struct Aim_0049d9c0;
 struct Aim_0049dd60;
+struct Angles16;
 struct App_004c25e0;
 struct App_4b5980;
 struct Arg_00419670;
@@ -569,7 +570,6 @@ class Order_004031d0;
 class Order_00415250;
 struct Order_00438c00;
 struct Order_0048ab70;
-struct Out_0043e180;
 struct Out_004c5e70;
 struct Out_004c5ff0;
 struct Out_4a15c0;
@@ -1575,7 +1575,7 @@ Elem_0043cb20* PartitionOrderTypes(Elem_0043cb20*, Elem_0043cb20*, Elem_0043cb20
 Vec3 GetPieceOffset(Object_0043def0*, int);
 Vec3 GetPiecePosition(Object*, int);
 void GetPieceCenter(Obj_0043e0b0*, Vec3*, int);
-Out_0043e180 GetPieceAngles(Obj_0043e180*, int);
+Angles16 GetPieceAngles(Obj_0043e180*, int);
 int QueryWeaponPiece(Object*, unsigned char);
 void GetWeaponPiecePosition(Object*, Vec3*, unsigned char, int);
 void GetAimFromPosition(Object*, Vec3*, unsigned char);

@@ -863,13 +863,15 @@ void __cdecl CycleCurrentPlayerAllyGroup()
     RefreshAllyIcons();
 }
 
+#include "../gui/mouse_event.h"
+
 // Frame is the click handler's stack block: two scratch strings, the mouse
 // event and the gadget name.
 #pragma pack(push, 1)
 struct Frame {
     char sA[0xc];
     char sB[0xc];
-    int ev[6];
+    MouseEvent ev;
     char bf[0x40];
 };
 #pragma pack(pop)
@@ -880,7 +882,7 @@ void RegisterDataArchives();
 void InitMissionStatus();
 void SaveSettings();
 void __stdcall UpdateHelpText(Gui* gui);
-void __stdcall GetCurrentMouseEvent(int* out);
+void __stdcall GetCurrentMouseEvent(MouseEvent* out);
 
 // FUNCTION: 0x47ae60
 void __stdcall HandleSkirmishClick(Gui* menu)
@@ -1029,7 +1031,7 @@ void __stdcall HandleSkirmishClick(Gui* menu)
         RefreshAllyIcons();
     } else if (strcmp(frame.bf, "Color") == 0) {
         PlaySoundByName("Skirmish", 0);
-        GetCurrentMouseEvent(frame.ev);
+        GetCurrentMouseEvent(&frame.ev);
         if (menu->layer->clickMode == 1) {
             CyclePlayerColor(0);
         }
@@ -1037,7 +1039,7 @@ void __stdcall HandleSkirmishClick(Gui* menu)
             CyclePlayerColor(1);
         }
     } else if (strcmp(frame.bf, "Energy") == 0) {
-        GetCurrentMouseEvent(frame.ev);
+        GetCurrentMouseEvent(&frame.ev);
         if (menu->layer->clickMode == 1) {
             PlaySoundByName("Skirmish", 0);
             Table* t = g_game->options;

@@ -146,6 +146,8 @@ struct Game {
 };
 #pragma pack(pop)
 
+// Four dwords of the path lock (0x440ca0 only copies them), not known to be a
+// rectangle, so it stays off rect.h.
 struct Rect_00440ca0 {
     int a;                             // +0x0
     int b;                             // +0x4

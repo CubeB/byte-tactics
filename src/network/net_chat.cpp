@@ -71,9 +71,7 @@ struct Game {
 
 #pragma pack(pop)
 
-struct Rect_00464060 {
-    int left, top, right, bottom;
-};
+#include "../graphics/rect.h"
 
 extern Game* g_game;
 extern char DAT_005119b8[];
@@ -88,7 +86,7 @@ void __stdcall CenterCameraOnPoint(int a, int b, int c);
 void __stdcall SetFont(int);
 void __stdcall SetTextColors(int, int);
 int GetFontHeight();
-void __stdcall BlitSideLogoToRect(void*, void*, Rect_00464060*, int);
+void __stdcall BlitSideLogoToRect(void*, void*, Rect*, int);
 void __stdcall DrawTextClipped(void*, void*, int, int, int, int);
 // SendChatMessage's original translation unit declared AddMessage with int
 // arguments while the function itself takes narrower widths. Keeping the int
@@ -253,7 +251,7 @@ void __stdcall DrawMessages(void* surf)
             int id = g_game->chatHudRing[i].unit_46;
             if (id != 10) {
                 t = (int)(GetFontHeight() * 0.8);
-                Rect_00464060 r;
+                Rect r;
                 r.top = y;
                 r.left = 138;
                 r.right = t + 138;

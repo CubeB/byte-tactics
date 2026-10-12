@@ -46,9 +46,7 @@ struct Snapshot_0046a860 {
 #include "../network/player_info.h"
 #include "../network/player.h"
 
-struct Rect_0046a860 {
-    int left, top, right, bottom;
-};
+#include "../graphics/rect.h"
 
 struct WeaponDef_0046a860;
 struct Unit_0046a860;
@@ -127,9 +125,9 @@ struct Struct_0046a860 {
 };
 #pragma pack(pop)
 
-static void DrawBar_0046a860(void* surface, Rect_0046a860* bounds, int value, int maximum, int dy,
+static void DrawBar_0046a860(void* surface, Rect* bounds, int value, int maximum, int dy,
                              unsigned char* palette) {
-    Rect_0046a860 rect = *bounds;
+    Rect rect = *bounds;
     rect.top = rect.top + dy;
     rect.bottom += dy;
     if (value < 0)
@@ -160,34 +158,34 @@ struct SideDef_0046a860 {
     char aName[0x1e];                   // +0x000
     char aNamePrefix[4];                // +0x01e
     char aCommander[0x20];              // +0x022
-    Rect_0046a860 rcLogo;               // +0x042
-    Rect_0046a860 rcEnergyBar;          // +0x052
-    Rect_0046a860 rcEnergyNum;          // +0x062
-    Rect_0046a860 rcMetalBar;           // +0x072
-    Rect_0046a860 rcMetalNum;           // +0x082
-    Rect_0046a860 rcTotalUnits;         // +0x092
-    Rect_0046a860 rcTotalTime;          // +0x0a2
-    Rect_0046a860 rcEnergyMax;          // +0x0b2
-    Rect_0046a860 rcMetalMax;           // +0x0c2
-    Rect_0046a860 rcEnergy0;            // +0x0d2
-    Rect_0046a860 rcMetal0;             // +0x0e2
-    Rect_0046a860 rcEnergyProduced;     // +0x0f2
-    Rect_0046a860 rcEnergyConsumed;     // +0x102
-    Rect_0046a860 rcMetalProduced;      // +0x112
-    Rect_0046a860 rcMetalConsumed;      // +0x122
-    Rect_0046a860 rcLogo2;              // +0x132
-    Rect_0046a860 rcUnitName;           // +0x142
-    Rect_0046a860 rcDamageBar;          // +0x152
-    Rect_0046a860 rcUnitEnergyMake;     // +0x162
-    Rect_0046a860 rcUnitEnergyUse;      // +0x172
-    Rect_0046a860 rcUnitMetalMake;      // +0x182
-    Rect_0046a860 rcUnitMetalUse;       // +0x192
-    Rect_0046a860 rcMissionText;        // +0x1a2
-    Rect_0046a860 rcUnitName2;          // +0x1b2
-    Rect_0046a860 rcDamageBar2;         // +0x1c2
-    Rect_0046a860 rcName;               // +0x1d2
-    Rect_0046a860 rcDescription;        // +0x1e2
-    Rect_0046a860 aReloadRects[3];      // +0x1f2
+    Rect rcLogo;               // +0x042
+    Rect rcEnergyBar;          // +0x052
+    Rect rcEnergyNum;          // +0x062
+    Rect rcMetalBar;           // +0x072
+    Rect rcMetalNum;           // +0x082
+    Rect rcTotalUnits;         // +0x092
+    Rect rcTotalTime;          // +0x0a2
+    Rect rcEnergyMax;          // +0x0b2
+    Rect rcMetalMax;           // +0x0c2
+    Rect rcEnergy0;            // +0x0d2
+    Rect rcMetal0;             // +0x0e2
+    Rect rcEnergyProduced;     // +0x0f2
+    Rect rcEnergyConsumed;     // +0x102
+    Rect rcMetalProduced;      // +0x112
+    Rect rcMetalConsumed;      // +0x122
+    Rect rcLogo2;              // +0x132
+    Rect rcUnitName;           // +0x142
+    Rect rcDamageBar;          // +0x152
+    Rect rcUnitEnergyMake;     // +0x162
+    Rect rcUnitEnergyUse;      // +0x172
+    Rect rcUnitMetalMake;      // +0x182
+    Rect rcUnitMetalUse;       // +0x192
+    Rect rcMissionText;        // +0x1a2
+    Rect rcUnitName2;          // +0x1b2
+    Rect rcDamageBar2;         // +0x1c2
+    Rect rcName;               // +0x1d2
+    Rect rcDescription;        // +0x1e2
+    Rect aReloadRects[3];      // +0x1f2
     int nEnergyColor;                   // +0x222
     int nMetalColor;                    // +0x226
     int nSideIndex;                     // +0x22a

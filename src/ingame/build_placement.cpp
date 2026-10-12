@@ -86,7 +86,7 @@ struct Game {
     char unknown_2cbf[0x2cc3 - 0x2cbf];
     unsigned char orderMode;           // +0x2cc3
     char unknown_2cc4[0x2cc6 - 0x2cc4];
-    unsigned char flags_2cc6;          // +0x2cc6
+    unsigned char inputFlags;          // +0x2cc6
     char unknown_2cc7[0x2cdf - 0x2cc7];
     int middleScrollActive;            // +0x2cdf
     char unknown_2ce3[0x14357 - 0x2ce3];
@@ -154,15 +154,15 @@ void __stdcall HandleLeftClick(View* view)
     int index;
 
     if (g_game->orderMode == 0xe) {
-        if (g_game->flags_2cc6 & 0x40) {
+        if (g_game->inputFlags & 0x40) {
             IssueMobileBuildOrders(view);
             PlaySoundByName("oktobuild", 0);
             if (view->keyFlags & 4) {
-                g_game->flags_2cc6 |= 0x20;
+                g_game->inputFlags |= 0x20;
                 return;
             }
             g_game->orderMode = 1;
-            g_game->flags_2cc6 &= 0xdf;
+            g_game->inputFlags &= 0xdf;
             index = FindGadgetIndexBySubstring(g_game->layer->entries, "STOP");
             if (index != -1) {
                 ClearGroupStatus(g_game->menu, index);
@@ -189,11 +189,11 @@ void __stdcall HandleLeftClick(View* view)
         IssueOrderToSelection(view, g_game->orderMode, kind, &g_game->pos, 0, 0);
     }
     if (view->keyFlags & 4) {
-        g_game->flags_2cc6 |= 0x20;
+        g_game->inputFlags |= 0x20;
         return;
     }
     g_game->orderMode = 1;
-    g_game->flags_2cc6 &= 0xdf;
+    g_game->inputFlags &= 0xdf;
     index = FindGadgetIndexBySubstring(g_game->layer->entries, "STOP");
     if (index != -1) {
         ClearGroupStatus(g_game->menu, index);
@@ -210,7 +210,7 @@ void __stdcall HandleRightClick(View* view)
 {
     if (g_game->orderMode != 1) {
         g_game->orderMode = 1;
-        g_game->flags_2cc6 &= 0xdf;
+        g_game->inputFlags &= 0xdf;
         int index = FindGadgetIndexBySubstring(g_game->layer->entries, "STOP");
         if (index != -1) {
             ClearGroupStatus(g_game->menu, index);
@@ -218,7 +218,7 @@ void __stdcall HandleRightClick(View* view)
         return;
     }
     if (g_game->interfaceType == 0) {
-        if (g_game->flags_2cc6 & 2) {
+        if (g_game->inputFlags & 2) {
             if (view->keyFlags & 8) {
                 BeginMouseScroll();
                 return;
@@ -227,15 +227,15 @@ void __stdcall HandleRightClick(View* view)
             PopUntilNamedLayout(1);
             return;
         }
-        if (g_game->flags_2cc6 & 1) {
-            g_game->flags_2cc6 = g_game->flags_2cc6 | 0x10;
+        if (g_game->inputFlags & 1) {
+            g_game->inputFlags = g_game->inputFlags | 0x10;
             if (g_game->cursorMode != 0x13) {
                 g_game->cursorMode = 0x13;
                 SetCursorAnimation((void*)g_game->menu, g_game->cursorModeSeq[0x13]);
                 return;
             }
         }
-    } else if (g_game->flags_2cc6 & 4) {
+    } else if (g_game->inputFlags & 4) {
         MissionType kind;
         IssueOrderToSelection(view, 1, kind, &g_game->pos, 0, 0);
     }
@@ -261,7 +261,7 @@ void BattleFrame(void)
     View view = g_game->view;
     UpdateCursorWorldPos(&view);
 
-    unsigned char flags = g_game->flags_2cc6;
+    unsigned char flags = g_game->inputFlags;
     if ((flags & 2) != 0 && g_game->orderMode == 0xe) {
         UpdatePlacementGhostValidity();
     } else if ((flags & 2) == 0 && (flags & 1) == 0) {
@@ -272,10 +272,10 @@ void BattleFrame(void)
     }
 
     DispatchOrdersPanelPageFlags();
-    if ((g_game->flags_2cc6 & 0x20) != 0) {
+    if ((g_game->inputFlags & 0x20) != 0) {
         if (IsKeyDown(0xf9) == 0) {
             g_game->orderMode = 1;
-            g_game->flags_2cc6 &= 0xdf;
+            g_game->inputFlags &= 0xdf;
             int index = FindGadgetIndexBySubstring(g_game->layer->entries, "STOP");
             if (index != -1) {
                 ClearGroupStatus(g_game->menu, index);
@@ -283,17 +283,17 @@ void BattleFrame(void)
         }
     }
 
-    flags = g_game->flags_2cc6;
+    flags = g_game->inputFlags;
     if ((flags & 0x10) != 0) {
         if (g_game->interfaceType == 0) {
             if (view.msg == 0x205) {
-                g_game->flags_2cc6 = flags & 0xef;
+                g_game->inputFlags = flags & 0xef;
             } else {
                 CenterCameraOnRadarClick();
             }
         } else {
             if (view.msg == 0x202) {
-                g_game->flags_2cc6 = flags & 0xef;
+                g_game->inputFlags = flags & 0xef;
             } else {
                 CenterCameraOnRadarClick();
             }
@@ -308,7 +308,7 @@ void BattleFrame(void)
         }
     } else if ((flags & 8) != 0) {
         if (view.msg == 0x202) {
-            g_game->flags_2cc6 = flags & 0xf7;
+            g_game->inputFlags = flags & 0xf7;
             int dx = g_game->boxStartX - g_game->boxEndX;
             int dz = g_game->boxStartZ - g_game->boxEndZ;
             dx = abs(dx);
@@ -327,7 +327,7 @@ void BattleFrame(void)
         }
     } else if (view.msg == 0x201) {
         if ((flags & 2) != 0) {
-            g_game->flags_2cc6 = flags | 8;
+            g_game->inputFlags = flags | 8;
             g_game->boxStartTick = GetTicks();
             g_game->boxStartX = g_game->xWhole;
             g_game->boxStartHeight = g_game->yWhole;
@@ -338,7 +338,7 @@ void BattleFrame(void)
             SetCursor(0x13);
         } else if (g_game->interfaceType == 1) {
             if ((flags & 1) != 0) {
-                g_game->flags_2cc6 = flags | 0x10;
+                g_game->inputFlags = flags | 0x10;
                 SetCursor(0x13);
             }
         } else if ((flags & 1) != 0) {

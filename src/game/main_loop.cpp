@@ -12,7 +12,7 @@
 #include "../network/packet_manager.h"
 
 #pragma pack(push, 1)
-// The network flags at +0x38d75. The bitfield overlay is not volatile (so the
+// The loading flags at +0x38d75. The bitfield overlay is not volatile (so the
 // bit 2 test keeps its load, shift and test) and the word overlay is (so the
 // clear of bit 2 stays a read-modify-write through a register). See the note
 // at the top of this file.

@@ -78,7 +78,7 @@ struct WeaponDef {
     unsigned short areaOfEffect;      // +0xd6, the splash radius
     float edgeDamage;                 // +0xd8, the falloff at the edge
     int range;                        // +0xdc
-    int radius;                       // +0xe0, the coverage radius
+    int coverage;                     // +0xe0, the anti-missile coverage radius
     unsigned short reloadTime;        // +0xe4, in ticks
     unsigned short lifetime;          // +0xe6, 49b720's nWeaponTimer
     unsigned short turnRate;          // +0xe8

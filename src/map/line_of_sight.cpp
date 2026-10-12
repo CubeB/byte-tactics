@@ -34,12 +34,7 @@ struct Point {
     short y;
 };
 
-struct Rect {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
+#include "../graphics/rect.h"
 
 // A map cell (13 bytes): the feature at +0x8, its footprint offsets at +0xa,
 // and the ground heights at +0x4 to +0x6.
@@ -118,7 +113,6 @@ struct Weapon;
 struct Feature;
 struct Camera;
 struct Palette;
-struct Pcx;
 void RegisterUnitOrders();
 void RegisterGroundOrders();
 #include "../network/player.h"

@@ -182,92 +182,23 @@ struct Bits {
     int Test(unsigned short index) const { return (words[index>>5]&(1u<<(index&31)))!=0; }
 };
 
-struct UnitDef {                       // 0x249 bytes
-    char name[0x20];                   // +0x0
-    union {
-        char description[0x249 - 0x20];   // +0x20
-        struct {
-            char unknown_20[0xa0 - 0x20];
-            char side[0xbe - 0xa0];       // +0xa0
-            char command[0x14a - 0xbe];   // +0xbe, run as a console command
-            Point16 origin;               // +0x14a
-            char unknown_14e[0x152 - 0x14e];
-            union {
-                int count;                // +0x152
-                int field_152;
-            };
-            union {
-                unsigned short* ids;      // +0x156
-                int field_156;
-            };
-            char unknown_15a[0x186 - 0x15a];
-            float energyCost;             // +0x186
-            float metalCost;              // +0x18a
-            char unknown_18e[0x1c0 - 0x18e];
-            short minwaterdepth;          // +0x1c0
-            char unknown_1c2[0x1ce - 0x1c2];
-            union {
-                float value;              // +0x1ce
-                float field_1ce;
-            };
-            char unknown_1d2[0x1ee - 0x1d2];
-            Sub_00409520* arr[3];         // +0x1ee
-            char unknown_1fa[0x202 - 0x1fa];
-            short range;                  // +0x202
-            char unknown_204[0x22d - 0x204];
-            char makesMetal;              // +0x22d
-            char unknown_22e;
-            char mobile;                  // +0x22f
-            char unknown_230;
-            // The type sets: pointers to bit words, one view named by use.
-            union {
-                Bits bad[3];              // +0x231
-                unsigned int* weaponCategories[3];
-            };
-            union {
-                Bits exclude;             // +0x23d
-                unsigned int* categories;
-            };
-            union {
-                unsigned int flags;       // +0x241
-                struct {
-                    unsigned int unknown_241 : 5;
-                    unsigned int downloadable : 1;
-                    unsigned int rest : 26;
-                };
-                struct {
-                    unsigned int unused : 6;
-                    unsigned int builder : 1;
-                    unsigned int unused7 : 4;
-                    unsigned int flying : 1;
-                    unsigned int unused12 : 20;
-                };
-            };
-            union {
-                unsigned int flags2;      // +0x245
-                struct {
-                    unsigned int unused245 : 12;
-                    unsigned int special : 1;
-                    unsigned int unused13 : 19;
-                };
-                struct {
-                    unsigned int unknown_bits : 4;
-                    unsigned int flag4 : 1;
-                    unsigned int unknown_bits5 : 27;
-                };
-                struct {
-                    unsigned int unknown_bits0 : 12;
-                    unsigned int flag12 : 1;
-                    unsigned int unknown_bits13 : 19;
-                };
-                struct {
-                    unsigned int bit0_3 : 4;
-                    unsigned int flag : 1;
-                    unsigned int bit5_31 : 27;
-                };
-            };
-        };
-    };
+#include "../units/unit_def.h"
+
+// Bit field views of the flag words at +0x241 and +0x245, cast at the use.
+struct Flags241 {
+    unsigned int unknown_241 : 5;
+    unsigned int downloadable : 1;
+    unsigned int builder : 1;
+    unsigned int unused7 : 4;
+    unsigned int flying : 1;
+    unsigned int unused12 : 20;
+};
+struct Flags245 {
+    unsigned int unknown_bits : 4;
+    unsigned int flag4 : 1;
+    unsigned int unused5 : 7;
+    unsigned int special : 1;
+    unsigned int unused13 : 19;
 };
 
 struct Player;
@@ -859,7 +790,7 @@ void __stdcall ReactToAttack(Unit* attacker, Unit* unit, int unused)
         DeleteOrders(unit,0);
     }
     if (attacker && unit->player->active && (unit->player->type==1 || unit->player->type==2) &&
-        (unit->def->flags&0x10010000) && unit->buildLeft==Zero_004fc968 && !unit->player->allied[attacker->player->index]) {
+        (unit->def->flags1&0x10010000) && unit->buildLeft==Zero_004fc968 && !unit->player->allied[attacker->player->index]) {
         int ordered=0;
         if ((!unit->list || (unit->list->flags&0x20000)) &&
             !Contains(unit->def->categories,attacker->unitDefIndex) &&
@@ -1257,10 +1188,10 @@ void BuildTimer::OnTimer()
                         u->SetStateBits(1, 1);
                 } else
                     u->SetStateBits(1, 0);
-            } else if (u->def->field_152 && !u->list) {
+            } else if (u->def->count && !u->list) {
                 unsigned short id = ChooseBuildOption(player, u);
                 if (id)
-                    QueueBuildOrder((char*)&g_game->unitDefs[id].description[0], u, 1);
+                    QueueBuildOrder((char*)&g_game->unitDefs[id].unitname[0], u, 1);
             }
         }
     }
@@ -1280,15 +1211,15 @@ void SquadManager::AssignSquads()
 {
     for (Unit* u = player->unitsBegin; u <= player->unitsEnd; ++u) {
         if(u->flags&0x20) {
-            if(u->def->special) u->flags=(u->flags&~0x80000)|0x40000;
+            if(((Flags245*)&u->def->flags2)->special) u->flags=(u->flags&~0x80000)|0x40000;
             else u->flags=(u->flags&~0x40000)|0x80000;
             u->flags=(u->flags&~0x100000)|0x200000;
             if(!u->group) {
                 if(u->flags&0x20000000) {
                     if(u->flags&0x80000000) SetUnitSquad(u,5);
                     else SetUnitSquad(u,1);
-                } else if(u->def->builder) SetUnitSquad(u,4);
-                else if(u->def->flying) SetUnitSquad(u,8);
+                } else if(((Flags241*)&u->def->flags1)->builder) SetUnitSquad(u,4);
+                else if(((Flags241*)&u->def->flags1)->flying) SetUnitSquad(u,8);
                 else if(u->def->minwaterdepth>0) SetUnitSquad(u,7);
                 else if(u->flags&0x80000000) SetUnitSquad(u,3);
             }
@@ -1467,7 +1398,7 @@ void PlayerAI::InitUnitTables()
         weights[i] = 0;
         if (!def->mobile)
             weights[i] += 40;
-        if (def->field_156)
+        if (def->ids)
             weights[i] += 20;
         counts[i] = 0;
         vec_ad[i].value = 100;
@@ -1489,9 +1420,9 @@ void PlayerAI::InitUnitTables()
 int __stdcall RateWeapons(UnitDef* p)
 {
     int result = 1;
-    if (p->flag4)
+    if (((Flags245*)&p->flags2)->flag4)
         result = 0xb;
-    Sub_00409520** pp = p->arr;
+    Sub_00409520** pp = (Sub_00409520**)p->weapons;
     for (int i = 3; i != 0; i--) {
         Sub_00409520* s = *pp;
         if (s->index != 0)
@@ -1507,7 +1438,7 @@ int __stdcall RateWeapons(UnitDef* p)
 int __stdcall RateUnitType(UnitDef* p)
 {
     int result = 1;
-    if (p->field_1ce != 0.0f)
+    if (p->extractsMetal != 0.0f)
         result = 0xb;
     if (p->makesMetal != 0)
         result += 10;
@@ -1515,9 +1446,9 @@ int __stdcall RateUnitType(UnitDef* p)
         result += 10;
     result = (int)((int)(result - p->metalCost * -0.01f) - p->energyCost * -0.002f);
     int extra = 1;
-    if (p->flag4)
+    if (((Flags245*)&p->flags2)->flag4)
         extra = 0xb;
-    Sub_00409520** pp = p->arr;
+    Sub_00409520** pp = (Sub_00409520**)p->weapons;
     for (int i = 3; i != 0; i--) {
         Sub_00409520* s = *pp;
         if (s->index != 0)
@@ -1589,13 +1520,13 @@ void __stdcall ParseDownloadableAiWeightScripts(int player)
     EnableAICommands();
     for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
         UnitDef* def = &g_game->unitDefs[i];
-        if (def->downloadable) {
+        if (((Flags241*)&def->flags1)->downloadable) {
             if (p->vec_bd[i].unknown_0 != 1) {
-                int len = strlen(def->command);
+                int len = strlen(def->f0be);
                 if (len != 0) {
                     CommandArgs vars;
                     vars.InitArgs();
-                    ExecuteCommandText(def->command, len, &vars, -1);
+                    ExecuteCommandText(def->f0be, len, &vars, -1);
                 }
             }
         }
@@ -1609,13 +1540,13 @@ void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player)
     EnableAICommands();
     for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
         UnitDef* def = &g_game->unitDefs[i];
-        if (def->downloadable) {
+        if (((Flags241*)&def->flags1)->downloadable) {
             if (p->locked[i].unknown_0 != 1) {
-                int len = strlen(def->command);
+                int len = strlen(def->f0be);
                 if (len != 0) {
                     CommandArgs vars;
                     vars.InitArgs();
-                    ExecuteCommandText(def->command, len, &vars, -1);
+                    ExecuteCommandText(def->f0be, len, &vars, -1);
                 }
             }
         }
@@ -1663,7 +1594,7 @@ bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, std::vector<Elem_0
     std::vector<Elem_0040cc40> heap;
     heap.reserve(list->size());
     int rangeSq = range * range;
-    Point16 center = WorldToCell(*pos, type->origin);
+    Point16 center = WorldToCell(*pos, *(Point16*)&type->f14a);
     for (std::vector<Elem_0040cc40>::iterator p = list->begin(); p != list->end(); p++) {
         int d = DistSq(p->pos, center);
         if (d <= rangeSq) {
@@ -1679,8 +1610,8 @@ bool PlayerAI::FindCellNearFeatures(UnitDef* type, Vec3* pos, std::vector<Elem_0
     Point16 result;
     while (!heap.empty()) {
         Point16 cell = heap.front().pos;
-        cell.x -= (type->origin.x - 3) / 2;
-        cell.y -= (type->origin.y - 3) / 2;
+        cell.x -= (type->footprintx - 3) / 2;
+        cell.y -= (type->footprintz - 3) / 2;
         int d = DistSq(cell, center);
         if (limit >= 0 && d > limit + 160)
             break;
@@ -1715,8 +1646,8 @@ Elem_0040cc40::Elem_0040cc40(const Elem_0040cc40& o) : pos(o.pos), key(o.key)
 // FUNCTION: 0x40a5d0
 bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Point16* out)
 {
-    int areaY = type->origin.y;
-    int areaX = type->origin.x;
+    int areaY = type->footprintz;
+    int areaX = type->footprintx;
     int threshold = g_game->mapInfo->surfaceMetal * areaY * areaX * 2;
     Point16 spacing = type->minwaterdepth < 0 ? spacing0 : spacing1;
     Point16 offset = type->minwaterdepth < 0 ? offset0 : offset1;
@@ -1725,9 +1656,9 @@ bool PlayerAI::FindRandomPlacementCell(UnitDef* type, Vec3* pos, int range, Poin
         int dist = RandomInt(range) << 16;
         int angle = RandomInt(0x10000);
         Vec3 v = Direction(angle, dist) + *pos;
-        Point16 cell = WorldToCell(v, type->origin);
-        cell.x = cell.x / spacing.x * spacing.x + offset.x + RandomInt(spacing.x - margin - type->origin.x);
-        cell.y = cell.y / spacing.y * spacing.y + offset.y + RandomInt(spacing.y - margin - type->origin.y);
+        Point16 cell = WorldToCell(v, *(Point16*)&type->f14a);
+        cell.x = cell.x / spacing.x * spacing.x + offset.x + RandomInt(spacing.x - margin - type->footprintx);
+        cell.y = cell.y / spacing.y * spacing.y + offset.y + RandomInt(spacing.y - margin - type->footprintz);
         if (CanPlaceUnitFootprint(type, 0, cell, 1) && GetBuildSiteMetal() <= threshold) {
             if (out)
                 *out = cell;
@@ -1890,14 +1821,14 @@ Unit* __stdcall FindWeaponTarget(Unit* unit,unsigned char weapon,int useRange)
         Unit* target=*it;
         ((Class_004800c0*)&candidates)->EraseSwapBack(it);
         if((target->flags&0x10000000) && !(target->flags&0x4000) &&
-           ((target->def->flags&0x8000) || ai || (g_game->matchFlags&4)) &&
-           ((unit->def->flags&0x10000000) || WeaponCanReachUnit(unit,target,weapon)) &&
-           (useRange || !unit->def->exclude.Test(target->id)) &&
+           ((target->def->flags1&0x8000) || ai || (g_game->matchFlags&4)) &&
+           ((unit->def->flags1&0x10000000) || WeaponCanReachUnit(unit,target,weapon)) &&
+           (useRange || !((Bits*)&unit->def->categories)->Test(target->id)) &&
            (!(unit->weapons[weapon].weapon->flags8&0x80) || !(target->status&0x10))) {
             int dz=unit->pos.z-target->pos.z;
             int dx=unit->pos.x-target->pos.x;
             int d=RandomInt((int)(((__int64)dx*dx)>>32)+(int)(((__int64)dz*dz)>>32));
-            if(unit->def->bad[weapon].Test(target->id)) {
+            if(((Bits*)unit->def->weaponCategories)[weapon].Test(target->id)) {
                 if(d<fallbackDistance) { fallbackDistance=d; fallback=target; }
             } else if(d<bestDistance) { bestDistance=d; best=target; }
         }
@@ -1943,7 +1874,7 @@ int __stdcall GetBuildRating(int player,unsigned short type)
     Player* p=&g_game->players[player];
     if(p->energy<50.0f) return 0;
     if(p->metal<25.0f) return 0;
-    if(g_game->mapInfo->GetGameType()==1 && (g_game->unitDefs[type].flags&0x20)) return 0;
+    if(g_game->mapInfo->GetGameType()==1 && (g_game->unitDefs[type].flags1&0x20)) return 0;
     int energyCap=min(1000,(int)p->energyCapacity);
     int metalCap=min(500,(int)p->metalCapacity);
     int energy=(int)Max(0.0f,(energyCap-p->energy)*0.125f);
@@ -2012,11 +1943,11 @@ int __stdcall FindBuildPosition(int player, const Vec3* from, UnitDef* type, Vec
     Vec3 pos=MoveTowards(from,(const Vec3*)&ai->centre,ai->searchRadius<<16);
     Point16 cell;
     int result;
-    if (type->value!=0.0f && g_game->mapInfo->threshold<RandomInt(255))
+    if (type->extractsMetal!=0.0f && g_game->mapInfo->threshold<RandomInt(255))
         result=ai->FindCellNearFeatures(type,&pos,&ai->cells,ai->searchRadius*4,&cell);
     else result=ai->FindRandomPlacementCell(type,&pos,ai->searchRadius,&cell);
     if (result) {
-        CellToWorld(out,cell,type->origin);
+        CellToWorld(out,cell,*(Point16*)&type->f14a);
         ai->searchRadius=0;
     }
     return result;
@@ -2068,7 +1999,7 @@ void __stdcall DumpPlayerAI(int player, FILE* file)
         UnitDef* type=&g_game->unitDefs[i];
         if (ai->values[i].unknown_0<0) fprintf(file,"n/a ");
         else fprintf(file,"%4d",ai->values[i].unknown_0);
-        sprintf(buffer," - %3d : %3d : %3d = %3d - '%s\t\t:%s'\r\n",ai->vec_65[i].a,ai->vec_65[i].b,ai->vec_65[i].c,ai->vec_ad[i].value,type->description,type->name);
+        sprintf(buffer," - %3d : %3d : %3d = %3d - '%s\t\t:%s'\r\n",ai->vec_65[i].a,ai->vec_65[i].b,ai->vec_65[i].c,ai->vec_ad[i].value,type->unitname,type->name);
         // Original passes the formatted unit text as a format string, so percent signs are interpreted again.
         fprintf(file,buffer);
     }

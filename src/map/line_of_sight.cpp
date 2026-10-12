@@ -117,6 +117,7 @@ void RegisterUnitOrders();
 void RegisterGroundOrders();
 #include "../network/player.h"
 
+// Keeps its own view: with unit_def.h's symbol ids RecalculateLineOfSight (0x4816a0) no longer matches.
 struct UnitDef {
     char unknown_0[0x170];
     unsigned char field_170;           // +0x170

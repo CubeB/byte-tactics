@@ -29,31 +29,7 @@ union Fixed {
 #include "../util/point.h"
 #include "../graphics/rect.h"
 #include "../util/angles.h"
-
-// The unit type table entry, the UnitDef at a unit's +0x92.
-struct UnitDef {
-    char unknown_0[0x20];
-    char unitname[0x20];               // +0x20
-    char unknown_40[0x156 - 0x40];
-    unsigned short* ids;               // +0x156
-    char unknown_15a[0x160 - 0x15a];
-    short f160;                        // +0x160
-    char unknown_162[2];
-    short f164;                        // +0x164
-    char unknown_166[2];
-    short f168;                        // +0x168
-    char unknown_16a[2];
-    short f16c;                        // +0x16c
-    char unknown_16e[2];
-    short f170;                        // +0x170
-    char unknown_172[2];
-    short f174;                        // +0x174
-    int modelSizeX;                    // +0x176
-    int modelSizeY;                    // +0x17a
-    int modelSizeZ;                    // +0x17e
-    char unknown_182[0x245 - 0x182];
-    unsigned char flags;               // +0x245
-};
+#include "../units/unit_def.h"
 
 // The flags dword at +0x110 mixes plain masks with bitfields: a bitfield test
 // is a shift, a masked test is an and, and a byte test is a byte load, so the
@@ -227,12 +203,12 @@ void CollectVisibleUnitIds(void)
             int ux = u->pos_x.parts.whole;
             int uy = u->pos_y.parts.whole;
             int camy = g_game->scrollY;
-            int x1 = def->f160 + ux - g_game->scrollX;
-            int y2 = def->f170 + uy;
-            int z1 = def->f168 + u->pos_z.parts.whole - camy;
-            int x2 = def->f16c + ux - g_game->scrollX;
-            int y1 = def->f164 + uy;
-            int z2 = def->f174 + u->pos_z.parts.whole - g_game->scrollY;
+            int x1 = ((short*)&def->modelMinX)[1] + ux - g_game->scrollX;
+            int y2 = def->field_170 + uy;
+            int z1 = ((short*)&def->modelMinZ)[1] + u->pos_z.parts.whole - camy;
+            int x2 = ((short*)&def->modelMaxX)[1] + ux - g_game->scrollX;
+            int y1 = ((short*)&def->modelMinY)[1] + uy;
+            int z2 = ((short*)&def->modelMaxZ)[1] + u->pos_z.parts.whole - g_game->scrollY;
             if ((u->flags.raw & 3) != 1) {
                 Cell* c = GetMapCellAtPosition((Vec3*)&u->pos_x);
                 if (c != 0) {

@@ -24,6 +24,7 @@ public:
     Fixed(int v) { value = v; }
 };
 
+// Keeps its own class: it defines the methods, and its loader names and bit groupings are not unit_def.h's.
 // One unit type, 0x249 bytes. The field names are 0x42bf40's; the two flag
 // words keep 0x42b370's bit groupings so its hand-written operator= still sees
 // them (bit 5 downloadable, bit 6 canbuild, bit 31 gui of flags1; bits 20..22

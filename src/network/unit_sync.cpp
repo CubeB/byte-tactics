@@ -159,6 +159,7 @@ struct Net_4c97b0 {                     // the object at g_game+0x14
 };
 
 #include "../map/mission.h"
+#include "../units/unit_def.h"
 
 #pragma pack(push, 1)
 struct PlayerEntry_0046d6c0 {           // 0x14b bytes, one slot of g_game's players
@@ -166,22 +167,11 @@ struct PlayerEntry_0046d6c0 {           // 0x14b bytes, one slot of g_game's pla
     char unknown_4[0x14b - 4];
 };
 
-struct UnitDef {                        // 0x249 bytes, one unit type
-    char unknown_0[0x13e];
-    unsigned int key;                   // +0x13e
-    int y;                              // +0x142
-    char unknown_146[0x15a - 0x146];
-    int limit;                          // +0x15a
-    char unknown_15e[0x241 - 0x15e];
-    union {
-        unsigned int flags241;          // +0x241
-        struct {
-            unsigned int bits_0 : 23;
-            unsigned int flag_23 : 1;   // bit 23
-            unsigned int bits_24 : 8;
-        } flags_241;
-    };
-    unsigned int flags;                 // +0x245
+// UnitDef::flags1 (+0x241) read as bit fields.
+struct UnitDefFlags_0046e160 {
+    unsigned int bits_0 : 23;
+    unsigned int flag_23 : 1;           // bit 23
+    unsigned int bits_24 : 8;
 };
 #pragma pack(pop)
 
@@ -652,7 +642,7 @@ static inline UnitDef* Defs_0046d040()
 // The flag expression in its own small inline helper.
 static inline bool FlagOf_0046d040(UnitDef* d)
 {
-    return (d->flags >> 16) & 1;
+    return (d->flags2 >> 16) & 1;
 }
 
 // The delete in 0x46c920 expands this view of the object, whose members are
@@ -835,7 +825,7 @@ UnitSync::UnitSync(int param)
     {
         UnitSyncEntry v;
         for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
-            unsigned int key = g_game->unitDefs[i].key;
+            unsigned int key = g_game->unitDefs[i].fbiChecksum;
             v.x = key;
             v.y = 0;
             v.w = 1;
@@ -852,7 +842,7 @@ void UnitSync::ResetEntries()
 {
     UnitSyncEntry v;
     for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
-        v.x = g_game->unitDefs[i].key;
+        v.x = g_game->unitDefs[i].fbiChecksum;
         // Dead store that must stay: the uninitialised slot is what the insert copies.
         v.y = 0;
         v.w = 1;
@@ -1098,9 +1088,9 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
             int n = g_game->unitDefCount;
             for (int i = 1; i < n; i++) {
                 UnitDef* def = &g_game->unitDefs[i];
-                if (def->key == key) {
+                if (def->fbiChecksum == key) {
                     ComputeUnitScriptChecksum(def);
-                    it.ptr->value.y = def->y;
+                    it.ptr->value.y = def->scriptChecksum;
                     break;
                 }
             }
@@ -1249,15 +1239,15 @@ void UnitSync::ApplyToUnitTypes()
         return;
     for (unsigned short i = 1; i < g_game->unitDefCount; i++) {
         UnitDef* def = &g_game->unitDefs[i];
-        UnitSyncIter it = Find(&def->key);
+        UnitSyncIter it = Find(&def->fbiChecksum);
         if (it == End()) {
             ProtectUnitDefsReadWrite();
-            def->limit = 0;
-            def->flags_241.flag_23 = 0;
+            def->maxThisUnit = 0;
+            ((UnitDefFlags_0046e160*)&def->flags1)->flag_23 = 0;
         } else {
             ProtectUnitDefsReadWrite();
-            def->flags_241.flag_23 = (it.ptr->value.w != 0 && it.ptr->value.h != 0);
-            def->limit = it.ptr->value.limit;
+            ((UnitDefFlags_0046e160*)&def->flags1)->flag_23 = (it.ptr->value.w != 0 && it.ptr->value.h != 0);
+            def->maxThisUnit = it.ptr->value.limit;
         }
         ProtectUnitDefsReadOnly();
     }

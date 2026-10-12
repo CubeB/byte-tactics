@@ -59,6 +59,7 @@ struct UnitBucket {                     // 10 bytes: a spatial bucket, the head 
     Unit* first;                        // +0x6
 };
 
+// Keeps its own view: with unit_def.h's symbol ids CanBuildAt (0x47d2e0) no longer matches.
 struct UnitDef {
     char unknown_0[0x14a];
     Point16 origin;                    // +0x14a, footprint in map cells

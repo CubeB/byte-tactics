@@ -527,14 +527,6 @@ struct Sub_00460680 {
     char unknown_0[0x10];
 };
 
-struct Sub_004608b0 {
-    char unknown_0[0x1c];
-};
-
-struct Sub_004609b0 {
-    char unknown_0[0x10];
-};
-
 #pragma pack(pop)
 
 struct Sub_0045cf60 {
@@ -738,8 +730,6 @@ void __stdcall RenderLayer(Sub_0045f800* sub, int value);
 void __stdcall RenderLayer(Sub_0045fb30* sub, int value);
 void __stdcall RenderLayer(Menu_00460160* menu, int value);
 void __stdcall RenderLayer(Sub_00460680* sub, int value);
-void __stdcall RenderLayer(Sub_004608b0* sub, int value);
-void __stdcall RenderLayer(Sub_004609b0* sub, int value);
 void __stdcall RenderLayer(Gui* sub, int value);
 void __stdcall RenderLayer(char* menu, int value);
 
@@ -766,8 +756,6 @@ Layer* __stdcall LoadGuiLayer(Sub_0045f800* sub, const char* name, int flags);
 Layer* __stdcall LoadGuiLayer(Sub_0045fb30* sub, const char* name, int flags);
 Layer* __stdcall LoadGuiLayer(Menu_004604a0* menu, const char* name, int flags);
 Layer* __stdcall LoadGuiLayer(Sub_00460680* sub, const char* name, int flags);
-Layer* __stdcall LoadGuiLayer(Sub_004608b0* sub, const char* name, int flags);
-Layer* __stdcall LoadGuiLayer(Sub_004609b0* sub, const char* name, int flags);
 Layer* __stdcall LoadGuiLayer(Gui* sub, const char* name, int flags);
 
 void __stdcall SetGrayedOutByName(void* obj, char* name, int value);
@@ -777,14 +765,12 @@ int __stdcall GetGadgetText(void* settings, const char* key, char* out);
 
 void __stdcall EnableKeyCommands(void* obj);
 void __stdcall EnableKeyCommands(Gui* sub);
-void __stdcall DisableKeyCommands(Sub_004609b0* sub);
+void __stdcall DisableKeyCommands(Gui* sub);
 void __stdcall SetKeyboardInput(void* obj, int value);
 void __stdcall SetKeyboardInput(Layer* menu, int flag);
 void __stdcall SetKeyboardInput(Menu_00460160* menu, int value);
 void __stdcall SetKeyboardInput(Menu_004604a0* menu, int value);
 void __stdcall SetKeyboardInput(Sub_00460680* sub, int value);
-void __stdcall SetKeyboardInput(Sub_004608b0* sub, int value);
-void __stdcall SetKeyboardInput(Sub_004609b0* sub, int value);
 void __stdcall SetKeyboardInput(Gui* sub, int value);
 
 int __stdcall SetButtonStageByName(void* obj, char* name, int value);
@@ -792,13 +778,12 @@ int __stdcall SetButtonStageByName(Class_004a1080* obj, char* name, int value);
 void __stdcall SetGadgetActiveByName(void* obj, char* name, int value);
 void __stdcall SetGadgetActiveByName(Object_004a0570* obj, char* name, int value);
 void __stdcall SetGadgetActiveByName(Menu_0045e5e0* menu, char* name, int value);
-void __stdcall SetGadgetActiveByName(Sub_004608b0* sub, const char* name, int value);
+void __stdcall SetGadgetActiveByName(Gui* sub, char* name, int value);
 void __stdcall SetGadgetGrayedOutByName(void* obj, char* name, int value);
 void __stdcall SetGadgetGrayedOutByName(Object_004a1450* obj, char* name, int value);
 void __stdcall SetTranslatedTextByName(void* obj, char* name, char* text, int value);
 void __stdcall SetTranslatedTextByName(Menu_004604a0* menu, const char* name, int value, int count);
 void __stdcall SetTranslatedTextByName(Sub_00460680* sub, const char* name, const char* text, int param_4);
-void __stdcall SetTranslatedTextByName(Sub_004608b0* sub, const char* name, int value, int param_4);
 void __stdcall SetTranslatedTextByName(Gui* sub, const char* name, const char* value, int flags);
 
 int __stdcall IsCurrentGadgetNamed(void* obj, char* name);
@@ -842,14 +827,13 @@ const char* __stdcall Translate(const char* text);
 void __stdcall InitBriefingText();
 void __stdcall FreeBlinkWords(int param_1);
 void __stdcall AllocBlinkWords(Sub_0045f800* sub, int value);
-void __stdcall AllocBlinkWords(Sub_004609b0* sub, int value);
+void __stdcall AllocBlinkWords(Gui* sub, int value);
 void DrawHelpPage();
 
 void __stdcall HandleBriefingClick(void* gadget);
 void __stdcall HandleHelpClick(void* gadget);
 void __stdcall FillHelpPage(Sub_0045fb30* sub, int a, int b);
 void __stdcall FillHelpPage(Gui* gui, int a, int b);
-int __stdcall FillHelpPage(Sub_004609b0* sub, int a, int b);
 void __stdcall HandleVisualOptionsClick(void* layer);
 void __stdcall HandleVideoModeSlider(Menu_0045b800* obj, int unused);
 void __stdcall HandleGammaSlider(Menu_0045b800* obj, int unused);
@@ -2095,16 +2079,16 @@ void __stdcall HandleSpeedOptionsClick(Gui* gui)
         g_game->flags_37ebe.word &= 0xfffe;
         return;
     }
-    if (IsCurrentGadgetNamed((Gui*)&g_game->gui, "LEFTCLICK")) {
+    if (IsCurrentGadgetNamed(&g_game->gui, "LEFTCLICK")) {
         PlaySoundByName("Options", 0);
-        g_game->interfaceType = GetButtonStageByName((Gui*)&g_game->gui, "LEFTCLICK");
+        g_game->interfaceType = GetButtonStageByName(&g_game->gui, "LEFTCLICK");
         ClearSelectedGadget(gui);
         return;
     }
-    if (IsCurrentGadgetNamed((Gui*)&g_game->gui, "UNITCHAT")) {
+    if (IsCurrentGadgetNamed(&g_game->gui, "UNITCHAT")) {
         PlaySoundByName("Options", 0);
         ClearSelectedGadget(gui);
-        g_game->unitChatText = (unsigned char)(GetButtonStageByName((Gui*)&g_game->gui, "UNITCHAT") * 5);
+        g_game->unitChatText = (unsigned char)(GetButtonStageByName(&g_game->gui, "UNITCHAT") * 5);
         return;
     }
     if (IsCurrentGadgetNamed(gui, "UNDO")) {
@@ -2827,27 +2811,27 @@ void __stdcall HandleExitMenuClick(Gui* gui)
 // FUNCTION: 0x4608b0
 void OpenExitMenu()
 {
-    Layer* dialog = LoadGuiLayer((Sub_004608b0*)&g_game->gui, "EXITMENU.GUI", 0x1800);
+    Layer* dialog = LoadGuiLayer(&g_game->gui, "EXITMENU.GUI", 0x1800);
     dialog->handler = HandleExitMenuClick;
     FindGadgetIndex(dialog->entries, "RESTART", 1);
     if (g_game->mapInfo->GetGameType() == 1) {
-        SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "RESTART", 1);
-        SetTranslatedTextByName((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
+        SetGadgetActiveByName(&g_game->gui, "RESTART", 1);
+        SetTranslatedTextByName(&g_game->gui, "RESTART", Translate("Restart"), 0x80);
         goto tail;
     }
     // Restart body written twice on purpose: the compiler merges them and lays
     // restart out before main-menu.
     if (g_game->mapInfo->GetGameType() == 2) {
-        SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "RESTART", 1);
-        SetTranslatedTextByName((Sub_004608b0*)&g_game->gui, "RESTART", (int)Translate("Restart"), 0x80);
+        SetGadgetActiveByName(&g_game->gui, "RESTART", 1);
+        SetTranslatedTextByName(&g_game->gui, "RESTART", Translate("Restart"), 0x80);
         goto tail;
     }
     if (g_game->lobbyUiDirtyFlags.flag4) {
-        SetGadgetActiveByName((Sub_004608b0*)&g_game->gui, "MAINMENU", 0);
+        SetGadgetActiveByName(&g_game->gui, "MAINMENU", 0);
     }
 tail:
-    SetKeyboardInput((Sub_004608b0*)&g_game->gui, 1);
-    RenderLayer((Sub_004608b0*)&g_game->gui, 0x40);
+    SetKeyboardInput(&g_game->gui, 1);
+    RenderLayer(&g_game->gui, 0x40);
 }
 
 // FUNCTION: 0x4609a0
@@ -2861,7 +2845,7 @@ void __cdecl HandleBattleQuitPrompt(int)
 void __stdcall HandleInGameOptionsClick(Gui* gui)
 {
     if (gui->hotGadgetIndex == -1) {
-        DisableKeyCommands((Sub_004609b0*)&g_game->gui);
+        DisableKeyCommands(&g_game->gui);
         g_optionsShellActive = 0;
         if (g_optionsFlipSurface) {
             FreeSurface(g_optionsFlipSurface);
@@ -2896,19 +2880,19 @@ void __stdcall HandleInGameOptionsClick(Gui* gui)
     }
     if (IsCurrentGadgetNamed(gui, "HELP")) {
         PlaySoundByName("Options", 0);
-        Layer* g = LoadGuiLayer((Sub_004609b0*)&g_game->gui, "HELP.GUI", 0x1881);
+        Layer* g = LoadGuiLayer(&g_game->gui, "HELP.GUI", 0x1881);
         g->handler = HandleHelpClick;
         LoadPictureCached("dhelp", 0, 0, 0);
         g_helpDialogBaseGadgetCount = g->entries->count;
-        FillHelpPage((Sub_004609b0*)&g_game->gui, 0, 0x11);
-        SetKeyboardInput((Sub_004609b0*)&g_game->gui, 1);
-        RenderLayer((Sub_004609b0*)&g_game->gui, 0x40);
+        FillHelpPage(&g_game->gui, 0, 0x11);
+        SetKeyboardInput(&g_game->gui, 1);
+        RenderLayer(&g_game->gui, 0x40);
         return;
     }
     if (IsCurrentGadgetNamed(gui, "MISSION")) {
         PlaySoundByName("Options", 0);
         if (g_game->mapInfo->GetGameType() == 1) {
-            Layer* g = LoadGuiLayer((Sub_004609b0*)&g_game->gui, "BRIEFING.GUI", 0);
+            Layer* g = LoadGuiLayer(&g_game->gui, "BRIEFING.GUI", 0);
             Gadget* gadgets = g->entries;
             g->handler = HandleBriefingClick;
             int i = FindGadgetIndex(gadgets, "MOREBAR", 0xe);
@@ -2916,9 +2900,9 @@ void __stdcall HandleInGameOptionsClick(Gui* gui)
             i = FindGadgetIndex(gadgets, "TextRegion", 0xe);
             gadgets[i].attribs &= ~0x10;
             LoadPictureCached("igmbrief", 0, 0, 0);
-            AllocBlinkWords((Sub_004609b0*)&g_game->gui, 0xf);
+            AllocBlinkWords(&g_game->gui, 0xf);
             InitBriefingText();
-            RenderLayer((Sub_004609b0*)&g_game->gui, 0x40);
+            RenderLayer(&g_game->gui, 0x40);
             return;
         }
         ShowGameSettingsDialog();
@@ -2940,18 +2924,18 @@ void __stdcall HandleInGameOptionsClick(Gui* gui)
 // FUNCTION: 0x460cc0
 void OpenInGameOptions()
 {
-    Layer* layer = LoadGuiLayer((Gui*)&g_game->gui, "ARMOPT.GUI", 0x800);
+    Layer* layer = LoadGuiLayer(&g_game->gui, "ARMOPT.GUI", 0x800);
     layer->handler = HandleInGameOptionsClick;
-    SetGrayedOut((Gui*)&g_game->gui, FindGadgetIndex(layer->entries, "SAVEGAME", 1),
+    SetGrayedOut(&g_game->gui, FindGadgetIndex(layer->entries, "SAVEGAME", 1),
                  g_game->mapInfo->GetGameType() == 3);
-    SetGrayedOut((Gui*)&g_game->gui, FindGadgetIndex(layer->entries, "LOADGAME", 1),
+    SetGrayedOut(&g_game->gui, FindGadgetIndex(layer->entries, "LOADGAME", 1),
                  g_game->mapInfo->GetGameType() == 3);
     if (g_game->mapInfo->GetGameType() == 3 || g_game->mapInfo->GetGameType() == 2) {
-        SetTranslatedTextByName((Gui*)&g_game->gui, "MISSION", Translate("Settings"), 0x80);
+        SetTranslatedTextByName(&g_game->gui, "MISSION", Translate("Settings"), 0x80);
     }
-    EnableKeyCommands((Gui*)&g_game->gui);
-    SetKeyboardInput((Gui*)&g_game->gui, 1);
-    RenderLayer((Gui*)&g_game->gui, 0x40);
+    EnableKeyCommands(&g_game->gui);
+    SetKeyboardInput(&g_game->gui, 1);
+    RenderLayer(&g_game->gui, 0x40);
     if (g_game->mapInfo->GetGameType() != 3) {
         g_game->pauseFlags |= 1;
     }

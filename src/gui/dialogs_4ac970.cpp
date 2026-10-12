@@ -30,12 +30,7 @@ struct Object_004ac970 {
     Holder_004ac970* holder;           // +0x18
 };
 
-struct Rect_004ac970 {
-    int left;
-    int top;
-    int right;
-    int bottom;
-};
+#include "../graphics/rect.h"
 
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
 void __stdcall DrawRectangle(void* surface, void* rect, int color);
@@ -60,7 +55,7 @@ void __stdcall DrawColorCellOutline(Object_004ac970* obj, int cell, int color)
     index = found;
     short cellY = gadgets[index].y;
     int y = gadgets->y + cellY;
-    Rect_004ac970 rect;
+    Rect rect;
     rect.left = (unsigned int)CellX(gadgets, index) + (cell % 16) * 8;
     rect.top = y + (cell / 16) * 8;
     rect.right = rect.left + 7;

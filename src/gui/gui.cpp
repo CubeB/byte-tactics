@@ -1453,6 +1453,7 @@ void FreeEyeballs();
 void ExpireEyeballs();
 void BuildDerivedLayers();
 void UpdateAllCellHeightRanges();
+void* __stdcall DrawBlendedLine(void* surface, int x0, int y0, int x1, int y1, int color);
 
 struct Holder_004a1ab0 {
     char unknown_0[4];
@@ -1464,22 +1465,15 @@ struct Dialog_4a1ab0 {
     Holder_004a1ab0* holder;           // +0x18
 };
 
-struct Rect_004a1ab0 {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
-
-void __stdcall GrayRectangle(Surface_004a1ab0* dst, Rect_004a1ab0* rect);
-void __stdcall FadeRectangle(Surface_004a1ab0* dst, Rect_004a1ab0* rect, int level);
+void __stdcall GrayRectangle(Surface_004a1ab0* dst, Rect* rect);
+void __stdcall FadeRectangle(Surface_004a1ab0* dst, Rect* rect, int level);
 
 // FUNCTION: 0x4a1ab0
 void __stdcall RedrawGadgetRect(Dialog_4a1ab0* obj, int index)
 {
     Gadget* entries = obj->holder->entries;
     Gadget* e = &entries[index];
-    Rect_004a1ab0 rect;
+    Rect rect;
     if (e->type == 0) {
         rect.left = 0;
         rect.top = 0;
@@ -3594,21 +3588,15 @@ struct Quad_004a4980 {
     Point_004a4980 p[4];
 };
 
-struct Rect_004a4980 {
-    int x1;
-    int y1;
-    int x2;
-    int y2;
-};
-
 // Unused here: real functions declared to keep the file's symbol count.
 void __stdcall SetCameraPosition(int x, int y, int z);
 void __stdcall RecalculateLineOfSight(int param);
 void __stdcall CollectVisibleUnitIds();
+double __stdcall DotProduct(float ax, float ay, float az, float bx, float by, float bz);
 
 char* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall DrawFrame(void* surface, void* frame, int x, int y);
-void __stdcall FillRectangle(void* surface, Rect_004a4980* rect, int color);
+int __stdcall FillRectangle(void* surface, Rect* rect, int color);
 void __stdcall DrawFrameQuad(void* surf, void* entry, Quad_004a4980* dst, Quad_004a4980* src);
 
 // FUNCTION: 0x4a4980
@@ -3617,26 +3605,26 @@ void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
     Gadget* entries = obj->holder->entries;
     Gadget* e = &entries[index];
 
-    Rect_004a4980 rect;
+    Rect rect;
     if (e->type == 0) {
-        rect.x1 = 0;
-        rect.y1 = 0;
+        rect.left = 0;
+        rect.top = 0;
     } else {
-        rect.x1 = e->x;
-        rect.y1 = e->y;
+        rect.left = e->x;
+        rect.top = e->y;
     }
-    rect.x2 = e->width + rect.x1 - 1;
-    rect.y2 = e->height + rect.y1 - 1;
+    rect.right = e->width + rect.left - 1;
+    rect.bottom = e->height + rect.top - 1;
 
     Quad_004a4980 dst;
-    dst.p[0].x = rect.x1;
-    dst.p[3].x = rect.x1;
-    dst.p[0].y = rect.y1;
-    dst.p[1].x = rect.x2;
-    dst.p[1].y = rect.y1;
-    dst.p[2].x = rect.x2;
-    dst.p[2].y = rect.y2;
-    dst.p[3].y = rect.y2;
+    dst.p[0].x = rect.left;
+    dst.p[3].x = rect.left;
+    dst.p[0].y = rect.top;
+    dst.p[1].x = rect.right;
+    dst.p[1].y = rect.top;
+    dst.p[2].x = rect.right;
+    dst.p[2].y = rect.bottom;
+    dst.p[3].y = rect.bottom;
 
     Quad_004a4980 src;
     src.p[0].x = 1;
@@ -3656,7 +3644,7 @@ void __stdcall DrawHotspot(Dialog_4a4980* obj, int index)
                 DrawFrameQuad(entries->u.assets.surface, result, &dst, &src);
                 return;
             }
-            DrawFrame(entries->u.assets.surface, result, result->xOffset + rect.x1, result->yOffset + rect.y1);
+            DrawFrame(entries->u.assets.surface, result, result->xOffset + rect.left, result->yOffset + rect.top);
             return;
         }
     } else if (e->u.hotspot.frame != 0) {
@@ -3787,6 +3775,7 @@ int GetHostDpid();
 int FindFreeSlot();
 void SendLobbySyncRequests();
 char FindFreePlayerId();
+void __stdcall DrawDashedCircle(void* surface, int cx, int cy, int radius, int color, int n, int start);
 
 struct Holder_004a4c90 {
     char unknown_0[4];
@@ -3800,25 +3789,21 @@ struct Dialog_4a4c90 {
     unsigned char colour[0x100];       // +0x8b2
 };
 
-struct Rect_004a4c90 {
-    int x1, y1, x2, y2;
-};
-
 // The colour parameter must be int, not unsigned char: forces a zero-extending load.
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2,
                             int color);
 
-static inline void FillRect_004a4c90(Gadget* e, Rect_004a4c90* r)
+static inline void FillRect_004a4c90(Gadget* e, Rect* r)
 {
     if (e->type == 0) {
-        r->x1 = 0;
-        r->y1 = 0;
+        r->left = 0;
+        r->top = 0;
     } else {
-        r->x1 = e->x;
-        r->y1 = e->y;
+        r->left = e->x;
+        r->top = e->y;
     }
-    r->x2 = e->width - 1 + r->x1;
-    r->y2 = e->height - 1 + r->y1;
+    r->right = e->width - 1 + r->left;
+    r->bottom = e->height - 1 + r->top;
 }
 
 // FUNCTION: 0x4a4c90
@@ -3826,17 +3811,17 @@ void __stdcall DrawLineGadget(Dialog_4a4c90* obj, int index, unsigned char param
 {
     Gadget* entries = obj->holder->entries;
     Gadget* e = (Gadget*)((char*)entries + index * 0x15b);
-    Rect_004a4c90 rect;
+    Rect rect;
     FillRect_004a4c90(e, &rect);
     if (param_3 & 1) {
         if (e->attribs & 1)
-            DrawLine(entries->u.assets.surface, rect.x1, rect.y1, rect.x2, rect.y1,
+            DrawLine(entries->u.assets.surface, rect.left, rect.top, rect.right, rect.top,
                          obj->colour[e->colours]);
         else if (e->attribs & 2)
-            DrawLine(entries->u.assets.surface, rect.x1, rect.y1, rect.x1, rect.y2,
+            DrawLine(entries->u.assets.surface, rect.left, rect.top, rect.left, rect.bottom,
                          obj->colour[e->colours]);
         else if (e->attribs & 4)
-            DrawLine(entries->u.assets.surface, rect.x1, rect.y1, rect.x2, rect.y2,
+            DrawLine(entries->u.assets.surface, rect.left, rect.top, rect.right, rect.bottom,
                          obj->colour[e->colours]);
     }
 }

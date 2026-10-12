@@ -11,9 +11,7 @@
 #include <math.h>
 #include <string.h>
 
-struct Vec3 {
-    int x, y, z;
-};
+#include "../util/vec3.h"
 
 #pragma pack(push, 1)
 struct UnitDef {
@@ -123,10 +121,8 @@ int __stdcall GetGroundHeight(Vec3* pos);
 int __cdecl FUN_004b715a(int a, int b);
 void __stdcall SetYardOpen(Unit* unit, int flag);
 int __stdcall IsUnitVisibleToPlayer(Player* player, Unit* unit);
-void __stdcall UpdateObjectState(Unit* unit);
 void __stdcall EmitThrustParticles(int, int, int, int, short);
 void __stdcall EmitWakeParticles(int, int, int, short);
-void __stdcall EmitBubbles(int, int, int, short);
 void __stdcall EmitWhiteSmoke(int, short);
 void __stdcall EmitBlackSmoke(int, short);
 int __stdcall RandomInt(int range);
@@ -314,6 +310,11 @@ void UnitScript::SetPieceTranslation(int index, int slot, int v)
         }
     }
 }
+
+// Declared here: the shared vec3.h header takes the ids these two had above, so
+// SetPieceTranslation keeps its allocation (docs/c2-regalloc.md).
+void __stdcall UpdateObjectState(Unit* unit);
+void __stdcall EmitBubbles(int, int, int, short);
 
 // FUNCTION: 0x480cb0
 int UnitScript::GetPieceRotation(int index, int slot)

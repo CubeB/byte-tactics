@@ -515,7 +515,7 @@ int TdfRecord::GetRecordName()
 class Class_004c90b0;
 class TranslationTable;
 int RIReport(int, int, int, int, int, int, int, int, int, int);
-int RIReportGameChat(int, int, int, int, int, int, int, int, int, int);
+int WalkFrameChain(int, int, int, int, int, int, int, int, int, int);
 void CopyDwordIfNonNull(int*, int*);
 int GetBuildRating(int, unsigned short);
 void RegisterUnitOrders();

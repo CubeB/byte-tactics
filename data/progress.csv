@@ -1361,7 +1361,7 @@ address,size,file,symbol,status,similarity
 0x467a50,259,src/ingame/info_panel.cpp,?DrawRotatedQuadOutline@@YGXPAXPAUVec3@@1PAF@Z,matched,100.0
 0x467b60,157,src/ingame/info_panel.cpp,?DrawProgressBar@@YGXPAXHHPAURect_004b0510@@PAUColors_00467b60@@H@Z,matched,100.0
 0x467c00,175,src/ingame/info_panel.cpp,?BlitSideLogoToRect@@YGXPAXPAUPlayer@@PAURect_467c00@@H@Z,matched,100.0
-0x467cb0,192,src/ingame/info_panel.cpp,?DrawKillCount@@YGXPAXPAUPlayer_00467cb0@@HH@Z,matched,100.0
+0x467cb0,192,src/ingame/info_panel.cpp,?DrawKillCount@@YGXPAXPAUUnit@@HH@Z,matched,100.0
 0x467d70,218,src/ingame/info_panel.cpp,?DrawLightBars@@YGXXZ,matched,100.0
 0x467e50,1212,src/ingame/info_panel.cpp,?DrawUnitStateProbe@@YGHPAX@Z,matched,100.0
 0x468310,108,src/ingame/info_panel.cpp,?DrawPercentBar@@YGXPAXPAURect_004b0510@@H@Z,matched,100.0
@@ -1807,7 +1807,7 @@ address,size,file,symbol,status,similarity
 0x487af0,241,src/units/unit_save.cpp,?FindMissionUnit@@YGHPADPAUStruct_00487af0@@H@Z,matched,100.0
 0x487bf0,1811,src/units/unit_commands.cpp,?RunInitialMission@@YGXPAUUnit@@PADPAUTable_00487bf0@@@Z,matched,100.0
 0x488310,596,src/units/unit_commands.cpp,?CreateMissionUnits@@YAXXZ,matched,100.0
-0x488570,657,src/units/unit_commands.cpp,?GiveUnitToPlayer@@YGXPAUUnit@@PAUPlayer_00488310@@PAUOwnershipTransferPacket@@@Z,matched,100.0
+0x488570,657,src/units/unit_commands.cpp,?GiveUnitToPlayer@@YGXPAUUnit@@PAUPlayer@@PAUOwnershipTransferPacket@@@Z,matched,100.0
 0x488810,263,src/units/unit_commands.cpp,?QuickSort@@YGXPAPAUItem_00485940@@0P6GHPAU1@1@ZH@Z,matched,100.0
 0x488920,59,src/units/unit_commands.cpp,?InsertShift@@YGXPAPAUItem_00485940@@PAU1@P6GH11@Z@Z,matched,100.0
 0x488960,98,src/units/unit_commands.cpp,?Partition@@YGPAPAUItem_00485940@@PAPAU1@0PAU1@P6GH11@Z@Z,matched,100.0

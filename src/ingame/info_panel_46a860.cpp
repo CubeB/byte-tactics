@@ -43,25 +43,8 @@ struct Snapshot_0046a860 {
 };
 #pragma pack(pop)
 
-#pragma pack(push, 1)
-// A player's entry at g_game+0x1b63, stride 0x14b (Thaldren: PlayerState).
-struct SideData_0046a860 {
-    char unknown_0[0x95];
-    unsigned char bSideId;            // +0x95
-    char unknown_96[0xb9 - 0x96];
-};
-
-struct Player_0046a860 {
-    char unknown_0[0x10];
-    int nIncomingPacketCount;         // +0x10
-    char unknown_14[0x27 - 0x14];
-    SideData_0046a860* info;          // +0x27, pSideData
-    char name[0x1e];                  // +0x2b
-    char unknown_49[0x146 - 0x49];
-    unsigned char index;              // +0x146
-    char unknown_147[331 - 0x147];
-};
-#pragma pack(pop)
+#include "../network/player_info.h"
+#include "../network/player.h"
 
 struct Rect_0046a860 {
     int left, top, right, bottom;
@@ -84,7 +67,7 @@ struct WeaponDef_0046a860 {
 struct Unit_0046a860 {
     char unknown_0[0x92];
     UnitDef* def;                     // +0x92
-    Player_0046a860* player;          // +0x96
+    Player* player;                   // +0x96
     char unknown_9a[0xa6 - 0x9a];
     unsigned short unitDefIndex;      // +0xa6
     unsigned short id;                // +0xa8
@@ -221,7 +204,7 @@ struct Game {
     char unknown_585[0xdcb - 0x585];
     unsigned char colors[16];             // +0xdcb
     char unknown_ddb[0x1b63 - 0xddb];
-    Player_0046a860 players[10];          // +0x1b63, stride 0x14b
+    Player players[10];                // +0x1b63, stride 0x14b
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;            // +0x2a43
     char unknown_2a44[0x2c8e - 0x2a44];
@@ -285,8 +268,8 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
     if (flags & 1 && flags & 2) {
         int y = 0x81;
         unsigned char player = g_game->playerIndex;
-        SideData_0046a860* table = g_game->players[player].info;
-        int idx = table->bSideId;
+        PlayerInfo* table = g_game->players[player].info;
+        int idx = table->side;
         do {
             int dy = GetScreenHeight() - 0x20;
             unsigned short* icon = g_game->sidePanelBotSeq[idx];
@@ -325,8 +308,8 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         sprintf(text, "UNITS %d\\%d\n", g_game->activeUnitTickCount, g_game->count);
         DrawString(surface, (unsigned char*)text, 0x108, pfstate, -1);
 
-        sprintf(text, "PACKETS: %d %d %d\n", g_game->players[1].nIncomingPacketCount,
-                g_game->players[2].nIncomingPacketCount, g_game->players[3].nIncomingPacketCount);
+        sprintf(text, "PACKETS: %d %d %d\n", g_game->players[1].messages,
+                g_game->players[2].messages, g_game->players[3].messages);
         DrawString(surface, (unsigned char*)text, 0x190, pfstate, -1);
 
         int v = g_game->mapWidthTiles;
@@ -392,16 +375,16 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
     SetTextColors(0x53, GetTextKeyColor());
 
     int player = g_game->playerIndex;
-    Player_0046a860* playerInfo = &g_game->players[player];
-    SideData_0046a860* info = playerInfo->info;
-    int side = info->bSideId;
+    Player* playerInfo = &g_game->players[player];
+    PlayerInfo* info = playerInfo->info;
+    int side = info->side;
     SideDef_0046a860* panel = &g_game->sideDefs[side];
     SetFont((int)panel->pFontData);
     int y = 0x81;
     do {
         int dy = GetScreenHeight() - 0x20;
-        SideData_0046a860* loopInfo = playerInfo->info;
-        int loopSide = loopInfo->bSideId;
+        PlayerInfo* loopInfo = playerInfo->info;
+        int loopSide = loopInfo->side;
         unsigned short* icon = g_game->sidePanelBotSeq[loopSide];
         GafFrame* bmp = (GafFrame*)GetGafFrame(icon, 0);
         DrawFrame(surface, (void*)bmp, (short)bmp->xOffset + y,

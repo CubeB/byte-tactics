@@ -70,16 +70,10 @@ union Flags_00495e90_3923b {
 
 #include "../network/player_info.h"
 
-// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
-void EnumPlayersCallback(int, int, int, int, int);
+// Unused here: a real function declared to keep the file's symbol count (docs/c2-regalloc.md).
 int StepTowards(int, int, int);
 
-struct Player_495e90 {
-    int valid;                          // +0x00
-    char unknown_4[0x27 - 0x4];
-    PlayerInfo* data;                   // +0x27
-    char unknown_2b[0x14b - 0x2b];
-};
+#include "../network/player.h"
 
 struct FindData_00495930 {
     char unknown_0[0x14];
@@ -118,7 +112,7 @@ struct Game {
     char unknown_0[0x519];
     Gui gui;                            // +0x519
     char unknown_120f[0x1b63 - 0x120f];
-    Player_495e90 players[10];          // +0x1b63
+    Player players[10];               // +0x1b63
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;          // +0x2a42
     char unknown_2a43[0x2c76 - 0x2a43];
@@ -750,8 +744,8 @@ void HandleGameKey(void)
     case 0x2d:
     case 0x5f:
         if (!(g_game->endGameFlags.raw & 2)) {
-            Player_495e90* pl = &g_game->players[g_game->localPlayer];
-            if (pl->valid != 0 && (pl->data->flags_9b & 0x40) != 0)
+            Player* pl = &g_game->players[g_game->localPlayer];
+            if (pl->active != 0 && (pl->info->flags_9b & 0x40) != 0)
                 break;
             if (g_game->speedCtrl <= 1)
                 break;
@@ -762,8 +756,8 @@ void HandleGameKey(void)
     case 0x2b:
     case 0x3d:
         if (!(g_game->endGameFlags.raw & 2)) {
-            Player_495e90* pl = &g_game->players[g_game->localPlayer];
-            if (pl->valid != 0 && (pl->data->flags_9b & 0x40) != 0)
+            Player* pl = &g_game->players[g_game->localPlayer];
+            if (pl->active != 0 && (pl->info->flags_9b & 0x40) != 0)
                 break;
             if (g_game->speedCtrl >= 0x14)
                 break;

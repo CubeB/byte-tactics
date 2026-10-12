@@ -17,15 +17,7 @@ struct Vec3_00487bf0 {
 
 #include "../util/angles.h"
 
-struct Player_00488310 {              // 0x14b bytes
-    int active;                        // +0x0
-    int f4;                            // +0x4
-    char unknown_8[0x73 - 8];
-    unsigned char type;                // +0x73
-    char unknown_74[0x146 - 0x74];
-    unsigned char f146;                // +0x146
-    char unknown_147[0x14b - 0x147];
-};
+#include "../network/player.h"
 
 struct Def_00488310 {
     char unknown_0[0x1fa];
@@ -40,7 +32,7 @@ struct Unit {
     Vec3_00487bf0 pos;                 // +0x6a
     char unknown_76[0x92 - 0x76];
     Def_00488310* def;                 // +0x92
-    Player_00488310* player;           // +0x96
+    Player* player;                    // +0x96
     char unknown_9a[0xa6 - 0x9a];
     unsigned short unitDefIndex;       // +0xa6
     short id;                          // +0xa8
@@ -293,7 +285,7 @@ struct MissionUnit {               // 0x24 bytes
 
 struct Game {
     char unknown_0[0x1b63];
-    Player_00488310 players[10];      // +0x1b63
+    Player players[10];               // +0x1b63
     char unknown_2851[0x14267 - 0x2851];
     float tidal;                      // +0x14267
     char unknown_1426b[0x1438f - 0x1426b];
@@ -360,7 +352,7 @@ protected:
 // FUNCTION: 0x488310
 void __cdecl CreateMissionUnits()
 {
-    Player_00488310* p;
+    Player* p;
     char buf[100];
     int n = g_game->mapInfo->unitCount;        // only the constructor takes it; the
     std::vector<Unit*> units(n);       // loops re-read mapInfo->unitCount themselves
@@ -375,7 +367,7 @@ void __cdecl CreateMissionUnits()
         if (pl >= 10
             || (p = &g_game->players[pl], g_game->players[pl].active == 0)
             || (p->type != 1 && p->type != 2 && p->type != 3)
-            || p->f146 == 10) {
+            || p->index == 10) {
             sprintf(buf, "Player number %d invalid for unit %s", e->player, e->name);
             FatalError(buf);
         }
@@ -420,13 +412,13 @@ struct OwnershipTransferPacket {       // 0x18 bytes
 };
 #pragma pack(pop)
 
-int __stdcall GetPlayerDpid(Player_00488310* player);
+int __stdcall GetPlayerDpid(Player* player);
 void __stdcall BroadcastPacket(int who, OwnershipTransferPacket* packet, int size);
 void __stdcall DamageUnit(Unit* source, Unit* target, int amount, int type,
                             unsigned short extra);
 
 // FUNCTION: 0x488570
-void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTransferPacket* p)
+void __stdcall GiveUnitToPlayer(Unit* unit, Player* other, OwnershipTransferPacket* p)
 {
     if (unit->player == other)
         return;
@@ -436,7 +428,7 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
         return;
     g_game->victoryConditions->NotifyUnitCaptured(unit);
 
-    Player_00488310* cur = unit->player;
+    Player* cur = unit->player;
     if (cur->active != 0 && (cur->type == 1 || cur->type == 2)) {
         if (other->active == 0)
             return;
@@ -454,7 +446,7 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
             pk.stockpile0 = a ? unit->weapons[0].stockpile : 0;
             pk.stockpile1 = a ? unit->weapons[1].stockpile : 0;
             pk.stockpile2 = a ? unit->weapons[2].stockpile : 0;
-            BroadcastPacket(unit->player->f4, &pk, 0x18);
+            BroadcastPacket(unit->player->id, &pk, 0x18);
             DamageUnit(0, unit, 30000, 4, 0);
             return;
         }
@@ -464,7 +456,7 @@ void __stdcall GiveUnitToPlayer(Unit* unit, Player_00488310* other, OwnershipTra
     if (other->type != 1 && other->type != 2)
         return;
 
-    Unit* n = CreateUnit(other->f146, unit->unitDefIndex, unit->pos, 1, unit->flags & 3, 0);
+    Unit* n = CreateUnit(other->index, unit->unitDefIndex, unit->pos, 1, unit->flags & 3, 0);
     if (!n)
         return;
     n->flags &= 0xffc3ffff;

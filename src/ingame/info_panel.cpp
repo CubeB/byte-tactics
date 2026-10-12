@@ -114,7 +114,9 @@ struct Unit {
     unsigned short id;                 // +0xa8
     char unknown_aa[0xb0 - 0xaa];
     int workTime;                      // +0xb0
-    char unknown_b4[0xff - 0xb4];
+    char unknown_b4[0xb8 - 0xb4];
+    unsigned short killCount;          // +0xb8
+    char unknown_ba[0xff - 0xba];
     unsigned char playerIndex;            // +0xff
     char unknown_100[0x104 - 0x100];
     float buildLeft;                   // +0x104
@@ -158,7 +160,8 @@ struct PlayerInfo_00467440 {
     Unit* unitsEnd;                    // +0x6b
     char unknown_6f[0x7c - 0x6f];
     ByteMap_00467440 explored;         // +0x7c
-    char unknown_88[0x146 - 0x88];
+    char unknown_88[0x144 - 0x88];
+    unsigned short unitCount;          // +0x144
     unsigned char index;               // +0x146
     char unknown_147[0x14b - 0x147];
 };
@@ -167,19 +170,6 @@ struct Team_004689c0 {                 // 347 bytes
     char unknown_0[4];
     unsigned char* data;               // +0x4
     char unknown_8[347 - 8];
-};
-
-// The player array seen from +0x1b8e: unitCount is its +0x144.
-struct Player_004689c0 {               // 331 bytes
-    char unknown_0[0x119];
-    unsigned short unitCount;          // +0x119
-    char unknown_11b[331 - 0x11b];
-};
-
-// The player array seen from +0x1b8a, where the info pointer sits at +0x00.
-struct Player_467d70 {
-    PlayerInfo* info;                  // +0x00
-    char unknown_4[0x14b - 4];
 };
 
 struct Sub_004679a0_a {
@@ -247,23 +237,9 @@ struct Game {
             unsigned char shadowColor; // +0xdda
         };
     };
-    // The ten player entries at +0x1b63, and the two other views of them the
-    // later functions use: 0x467d70 reads them from +0x1b8a, 0x4689c0 from +0x1b8e.
     char unknown_ddb[0x1b63 - 0xddb];
-    union {
-        PlayerInfo_00467440 players[10];          // +0x1b63, stride 0x14b
-        struct {
-            char unknown_1b63[0x1b8a - 0x1b63];
-            union {
-                Player_467d70 players_00467d70[10];  // +0x1b8a
-                struct {
-                    char unknown_1b8a[0x1b8e - 0x1b8a];
-                    Player_004689c0 players_004689c0[11]; // +0x1b8e
-                };
-            };
-        };
-    };
-    char unknown_29c7[0x2a3c - 0x29c7];
+    PlayerInfo_00467440 players[10];          // +0x1b63, stride 0x14b
+    char unknown_2851[0x2a3c - 0x2851];
     unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a42 - 0x2a3e];
     unsigned char localPlayer;         // +0x2a42
@@ -392,12 +368,6 @@ struct Quad_467c00 {
 struct Entry_467c00 {
     unsigned short w;                  // +0
     unsigned short h;                  // +2
-};
-
-// Not a player: the kills word of a unit at +0xb8 (see DrawKillCount).
-struct Player_00467cb0 {
-    char unknown_0[0xb8];
-    unsigned short kills;              // +0xb8
 };
 
 struct Mission_00467e50 {
@@ -711,17 +681,17 @@ void __stdcall BlitSideLogoToRect(void* surf, Player* player, Rect_467c00* rect,
 // > 4 arm keeps a test the level can never satisfy.
 
 // FUNCTION: 0x467cb0
-void __stdcall DrawKillCount(void* surface, Player_00467cb0* player, int x, int y)
+void __stdcall DrawKillCount(void* surface, Unit* unit, int x, int y)
 {
     char buf[100];
     char* kills = Translate("kills");
     char* kill = Translate("kill");
-    if (player->kills > 4) {
-        sprintf(buf, "%d %s - %s", player->kills,
-                player->kills == 1 ? kill : kills, Translate("Veteran"));
+    if (unit->killCount > 4) {
+        sprintf(buf, "%d %s - %s", unit->killCount,
+                unit->killCount == 1 ? kill : kills, Translate("Veteran"));
     } else {
-        sprintf(buf, "%d %s", player->kills,
-                player->kills == 1 ? kill : kills);
+        sprintf(buf, "%d %s", unit->killCount,
+                unit->killCount == 1 ? kill : kills);
     }
     SetTextColors(g_game->colors[15], GetTextKeyColor());
     DrawString(surface, buf, x, y, -1);
@@ -738,7 +708,7 @@ void DrawLightBars()
     SetOffscreenSurface(surf);
     FillSurface(surf, 0);
 
-    int side = g_game->players_00467d70[g_game->playerIndex].info->side;
+    int side = g_game->players[g_game->playerIndex].data->side;
 
     short* bar = (short*)GetGafFrame(g_game->sidePanelTopSeq[side], 0);
     DrawFrame(surf, bar, bar[2] + 0x81, bar[3]);
@@ -1094,7 +1064,7 @@ void __stdcall DrawStatusPanel(Surface* win)
     DrawTextClipped(win, buf, left + 0x19, bottom + 0xa, -1, 0);
     int team = g_game->localPlayer;
     sprintf(buf, "%s : %d  (Max %d)", Translate("Total Units"),
-            g_game->players_004689c0[team].unitCount, g_game->maxUnits);
+            g_game->players[team].unitCount, g_game->maxUnits);
     DrawTextClipped(win, buf, left + 0xbe, bottom + 0xa, -1, 0);
     if (g_game->effectiveGameSpeed == 10)
         sprintf(num, Translate("Normal"));

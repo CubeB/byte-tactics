@@ -122,11 +122,7 @@ struct PointInit_0043a1f0 : Point {
 
 #include "../util/angles.h"
 
-struct Player_0043b7c0 {
-    int active;                    // +0x0
-    char unknown_4[0x73 - 0x4];
-    char state;                    // +0x73
-};
+#include "../network/player.h"
 
 // The unit's target: the object at unit+0x96, whose +0xe4 is the divisor
 // 0x439d20 uses.
@@ -306,7 +302,7 @@ struct Unit {                          // 0x118 bytes
     UnitType_0043cd20* def;            // +0x92
     union {
         Target_0043d6d0* target;       // +0x96
-        Player_0043b7c0* player;       // +0x96
+        Player* player;                // +0x96
     };
     CobScript* script;                 // +0x9a
     char unknown_9e[0xa8 - 0x9e];
@@ -1347,7 +1343,7 @@ void __stdcall RunOrders(Unit* unit)
     }
     if (unit->player->active == 0)
         return;
-    char state = unit->player->state;
+    char state = unit->player->type;
     if (state != 1 && state != 2)
         return;
     if (unit->def->defaultmissiontype == 0)

@@ -294,7 +294,7 @@ struct Game {
     };
     char unknown_2a43[0x2a44 - 0x2a43];
     union {
-        unsigned char flags_2a44;      // +0x2a44
+        unsigned char netGameFlags;    // +0x2a44
         Bits_0045cf60 bits_2a44;
         struct {
             unsigned short pad_2a44 : 2;
@@ -1399,7 +1399,7 @@ void RestoreVisualOptions()
     g_game->visualFlags = v ^ ((v ^ g_optionsBackupVisualFlags) & 0x40);
 
     g_game->gamma = g_optionsBackupGamma;
-    if (!(g_game->flags_2a44 & 4)) {
+    if (!(g_game->netGameFlags & 4)) {
         g_game->displayWidth = g_optionsBackupDisplayWidth;
         g_game->displayHeight = g_optionsBackupDisplayHeight;
     }

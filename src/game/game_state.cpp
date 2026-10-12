@@ -53,8 +53,8 @@ struct Game {
     void* options;      // +0x29a0
     char unknown_29a4[0x2a44 - 0x29a4];
     union {
-        unsigned char flags_2a44;
-        unsigned short flags_2a44w;
+        unsigned char netGameFlags;
+        unsigned short netGameFlagsWord;
     };
     unsigned char netOrCdSentinel;  // +0x2a46
     char unknown_2a47[0x2bee - 0x2a47];
@@ -495,7 +495,7 @@ newdisc:
         DAT_0051e858 = *(int*)&tracks[12];
         DAT_0051e848 = id;
     }
-    if ((g_game->flags_2a44 & 4) != 0 && g_game->frontendState == 6)
+    if ((g_game->netGameFlags & 4) != 0 && g_game->frontendState == 6)
         g_game->sound->PlayNextTrack();
     else
         g_game->sound->StopCdAudio();
@@ -842,7 +842,7 @@ void CloseNetSession();
 // FUNCTION: 0x491b60
 void ShutdownIngameSystems()
 {
-    g_game->flags_2a44w &= 0xfffb;
+    g_game->netGameFlagsWord &= 0xfffb;
     g_game->sound->StopCdAudio();
     g_game->sound->SetTrackCategory(4);
     CollectEndGameStats();

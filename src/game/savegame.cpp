@@ -140,7 +140,7 @@ struct Game {
             unsigned short bit2_2a44 : 1;
             unsigned short bits3_2a44 : 13;
         };
-    } flags_2a44;                        // +0x2a44
+    } netGameFlags;                      // +0x2a44
     char unknown_2a46[0x2cbe - 0x2a46];
     unsigned char cursorMode;            // +0x2cbe
     char unknown_2cbf[0x148cf - 0x2cbf];
@@ -394,7 +394,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
 
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
-        if (g_game->flags_2a44.b2)
+        if (g_game->netGameFlags.b2)
             DisableKeyCommands(g_game->message);
         if (g_savegameFileNames)
             GameFreeThunk(g_savegameFileNames);
@@ -450,13 +450,13 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             g_game->cursorMode = 20;
             SetCursorAnimation(g_game->message, g_game->cursorHourglass);
         }
-        if (g_game->flags_2a44.b2)
+        if (g_game->netGameFlags.b2)
             DisableKeyCommands(g_game->message);
         PlaySoundByName("SMLBUTTON", 0);
         e = FindGadgetChecked(entries, "GAMES");
         sprintf(g_game->saveName, "%s\\%s", g_savegameDir,
                 SkipTextLines(g_savegameFileNames, e->u.list.selected));
-        if (g_game->flags_2a44.b2)
+        if (g_game->netGameFlags.b2)
             ShutdownIngameSystems();
         g_game->endGameFlags.b3 = 1;
 
@@ -506,7 +506,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
             g_game->options->losType =
                 (g_game->pendingSaveStore)->GetIntegerItem("LineOfSightType", 1);
         }
-        g_game->flags_2a44.b2 = 1;
+        g_game->netGameFlags.b2 = 1;
         g_game->frontendState = 2;
         g_game->handler = MenuFrame;
         SetCloseHandler(LeaveNetGameCallback, 0);
@@ -525,12 +525,12 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         PopUntilNamedLayout(1);
         if (g_game->mapInfo->GetGameType() == 1 &&
             (g_game->pendingSaveStore)->HasItem("BetweenMissions")) {
-            g_game->flags_2a44.b3 = 1;
+            g_game->netGameFlags.b3 = 1;
             if (g_game->pendingSaveStore) {
                 DeleteSave_00492360(g_game->pendingSaveStore);
                 g_game->pendingSaveStore = 0;
             }
-            g_game->flags_2a44.b2 = 0;
+            g_game->netGameFlags.b2 = 0;
             g_game->frontendState = 2;
             g_game->handler = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);
@@ -640,7 +640,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
         return;
     }
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
-        if (g_game->flags_2a44.bit2_2a44)
+        if (g_game->netGameFlags.bit2_2a44)
             DisableKeyCommands(g_game->message);
         PlaySoundByName("Previous", 0);
         return;
@@ -661,7 +661,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
             ClearSelectedGadget(gadget);
         return;
     }
-    if (g_game->flags_2a44.bit2_2a44)
+    if (g_game->netGameFlags.bit2_2a44)
         DisableKeyCommands(g_game->message);
     PlaySoundByName("smlbutton", 0);
     int index = FindGadgetIndex(entries, "GAMENAME", 3);

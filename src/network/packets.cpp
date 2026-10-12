@@ -274,16 +274,16 @@ public:
     PacketChannel();
     ~PacketChannel();
     PacketBuffer* AllocBuffer();
-    NetPacketPendingEntry* AllocPacket(int param_1);
+    NetPacketPendingEntry* AllocPacket(int frame);
     int GetMinRetainMs();
-    int GetPacketEntry(int param_1);
+    int GetPacketEntry(int index);
     int InitPools(int a1, unsigned int a2, int a3, int a4);
     void EnqueuePacket(NetPacketPendingEntry* item);
     int GrowPools(int growbufs, int growpackets);
     void DequeuePacket(NetPacketPendingEntry* item);
     void ResetChannel();
     int SendQueued(int force);
-    int AddPacket(int param_1, void* param_2, unsigned int param_3);
+    int AddPacket(int frame, void* data, unsigned int size);
     void SetMinRetainMs(unsigned int ms);
     void SetSendPacingMs(int ms);
 };
@@ -308,14 +308,14 @@ public:
     int AppendToSendBuffer(unsigned char* data, unsigned int len);
     void ClearSendBuffer();
     void NopRet_D();
-    PacketChannel* FindChannel(int param_1, int param_2);
+    PacketChannel* FindChannel(int dpid, int create);
     int InitChannels(int arg1, int arg2);
     void ReleaseChannel(int id);
     void ReleaseAllChannels();
-    int SendAllQueued(int param_1);
+    int SendAllQueued(int force);
     int SendFrameState(int from, Msg_00461900* msg);
-    int QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4);
-    void* QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4);
+    int QueueOnChannel(int frame, PacketChannel* channel, int data, int len);
+    void* QueuePacket(int frame, int dpid, void* data, unsigned int len);
     void SetDefaultSendPacing(int rate);
     void HandleIntegrityNop(int, int, int);
 };
@@ -341,7 +341,7 @@ PacketRing::PacketRing()
 }
 
 // FUNCTION: 0x461020
-int __stdcall InitPacketManager(int param_1, int param_2)
+int __stdcall InitPacketManager(int bufferCount, int packetCount)
 {
     if (g_netFrameRateConfig != 0) {
         g_packetManager.SetDefaultSendPacing(g_netFrameRateConfig);
@@ -365,7 +365,7 @@ int __stdcall InitPacketManager(int param_1, int param_2)
                 g_packetManager.member.savedFrameEntry->pendingBytes = 0;
                 g_packetManager.member.savedFrameEntry = 0;
             }
-            g_packetManager.channels[0].InitPools(0, g_packetManager.m_defaultSendPacingMs, param_1, param_2);
+            g_packetManager.channels[0].InitPools(0, g_packetManager.m_defaultSendPacingMs, bufferCount, packetCount);
             PacketChannel* p = &g_packetManager.channels[1];
             for (int i = 1; i < 11; i++, p++) {
                 p->InitPools(-1, g_packetManager.m_defaultSendPacingMs, 2, 100);
@@ -483,24 +483,24 @@ void PacketManager::HandleIntegrityNop(int, int, int)
 {
 }
 
-// Finds the entry (of the 11 inside this) whose dpid is param_1 and returns
-// it. When there is none, param_2 decides whether a new entry may be made:
+// Finds the entry (of the 11 inside this) whose dpid is dpid and returns
+// it. When there is none, create decides whether a new entry may be made:
 // first an unused slot (dpid == -1), otherwise the first slot whose
 // dpid is not the color of any of the ten player slots in g_game. The
 // chosen entry is re-initialised with InitPools and returned.
 // FUNCTION: 0x461630
-PacketChannel* PacketManager::FindChannel(int param_1, int param_2)
+PacketChannel* PacketManager::FindChannel(int dpid, int create)
 {
     unsigned i;
     for (i = 0; i <= 10; i++) {
-        if (channels[i].dpid == param_1)
+        if (channels[i].dpid == dpid)
             return &channels[i];
     }
-    if (param_2 == 0)
+    if (create == 0)
         return 0;
     for (i = 0; i <= 10; i++) {
         if (channels[i].dpid == -1) {
-            channels[i].InitPools(param_1, m_defaultSendPacingMs, 2, 0x64);
+            channels[i].InitPools(dpid, m_defaultSendPacingMs, 2, 0x64);
             return &channels[i];
         }
     }
@@ -515,7 +515,7 @@ PacketChannel* PacketManager::FindChannel(int param_1, int param_2)
             }
         }
         if (used == 0) {
-            channels[i].InitPools(param_1, m_defaultSendPacingMs, 2, 0x64);
+            channels[i].InitPools(dpid, m_defaultSendPacingMs, 2, 0x64);
             return &channels[i];
         }
     }
@@ -583,14 +583,14 @@ void PacketManager::ReleaseAllChannels()
 }
 
 // FUNCTION: 0x4618a0
-int PacketManager::SendAllQueued(int param_1)
+int PacketManager::SendAllQueued(int force)
 {
     if (g_usePacketManager == 0) {
         return 0;
     }
     for (unsigned int i = 0; i <= 10; i++) {
         if (channels[i].dpid != -1) {
-            if (channels[i].SendQueued(param_1) == 0) {
+            if (channels[i].SendQueued(force) == 0) {
                 return 0;
             }
         }
@@ -613,20 +613,20 @@ int PacketManager::SendFrameState(int from, Msg_00461900* msg)
 // it) that ignores `this` and forwards to 0x462710 on the object it is
 // given, which that caller passes as &g_packetManager + 8.
 // FUNCTION: 0x461990
-int PacketManager::QueueOnChannel(int param_1, PacketChannel* param_2, int param_3, int param_4)
+int PacketManager::QueueOnChannel(int frame, PacketChannel* channel, int data, int len)
 {
-    int a = param_4;
-    int b = param_3;
-    int c = param_1;
-    return param_2->AddPacket(c, (void*)b, a);
+    int a = len;
+    int b = data;
+    int c = frame;
+    return channel->AddPacket(c, (void*)b, a);
 }
 
 // FUNCTION: 0x4619b0
-void* PacketManager::QueuePacket(int param_1, int param_2, void* param_3, unsigned int param_4)
+void* PacketManager::QueuePacket(int frame, int dpid, void* data, unsigned int len)
 {
-    PacketChannel* obj = FindChannel(param_2, 1);
+    PacketChannel* obj = FindChannel(dpid, 1);
     if (obj != 0) {
-        return (void*)obj->AddPacket(param_1, param_3, param_4);
+        return (void*)obj->AddPacket(frame, data, len);
     }
     return 0;
 }
@@ -730,7 +730,7 @@ PacketBuffer* PacketChannel::AllocBuffer()
 }
 
 // FUNCTION: 0x461c20
-NetPacketPendingEntry* PacketChannel::AllocPacket(int param_1)
+NetPacketPendingEntry* PacketChannel::AllocPacket(int frame)
 {
     unsigned int idx;
     NetPacketPendingEntry* packet;
@@ -756,7 +756,7 @@ NetPacketPendingEntry* PacketChannel::AllocPacket(int param_1)
     }
     packetIndex = idx;
     PacketTrace("current packet pool index set to: %ld\n", idx);
-    packet->frame = param_1;
+    packet->frame = frame;
     return packet;
 }
 
@@ -784,9 +784,9 @@ int PacketChannel::GetMinRetainMs()
 }
 
 // FUNCTION: 0x461da0
-int PacketChannel::GetPacketEntry(int param_1)
+int PacketChannel::GetPacketEntry(int index)
 {
-    return param_1 * 0x20 + (int)packets;
+    return index * 0x20 + (int)packets;
 }
 
 // The fresh pool entries get only dwords 1..7 of each 0x20-byte record
@@ -1197,7 +1197,7 @@ void NetCondenser::SendPacketTo(void* session, int from, int value, void* data, 
 #pragma auto_inline(on)
 
 // FUNCTION: 0x462710
-int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
+int PacketChannel::AddPacket(int frame, void* data, unsigned int size)
 {
     if (queuedBytes >= 0x42a || queue.count == 0x400) {
         SendQueued(1);
@@ -1213,17 +1213,17 @@ int PacketChannel::AddPacket(int param_1, void* param_2, unsigned int param_3)
         if (block == 0)
             return 0;
     }
-    NetPacketPendingEntry* pkt = AllocPacket(param_1);
+    NetPacketPendingEntry* pkt = AllocPacket(frame);
     if (pkt == 0)
         return 0;
-    int r = block->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
+    int r = block->AppendPacket(pkt, packetIndex, data, size, lastPacket);
     if (r == 0) {
         packetIndex = packetIndex - 1;
         block = AllocBuffer();
         if (block != 0) {
-            pkt = AllocPacket(param_1);
+            pkt = AllocPacket(frame);
             if (pkt != 0)
-                r = block->AppendPacket(pkt, packetIndex, param_2, param_3, lastPacket);
+                r = block->AppendPacket(pkt, packetIndex, data, size, lastPacket);
             else
                 r = 0;
         }
@@ -1257,9 +1257,9 @@ void PacketChannel::SetMinRetainMs(unsigned int ms)
 }
 
 // FUNCTION: 0x4628a0
-void PacketChannel::SetSendPacingMs(int param_1)
+void PacketChannel::SetSendPacingMs(int ms)
 {
-    unsigned int v = param_1 * 30 + 999;
+    unsigned int v = ms * 30 + 999;
     sendPacingTicks = v / 1000u;
 }
 
@@ -2036,7 +2036,7 @@ struct Player {
 
     Player();
     void FreeSideDataAndFogSightCounts();
-    void SetType(int param_1);
+    void SetType(int newType);
 };
 #pragma pack(pop)
 
@@ -2057,11 +2057,11 @@ void Player::FreeSideDataAndFogSightCounts()
 }
 
 // FUNCTION: 0x463c60
-void Player::SetType(int param_1)
+void Player::SetType(int newType)
 {
-    type = (char)param_1;
-    if (param_1 != 3) {
-        info->kind = (char)param_1;
+    type = (char)newType;
+    if (newType != 3) {
+        info->kind = (char)newType;
     }
 }
 

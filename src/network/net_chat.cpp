@@ -82,8 +82,8 @@ void __stdcall PlaySoundByName(char* name, int param_2);
 int __stdcall IsScreenNamed(void* obj, const char* name);
 void __stdcall MarkChanged(void* obj);
 void __stdcall MarkLayerChanged(void* obj);
-void __stdcall SendChatPacket(char* param_1);
-void __stdcall ReportGameChat(char* param_1);
+void __stdcall SendChatPacket(char* text);
+void __stdcall ReportGameChat(char* msg);
 void __stdcall CenterCameraOnPoint(int a, int b, int c);
 void __stdcall SetFont(int);
 void __stdcall SetTextColors(int, int);
@@ -95,7 +95,7 @@ void __stdcall DrawTextClipped(void*, void*, int, int, int, int);
 // overload declared (it is not defined here) makes the call at 0x463e50 push
 // its third argument as a full int, as the original does; without it the
 // visible byte-wide definition would truncate the argument first.
-void __stdcall AddMessage(char* param_1, int param_2, int param_3, int param_4);
+void __stdcall AddMessage(char* text, int key, int value, int last);
 
 // Appends a line to the ring buffer of 0x48-byte entries at g_game+0x12ef,
 // indexed by the short at g_game+0x2a3e (wrapped at 30). If the divisor at
@@ -133,7 +133,7 @@ void __stdcall AddMessage(char* text, unsigned char key, unsigned short value, c
 }
 
 // FUNCTION: 0x463e50
-void __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to)
+void __stdcall SendChatMessage(Player* from, char* text, int key, char* to)
 {
     char buf[200];
 
@@ -143,7 +143,7 @@ void __stdcall SendChatMessage(Player* from, char* text, int param_3, char* to)
     if (g_game->mapInfo->GetGameType() == 3) {
         ReportGameChat(buf);
     }
-    AddMessage(buf, param_3, 0, 10);
+    AddMessage(buf, key, 0, 10);
 }
 
 // FUNCTION: 0x463ef0

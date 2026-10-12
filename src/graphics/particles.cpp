@@ -147,7 +147,7 @@ public:
 
     void Step();
     void DrawParticle(void* dest, short px, short py);
-    int IsExpired(int param_1);
+    int IsExpired(int currentTick);
 };
 
 // The particle vector seen as its four words, to call its out-of-line insert.
@@ -195,7 +195,7 @@ public:
     int endTime;                       // +0x2c, the tick it expires
 
     void Step();
-    void DrawParticle(int param_1, short x, short y);
+    void DrawParticle(int dest, short x, short y);
     int IsExpired(int value);
 };
 
@@ -294,7 +294,7 @@ public:
 
     void Step();
     void DrawParticle(void* dest, short px, short py);
-    int IsExpired(int param_1);
+    int IsExpired(int currentTick);
 };
 
 typedef std::vector<ThrustParticle> Vec_004743a0;
@@ -382,7 +382,7 @@ public:
 
     void Step();
     void DrawParticle(void* surface, short px, short py);
-    int IsExpired(int param_1);
+    int IsExpired(int currentTick);
 };
 
 // The particle vector seen as its four words, to call its out-of-line insert.
@@ -473,8 +473,8 @@ public:
     virtual int IsFinished();                           // slot 3, 0x473290
     virtual void Emit();                                // slot 4, 0x474880
     virtual int IsEmitDue();                            // slot 5, 0x473220
-    virtual void Init(Vec3_00474760* a, Vec3_00474760* b, int param_3,
-                              int param_4, int param_5);  // slot 6
+    virtual void Init(Vec3_00474760* a, Vec3_00474760* b, int newPeriod,
+                              int lifetime, int isAscending);  // slot 6
 };
 
 // The ten per-index lists owned by g_game (see 0x471d90). 0x471160, 0x471820
@@ -844,7 +844,7 @@ void* __stdcall GetGafFrame(void* a, int b);
 void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
 int __stdcall GetGafFrameCount(void* ptr);
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
-int __stdcall GetGroundHeight(void* param_1);
+int __stdcall GetGroundHeight(void* pos);
 
 // The second arm of the spark draws, inlined. The two player parameters are
 // not a typo: the Contains test reads the map width through `p` and the index
@@ -1022,9 +1022,9 @@ Elem_00470a40* __stdcall CopyStructRange(Elem_00470a40* first, Elem_00470a40* la
 
 #pragma auto_inline(off)
 // FUNCTION: 0x470a90
-ObjectPool* ObjectPool::Construct(int param_1, int param_2)
+ObjectPool* ObjectPool::Construct(int initialCapacity, int initialSlotSize)
 {
-    this->ObjectPool::ObjectPool(param_1, param_2);
+    this->ObjectPool::ObjectPool(initialCapacity, initialSlotSize);
     return (ObjectPool*)this;
 }
 #pragma auto_inline(on)
@@ -1086,11 +1086,11 @@ int ObjectPool::AllocSlot(int unused)
 }
 
 // FUNCTION: 0x470ed0
-void ObjectPool::FreeSlot(int param_1)
+void ObjectPool::FreeSlot(int slot)
 {
     int eax = used - 1;
     used = eax;
-    ((int*)slots)[eax] = param_1;
+    ((int*)slots)[eax] = slot;
 }
 #pragma auto_inline(on)
 
@@ -1138,10 +1138,10 @@ struct Access_00470f30 : Vec_00470f30 {
 UfillFn_00470f30 Access_00470f30::fn = &Access_00470f30::_Ufill;
 
 // FUNCTION: 0x470f60
-void __stdcall CopyPointer(int* param_1, int* param_2)
+void __stdcall CopyPointer(int* dest, int* src)
 {
-    if (param_1 != 0) {
-        *param_1 = *param_2;
+    if (dest != 0) {
+        *dest = *src;
     }
 }
 
@@ -1211,11 +1211,11 @@ void ParticleLists::DrawList(void* param, short index)
 // short index. When that list already holds more than 400 entries its oldest
 // element is deleted and erased first.
 // FUNCTION: 0x471340
-void ParticleLists::AddTeleportParticles(int param_1, int param_2, int param_3, short index)
+void ParticleLists::AddTeleportParticles(int posA, int posB, int lifetime, short index)
 {
     TeleportParticles* p = new TeleportParticles;
     if (p) {
-        p->Init((Vec3_004736e0*)param_1, (Vec3_004736e0*)param_2, param_3);
+        p->Init((Vec3_004736e0*)posA, (Vec3_004736e0*)posB, lifetime);
         Add(index, p);
     }
 }
@@ -1230,11 +1230,11 @@ static TeleportParticles* s_teleport = new TeleportParticles;
 // short index. When that list already holds more than 400 entries its oldest
 // element is deleted and erased first.
 // FUNCTION: 0x471470
-void ParticleLists::AddNanoParticles(int param_1, int param_2, int param_3, short index)
+void ParticleLists::AddNanoParticles(int posA, int posB, int lifetime, short index)
 {
     NanoParticles* p = new NanoParticles;
     if (p) {
-        p->Init((Seg_00473b50*)param_1, (Seg_00473b50*)param_2, param_3);
+        p->Init((Seg_00473b50*)posA, (Seg_00473b50*)posB, lifetime);
         Add(index, p);
     }
 }
@@ -1251,11 +1251,11 @@ static NanoParticles* s_nano = new NanoParticles;
 //
 // Signature: four ints forwarded to virtual slot 6, then the short index.
 // FUNCTION: 0x4715a0
-void ParticleLists::AddThrustParticles(int param_1, int param_2, int param_3, int param_4, short index)
+void ParticleLists::AddThrustParticles(int posA, int posB, int period, int lifetime, short index)
 {
     ThrustParticles* p = new ThrustParticles;
     if (p) {
-        p->Init((Shape_00472ab0*)param_1, (Shape_00472ab0*)param_2, param_3, param_4);
+        p->Init((Shape_00472ab0*)posA, (Shape_00472ab0*)posB, period, lifetime);
         Add(index, p);
     }
 }
@@ -1271,12 +1271,12 @@ static ThrustParticles* s_thrust = new ThrustParticles;
 // already holds more than 400 entries its oldest element is deleted and erased
 // first.
 // FUNCTION: 0x4716e0
-void ParticleLists::AddWakeParticles(int param_1, int param_2, int param_3,
-                                  int param_4, short index, int param_6)
+void ParticleLists::AddWakeParticles(int posA, int posB, int period,
+                                  int lifetime, short index, int isAscending)
 {
     WakeParticles* p = new WakeParticles;
     if (p) {
-        p->Init((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, param_4, param_6);
+        p->Init((Vec3_00474760*)posA, (Vec3_00474760*)posB, period, lifetime, isAscending);
         Add(index, p);
     }
 }
@@ -1435,12 +1435,12 @@ static void __stdcall Add(Lists_00471fd0* l, short index, ParticleSystem* p)
 // instead of `this`. The list is picked by the fourth argument, a short; the
 // first three go to the virtual slot 6 initialiser (0x4736e0).
 // FUNCTION: 0x471fd0
-void __stdcall EmitTeleportParticles(int param_1, int param_2, int param_3, short index)
+void __stdcall EmitTeleportParticles(int posA, int posB, int lifetime, short index)
 {
     Lists_00471fd0* l = g_game->lists_00471fd0;
     TeleportParticles* p = new TeleportParticles;
     if (p) {
-        p->Init((Vec3_004736e0*)param_1, (Vec3_004736e0*)param_2, param_3);
+        p->Init((Vec3_004736e0*)posA, (Vec3_004736e0*)posB, lifetime);
         Add(l, index, p);
     }
 }
@@ -1468,7 +1468,7 @@ static void Add_004720d0(Lists_004720d0* lists, short index, ParticleSystem* p)
 // The 12-byte argument is copied twice into one 24-byte local and only the
 // first copy is read (its address is slot 6's first argument).
 // FUNCTION: 0x4720d0
-void __stdcall EmitNanoParticles(Vec3_004720d0* p, void* param_2, short index)
+void __stdcall EmitNanoParticles(Vec3_004720d0* p, void* posB, short index)
 {
     // A struct whose address escapes: keeps the dead second copy's stores.
     Ctx_004720d0 ctx;
@@ -1477,7 +1477,7 @@ void __stdcall EmitNanoParticles(Vec3_004720d0* p, void* param_2, short index)
     Lists_004720d0* lists = g_game->lists_004720d0;
     NanoParticles* q = new NanoParticles;
     if (q) {
-        q->Init((Seg_00473b50*)&ctx.a, (Seg_00473b50*)param_2, 1);
+        q->Init((Seg_00473b50*)&ctx.a, (Seg_00473b50*)posB, 1);
         Add_004720d0(lists, index, q);
     }
 }
@@ -1489,16 +1489,16 @@ void __stdcall EmitNanoParticles(Vec3_004720d0* p, void* param_2, short index)
 // erased first. Same shape as 0x471470, but a free function that reads the list
 // owner out of g_game.
 // FUNCTION: 0x472200
-void __stdcall EmitReverseNanoParticles(Pos_00472200* param_1, Vec3* param_2, short param_3)
+void __stdcall EmitReverseNanoParticles(Pos_00472200* targetBounds, Vec3* origin, short index)
 {
     Pos_00472200 pos;
-    pos.a = *param_2;
-    pos.b = *param_2;
+    pos.a = *origin;
+    pos.b = *origin;
     ParticleLists* lists = g_game->lists_00472200;
     NanoParticles* p = new NanoParticles;
     if (p) {
-        p->Init((Seg_00473b50*)param_1, (Seg_00473b50*)&pos, 1);
-        lists->Add(param_3, p);
+        p->Init((Seg_00473b50*)targetBounds, (Seg_00473b50*)&pos, 1);
+        lists->Add(index, p);
     }
 }
 
@@ -1511,14 +1511,14 @@ void __stdcall EmitReverseNanoParticles(Pos_00472200* param_1, Vec3* param_2, sh
 // Class family listed in 0x471cc0.cpp. Same shape as particles_470f80.cpp and
 // 0x472430.cpp.
 // FUNCTION: 0x472330
-void __stdcall EmitThrustParticles(int param_1, int param_2, int param_3, int param_4,
+void __stdcall EmitThrustParticles(int posA, int posB, int period, int lifetime,
                             short index)
 {
     // Bound to a local at the top: g_game is loaded before the prologue pushes.
     Lists_00472330* lists = g_game->lists_00472330;
     ThrustParticles* p = new ThrustParticles;
     if (p) {
-        p->Init((Shape_00472ab0*)param_1, (Shape_00472ab0*)param_2, param_3, param_4);
+        p->Init((Shape_00472ab0*)posA, (Shape_00472ab0*)posB, period, lifetime);
         lists->Add(index, p);
     }
 }
@@ -1530,12 +1530,12 @@ void __stdcall EmitThrustParticles(int param_1, int param_2, int param_3, int pa
 // more than 400 entries its oldest element is deleted and erased first.
 // Class family listed in 0x471cc0.cpp.
 // FUNCTION: 0x472430
-void __stdcall EmitWakeParticles(int param_1, int param_2, int param_3, short index)
+void __stdcall EmitWakeParticles(int posA, int posB, int period, short index)
 {
     Lists_00472430* l = g_game->lists_00472430;
     WakeParticles* p = new WakeParticles;
     if (p) {
-        p->Init((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, 1, 1);
+        p->Init((Vec3_00474760*)posA, (Vec3_00474760*)posB, period, 1, 1);
         l->Add(index, p);
     }
 }
@@ -1548,13 +1548,13 @@ void __stdcall EmitWakeParticles(int param_1, int param_2, int param_3, short in
 // the lists owner, here the lists pointer is a local.
 // Class family listed in wake_particles.cpp.
 // FUNCTION: 0x472530
-void __stdcall EmitBubbles(int param_1, int param_2, int param_3, short index)
+void __stdcall EmitBubbles(int posA, int posB, int period, short index)
 {
     // Local read before the new: otherwise g_game is reloaded after the virtual call.
     Lists_00472530* l = g_game->lists_00472530;
     WakeParticles* p = new WakeParticles;
     if (p) {
-        p->Init((Vec3_00474760*)param_1, (Vec3_00474760*)param_2, param_3, 1, 0);
+        p->Init((Vec3_00474760*)posA, (Vec3_00474760*)posB, period, 1, 0);
         l->Add(index, p);
     }
 }
@@ -1649,10 +1649,10 @@ int NanoParticles::IsEmitDue()
 // Slot 2: calls DrawParticle on every particle, passing the map scroll
 // position as shorts.
 // FUNCTION: 0x472f90
-void NanoParticles::Render(int param_1)
+void NanoParticles::Render(int dest)
 {
     for (std::vector<NanoParticle>::iterator it = items.begin(); it != items.end(); ++it)
-        it->DrawParticle(param_1, g_game->scrollX, g_game->scrollY);
+        it->DrawParticle(dest, g_game->scrollX, g_game->scrollY);
 }
 
 // Slot 3: whether there are no particles.
@@ -1696,10 +1696,10 @@ int ThrustParticles::IsEmitDue()
 // Slot 2: calls DrawParticle on every particle with the argument and the map
 // scroll position.
 // FUNCTION: 0x4730f0
-void ThrustParticles::Render(int param_1)
+void ThrustParticles::Render(int dest)
 {
     for (std::vector<ThrustParticle>::iterator it = items.begin(); it != items.end(); ++it) {
-        it->DrawParticle((void*)param_1, g_game->scrollX, g_game->scrollY);
+        it->DrawParticle((void*)dest, g_game->scrollX, g_game->scrollY);
     }
 }
 
@@ -1744,10 +1744,10 @@ int WakeParticles::IsEmitDue()
 // Slot 2: calls DrawParticle on every particle with the argument and the map
 // scroll position.
 // FUNCTION: 0x473250
-void WakeParticles::Render(int param_1)
+void WakeParticles::Render(int dest)
 {
     for (std::vector<WakeParticle>::iterator it = items.begin(); it != items.end(); ++it) {
-        it->DrawParticle((void*)param_1, g_game->scrollX, g_game->scrollY);
+        it->DrawParticle((void*)dest, g_game->scrollX, g_game->scrollY);
     }
 }
 
@@ -1821,9 +1821,9 @@ void TeleportParticle::DrawParticle(void* dest, short px, short py)
 // The original calls this out of line from 0x472d50; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x4736c0
-int TeleportParticle::IsExpired(int param_1)
+int TeleportParticle::IsExpired(int currentTick)
 {
-    return param_1 > endTime;
+    return currentTick > endTime;
 }
 #pragma auto_inline(on)
 
@@ -2059,9 +2059,9 @@ void WakeParticle::DrawParticle(void* surface, short px, short py)
 // The original calls this out of line from 0x473170; in this file /Ob2 would inline it.
 #pragma auto_inline(off)
 // FUNCTION: 0x474720
-int WakeParticle::IsExpired(int param_1)
+int WakeParticle::IsExpired(int currentTick)
 {
-    if (param_1 <= endTime) {
+    if (currentTick <= endTime) {
         int r = GetGroundHeight(&pos);
         if (r < g_game->seaLevel)
             return 0;
@@ -2074,11 +2074,11 @@ int WakeParticle::IsExpired(int param_1)
 // a length of 32768 (2^31/len as 16.16), and the two arguments it passes on,
 // then updates itself.
 // FUNCTION: 0x474760
-void WakeParticles::Init(Vec3_00474760* a, Vec3_00474760* b, int param_3,
-                                  int param_4, int param_5)
+void WakeParticles::Init(Vec3_00474760* a, Vec3_00474760* b, int newPeriod,
+                                  int lifetime, int isAscending)
 {
-    SetLifetime(param_4);
-    period = param_3;
+    SetLifetime(lifetime);
+    period = newPeriod;
     pos_a = *a;
     pos_b = *b;
     // The difference must come from an inline operator- returning the struct by value.
@@ -2087,7 +2087,7 @@ void WakeParticles::Init(Vec3_00474760* a, Vec3_00474760* b, int param_3,
     // points raise a divide exception here (0x474811, _alldiv).
     int scale = 0x100000000 / (int)(((__int64)dir.Length() * 0x20000) >> 16);
     dir.Scale(scale);
-    ascending = param_5;
+    ascending = isAscending;
     Emit();
 }
 
@@ -2438,10 +2438,10 @@ struct Shape_00472ab0 {
 // pos1 and their difference (pos2, the vector from the first to
 // the second point, scaled by 1/b) is always zero.
 // FUNCTION: 0x472ab0
-void __stdcall EmitJitteredThrustParticles(Shape_00472ab0* param_1, short index)
+void __stdcall EmitJitteredThrustParticles(Shape_00472ab0* pos, short index)
 {
     // One struct copy, then three separate += statements, not a loop.
-    Shape_00472ab0 s = *param_1;
+    Shape_00472ab0 s = *pos;
     s.v[0].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;
     s.v[1].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;
     s.v[2].hi += (int)((__int64)rand() * 3 / 0x8000) - 1;

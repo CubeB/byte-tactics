@@ -385,7 +385,7 @@ int __stdcall HAPI_FindNext(int handle, FindData_004cb170* fd);
 void __stdcall HAPI_FindClose(int handle);
 
 // FUNCTION: 0x4cb170
-int __stdcall SaveScreenshot(char* param_1, char* param_2)
+int __stdcall SaveScreenshot(char* dirPath, char* namePrefix)
 {
     Game_004caec0* game = GetDisplay();
     int flag = 0;
@@ -394,22 +394,22 @@ int __stdcall SaveScreenshot(char* param_1, char* param_2)
     unsigned char pal[768];
     int best = 0;
 
-    char c = param_1[0];
+    char c = dirPath[0];
     if (c != '\0') {
-        int len = strlen(param_1);
-        if (param_1[len - 1] != '\\')
+        int len = strlen(dirPath);
+        if (dirPath[len - 1] != '\\')
             flag = 1;
     }
     if (game->useOverrideSurface == 0)
         return 0;
 
     const char* sep = flag ? g_pathSepBackslash : DAT_005119b8;
-    sprintf(filename, "%s%s%s*.pcx", param_1, sep, param_2);
+    sprintf(filename, "%s%s%s*.pcx", dirPath, sep, namePrefix);
 
     int handle = HAPI_FindFirst(filename, &fd, -1, 1);
     if (handle >= 0) {
         do {
-            int n = atoi(fd.name + strlen(param_2));
+            int n = atoi(fd.name + strlen(namePrefix));
             if (n > best)
                 best = n;
         } while (HAPI_FindNext(handle, &fd) == 0);
@@ -417,7 +417,7 @@ int __stdcall SaveScreenshot(char* param_1, char* param_2)
     }
 
     sep = flag ? g_pathSepBackslash : DAT_005119b8;
-    sprintf(filename, "%s%s%s%04i.pcx", param_1, sep, param_2, best + 1);
+    sprintf(filename, "%s%s%s%04i.pcx", dirPath, sep, namePrefix, best + 1);
 
     Bitmap_004caec0* bitmap = game->bitmap;
     Game_004caec0* g = GetDisplay();
@@ -479,11 +479,11 @@ int __stdcall AveragePrimitiveY(Object_004cb2f0* table, Primitive_004cb2f0* list
 }
 
 // FUNCTION: 0x4cb330
-void __stdcall SwapPrimitives(Primitive_004cb2f0* param_1, Primitive_004cb2f0* param_2)
+void __stdcall SwapPrimitives(Primitive_004cb2f0* a, Primitive_004cb2f0* b)
 {
-    Primitive_004cb2f0 tmp = *param_1;
-    *param_1 = *param_2;
-    *param_2 = tmp;
+    Primitive_004cb2f0 tmp = *a;
+    *a = *b;
+    *b = tmp;
 }
 
 // Moves the element selected by node->index to the front (if any), then bubble
@@ -847,7 +847,7 @@ extern LONG g_gfxBlitLockHeld;
 extern LONG g_gfxBlitLockOwner;
 extern HANDLE g_gfxBlitLockEvent;
 
-void __cdecl ReportException(int param_1, int param_2);
+void __cdecl ReportException(int ep, int handlerName);
 void __stdcall ReleaseDirectDraw(Game_004caec0* app);
 void UnlockAllScreens(void);
 
@@ -878,9 +878,9 @@ static inline void Unlock(LONG held)
 // g_gfxBlitLockEvent), clears cursorFrame of the display object, pops the screen lock
 // stack and releases the display, then restores the window to non-topmost.
 // FUNCTION: 0x4cbab0
-int __stdcall ExceptionFilter(int param_1, int param_2)
+int __stdcall ExceptionFilter(int exception, int thread)
 {
-    ReportException(param_1, param_2);
+    ReportException(exception, thread);
     Game_004caec0* app = GetDisplay();
     if (app != 0) {
         LONG held = Lock();

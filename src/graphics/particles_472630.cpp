@@ -363,7 +363,7 @@ void* __stdcall GetGafFrame(void* a, int b);
 void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
 int __stdcall GetGafFrameCount(void* ptr);
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
-int __stdcall GetGroundHeight(void* param_1);
+int __stdcall GetGroundHeight(void* pos);
 
 // The second arm of the spark draws, inlined. The two player parameters are
 // not a typo: the Contains test reads the map width through `p` and the index
@@ -542,7 +542,7 @@ public:
 
     void Step();
     void DrawParticle(void* dest, short px, short py);
-    int IsExpired(int param_1);
+    int IsExpired(int currentTick);
 };
 #pragma pack(pop)
 
@@ -561,7 +561,7 @@ public:
     int endTime;                       // +0x2c, the tick it expires
 
     void Step();
-    void DrawParticle(int param_1, short x, short y);
+    void DrawParticle(int dest, short x, short y);
     int IsExpired(int value);
 };
 #pragma pack(pop)
@@ -620,7 +620,7 @@ public:
 
     void Step();
     void DrawParticle(void* surface, short px, short py);
-    int IsExpired(int param_1);
+    int IsExpired(int currentTick);
 };
 #pragma pack(pop)
 
@@ -724,23 +724,23 @@ struct Access_00476710 : Vec_004739b0 {
 };
 
 // FUNCTION: 0x472630
-void __stdcall EmitSmoke(Vec3_00472630* pos, int param_2, int param_3, short index)
+void __stdcall EmitSmoke(Vec3_00472630* pos, int emitPeriod, int lifetime, short index)
 {
     ParticleLists* owner = g_game->lists;
     SmokeParticles* e = new SmokeParticles;
     if (e) {
-        e->Init((Vec3_00474d50*)pos, 0, param_2, 0, param_3, 0);
+        e->Init((Vec3_00474d50*)pos, 0, emitPeriod, 0, lifetime, 0);
         owner->Add(index, e);
     }
 }
 
 // FUNCTION: 0x472720
-void __stdcall EmitTimedBlackSmoke(Vec3_00472720* pos, int param_2, int param_3, short index)
+void __stdcall EmitTimedBlackSmoke(Vec3_00472720* pos, int emitPeriod, int lifetime, short index)
 {
     ParticleLists* owner = g_game->lists;
     SmokeParticles* e = new SmokeParticles;
     if (e) {
-        e->Init((Vec3_00474d50*)pos, 0, param_2, 0, param_3, 1);
+        e->Init((Vec3_00474d50*)pos, 0, emitPeriod, 0, lifetime, 1);
         owner->Add(index, e);
     }
 }

@@ -33,7 +33,7 @@ public:
     ~MovementClass();
     void ReadMoveInfo(Source_00440340* src);
     void ResizePassMap(unsigned int w, unsigned int h);
-    void SetPassMapCell(int param_1, int param_2, int param_3);
+    void SetPassMapCell(int x, int y, int value);
     void RefreshPassMap(Point16 a, Point16 b);
     void RefreshMovedUnits(Object_00440af0* p);
     void RefreshUnitIfStale(Object_00440af0* p);

@@ -250,16 +250,16 @@ void __stdcall GetCursorPosition(int* x, int* y)
 }
 
 // FUNCTION: 0x4c2340
-void __stdcall GetCurrentMouseEvent(int* param_1)
+void __stdcall GetCurrentMouseEvent(int* event)
 {
     int ptr = (int)GetDisplay();
-    memcpy(param_1, (void*)(ptr + 0x196), 6 * 4);
+    memcpy(event, (void*)(ptr + 0x196), 6 * 4);
 }
 
 // FUNCTION: 0x4c2360
-void __stdcall SetCurrentMouseEvent(int* param_1)
+void __stdcall SetCurrentMouseEvent(int* event)
 {
     int eax = (int)GetDisplay();
     int edi = eax + 0x196;
-    memcpy((void*)edi, param_1, 24);
+    memcpy((void*)edi, event, 24);
 }

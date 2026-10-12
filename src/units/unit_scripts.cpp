@@ -367,11 +367,11 @@ struct Obj_0043e3c0 {
 // Looks up the "SweetSpot" entry in the object's name table at +0x9a and
 // passes the value found on to GetPieceCenter.
 // FUNCTION: 0x43e3c0
-void __stdcall GetSweetSpot(Obj_0043e3c0* obj, int param_2)
+void __stdcall GetSweetSpot(Obj_0043e3c0* obj, int out)
 {
     int value = 0;
     obj->table->QueryScript("SweetSpot", &value, 0, 0, 0);
-    GetPieceCenter((Obj_0043e0b0*)obj, (Vec3*)param_2, value);
+    GetPieceCenter((Obj_0043e0b0*)obj, (Vec3*)out, value);
 }
 
 // Asks the unit's script for its nano piece and returns that piece's world

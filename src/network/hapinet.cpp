@@ -310,11 +310,11 @@ char* GetEnumSessionsErrorText()
 }
 
 // FUNCTION: 0x4c9790
-int __stdcall HAPINET_guaranteepackets(int param_1)
+int __stdcall HAPINET_guaranteepackets(int enable)
 {
     HapinetTrace("HAPINET_guaranteepackets\n");
     int result = g_guaranteePackets;
-    g_guaranteePackets = param_1;
+    g_guaranteePackets = enable;
     return result;
 }
 
@@ -764,10 +764,10 @@ int __stdcall HAPINET_initlobbiedconnection(Net_4c97b0* net)
 // HAPINET_initconnection: opens the session through slot 38 of the DirectPlay
 // interface at +0x4c5.
 // FUNCTION: 0x4ca590
-int __stdcall HAPINET_initconnection(Net_4c97b0* param_1, int* param_2)
+int __stdcall HAPINET_initconnection(Net_4c97b0* net, int* connection)
 {
     HapinetTrace((int)"HAPINET_initconnection\n");
-    return param_1->dp->Slot38(*param_2, 0) >= 0;
+    return net->dp->Slot38(*connection, 0) >= 0;
 }
 
 // The original calls this out of line from HAPINET_getconnections; in
@@ -944,15 +944,15 @@ int __stdcall HAPINET_getplayeraddress(Net_004ca900* net, unsigned long player, 
 
 // Returns the lobby object at +0x4c9.
 // FUNCTION: 0x4ca9d0
-int __stdcall GetCreatedLobbyInterface(Net_4c97b0* param_1)
+int __stdcall GetCreatedLobbyInterface(Net_4c97b0* net)
 {
-    return (int)param_1->created;
+    return (int)net->created;
 }
 
 // FUNCTION: 0x4ca9e0
-int __stdcall GetSessionGuidInstance(int param_1)
+int __stdcall GetSessionGuidInstance(int net)
 {
-    return param_1 + 0x465;
+    return net + 0x465;
 }
 
 // FUNCTION: 0x4ca9f0
@@ -974,8 +974,8 @@ int __stdcall RIReport(int arg1, int arg2, int arg3, int arg4, int arg5, int arg
 }
 
 // FUNCTION: 0x4caa20
-void __stdcall RISetCallbacks(int param_1, int param_2)
+void __stdcall RISetCallbacks(int report, int notify)
 {
-    g_reporterReport = param_1;
-    g_reporterNotify = param_2;
+    g_reporterReport = report;
+    g_reporterNotify = notify;
 }

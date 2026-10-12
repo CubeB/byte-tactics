@@ -26,7 +26,7 @@ void __stdcall HAPI_CloseFile(FileHandle* file);
 char* __stdcall Translate(char* text);
 void* __stdcall LoadGaf(char* path);
 void* __stdcall GetGafFrame(void* table, int index);
-void __cdecl GameFreeThunk(int* param_1);
+void __cdecl GameFreeThunk(int* p);
 
 // The tab writer at 0x4accd0 (dialogs_4abb20.cpp), inlined where the original
 // inlined it. The out-of-line WriteTabs above is the same function called by

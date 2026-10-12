@@ -85,17 +85,17 @@ public:
         lists[index].push_back(*(Elem_00473500*)&p);
     }
 
-    void AddSmoke(Vec3_00474d50* param_1, int param_2, int param_3, int param_4,
-                      int param_5, short index, int param_7);
+    void AddSmoke(Vec3_00474d50* pos, int limit, int emitPeriod, int holdPeriod,
+                      int lifetime, short index, int alt);
 };
 
 // FUNCTION: 0x471820
-void ParticleLists::AddSmoke(Vec3_00474d50* param_1, int param_2, int param_3,
-                                  int param_4, int param_5, short index, int param_7)
+void ParticleLists::AddSmoke(Vec3_00474d50* pos, int limit, int emitPeriod,
+                                  int holdPeriod, int lifetime, short index, int alt)
 {
     SmokeParticles* p = new SmokeParticles;
     if (p) {
-        p->Init(param_1, param_2, param_3, param_4, param_5, param_7);
+        p->Init(pos, limit, emitPeriod, holdPeriod, lifetime, alt);
         Add(index, p);
     }
 }

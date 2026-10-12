@@ -360,10 +360,10 @@ int __stdcall SetPageFlipping(int enable)
 }
 
 // FUNCTION: 0x4c61f0
-void __stdcall SetRestoreSurface(int param_1)
+void __stdcall SetRestoreSurface(int surface)
 {
     Display* obj = GetDisplay();
-    obj->activeSurface = (Surface*)param_1;
+    obj->activeSurface = (Surface*)surface;
 }
 
 // Locks the screen into a local surface, blits the bitmap at display+0x98
@@ -683,22 +683,22 @@ int __stdcall FillSurface(Surface* surface, int colour)
 }
 
 // FUNCTION: 0x4c69a0
-void __stdcall SetOffscreenSurface(int param_1)
+void __stdcall SetOffscreenSurface(int surface)
 {
     Display* d = GetDisplay();
     d->useOverrideSurface = 1;
-    d->overrideSurface = (Surface*)param_1;
+    d->overrideSurface = (Surface*)surface;
 }
 
 // FUNCTION: 0x4c69c0
-void __stdcall ResetClipRect(int* param_1)
+void __stdcall ResetClipRect(int* surface)
 {
     Rect q;
     q.left = 0;
     q.top = 0;
-    q.right = param_1[0] - 1;
-    q.bottom = param_1[1] - 1;
-    *(Rect*)(param_1 + 7) = q;
+    q.right = surface[0] - 1;
+    q.bottom = surface[1] - 1;
+    *(Rect*)(surface + 7) = q;
 }
 
 // Allocates an image of width x height bytes with its header (pixels follow
@@ -782,10 +782,10 @@ void Surface::SetClipRect(Rect r)
 }
 
 // FUNCTION: 0x4c6b40
-void __stdcall SetDisplayFieldE4(int param_1)
+void __stdcall SetDisplayFieldE4(int value)
 {
     Display* d = GetDisplay();
-    d->field_e4 = param_1;
+    d->field_e4 = value;
 }
 
 // FUNCTION: 0x4c6b60
@@ -1137,7 +1137,7 @@ void __cdecl BlitSpan32(unsigned char* dest, unsigned char* src, int width, int 
 void __cdecl BlitSpan16(unsigned char* dest, unsigned char* src, int width, int y, int x, int rowstep, int colstep);
 
 // FUNCTION: 0x4c7310
-void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, GafFrame* info)
+void __stdcall DrawQuadRow(int row, int* rect, Surface* surf, GafFrame* info)
 {
     unsigned char* dest = (unsigned char*)surf->pixels;
     unsigned char* src = info->pixelsOrLayers;
@@ -1161,7 +1161,7 @@ void __stdcall DrawQuadRow(int param_1, int* rect, Surface* surf, GafFrame* info
     if (width > 0) {
         y = rect[2];
         x = rect[3];
-        dest += surf->pitch * param_1 + rect[0];
+        dest += surf->pitch * row + rect[0];
         switch (info->width) {
         case 0x80:
             BlitSpan128(dest, src, width, y, x, rowstep, colstep);
@@ -1412,12 +1412,12 @@ unlock:
 // MATCH. Preserve the native 0x80 case fallthrough into the 0x40 scaler.
 // Unused here: real functions declared to keep the file's symbol count.
 int __stdcall BroadcastPacket(int id, unsigned char* packet, int size);
-void __stdcall AddCdActivitySample(int param_1);
+void __stdcall AddCdActivitySample(int value);
 int AllocScoreTables();
 
 // Unused here: real functions declared to keep the file's symbol count.
 void __stdcall BuildEntryGuiName(char* dest, unsigned short index, int n);
-int __stdcall AddNetPlayer(int param_1);
+int __stdcall AddNetPlayer(int id);
 void ApplyBrightnessAndVolume();
 
 // FUNCTION: 0x4c7a20

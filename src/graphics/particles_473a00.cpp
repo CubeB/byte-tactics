@@ -99,7 +99,7 @@ public:
     int endTime;                       // +0x2c, the tick it expires
 
     void Step();
-    void DrawParticle(int param_1, short x, short y);
+    void DrawParticle(int dest, short x, short y);
     int IsExpired(int value);
 };
 #pragma pack(pop)
@@ -107,7 +107,7 @@ public:
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 
 // FUNCTION: 0x473a00
-void NanoParticle::DrawParticle(int param_1, short x, short y)
+void NanoParticle::DrawParticle(int dest, short x, short y)
 {
     Rect_004b0510 r;
     r.x1 = (short)(posw.x - x) + 0x80;
@@ -134,6 +134,6 @@ void NanoParticle::DrawParticle(int param_1, short x, short y)
     }
 
     if (visible)
-        FillRectangle((void*)param_1, &r, flags);
+        FillRectangle((void*)dest, &r, flags);
 }
 

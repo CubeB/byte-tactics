@@ -56,7 +56,7 @@ extern int g_usePacketManager;
 extern PacketManager g_packetManager;
 
 int __stdcall HAPI_FileLengthByName(char* path);
-void __stdcall OpenMessageBox(char* dest, char* text, int param_3, int param_4, int param_5);
+void __stdcall OpenMessageBox(char* dest, char* text, int wrapWidth, int centre, int autoHeight);
 
 void __stdcall HAPI_ReadFileAt(char* filename, void* buffer, int offset, int size);
 void __cdecl GameFreeThunk(void* p);
@@ -271,16 +271,16 @@ void FreeOtaEnumCacheAndMission()
 }
 
 // FUNCTION: 0x434bf0
-int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
+int __stdcall LoadMapList(void** out, int param_2, int param_3)
 {
     if (g_otaEnumFileList != 0) {
-        if (param_1 != 0) {
+        if (out != 0) {
             if (param_3 != 0 && g_otaEnumCacheComplete == 0) {
-                *param_1 = g_otaEnumFileList;
+                *out = g_otaEnumFileList;
                 g_otaEnumFileList = 0;
             } else {
                 char* p = (char*)GameAllocIgnoreTag("MULTI MAPS", g_otaEnumFileListBytes);
-                *param_1 = p;
+                *out = p;
                 memcpy(p, g_otaEnumFileList, g_otaEnumFileListBytes);
             }
         }
@@ -342,7 +342,7 @@ int __stdcall LoadMapList(void** param_1, int param_2, int param_3)
     SetCursorMode(0x13);
     if (g_otaEnumCacheComplete == 0)
         g_otaEnumCacheComplete = (param_2 == 0);
-    int result = LoadMapList(param_1, param_2, param_3);
+    int result = LoadMapList(out, param_2, param_3);
     return result;
 }
 
@@ -568,7 +568,7 @@ int Mission::CountMissions()
     return n;
 }
 
-// Fills *param_1 with the mission list and returns how many missions there
+// Fills *out with the mission list and returns how many missions there
 // are. Neighbours 0x4356f0 and 0x435980 share the same layout.
 // FUNCTION: 0x435760
 int Mission::BuildMissionList(char** out)
@@ -720,10 +720,10 @@ int Mission::LoadMissionByName(char* map)
 }
 
 // FUNCTION: 0x435c00
-int Mission::SelectMission(int param_1)
+int Mission::SelectMission(int index)
 {
     tntChecksum = 0;
-    missionIndex = param_1;
+    missionIndex = index;
     return LoadMission(0);
 }
 
@@ -786,17 +786,17 @@ int Mission::AdvanceMission()
 // Makes sure the map list at +0xd24 is loaded (dropping it first when the
 // multiplayer flag changes back to 0), then passes it to LoadMissionByName.
 // FUNCTION: 0x435d30
-void Mission::RefreshMapList(int param_1)
+void Mission::RefreshMapList(int multiplayer)
 {
-    if (multi != 0 && param_1 == 0 && mapList != 0) {
+    if (multi != 0 && multiplayer == 0 && mapList != 0) {
         GameFreeThunk((int*)mapList);
         mapList = 0;
     }
     if (mapList == 0) {
-        mapCount = LoadMapList(&mapList, param_1, param_1);
+        mapCount = LoadMapList(&mapList, multiplayer, multiplayer);
     }
     LoadMissionByName(mapList);
-    multi = param_1;
+    multi = multiplayer;
 }
 
 // Loads the current mission: resets the mission state, finds the

@@ -168,7 +168,7 @@ public:
     virtual int GetUnitValue(int which, int a, int b, int c, int d);
     virtual int IsCarryingUnit(int id);
     virtual int GetTransporterId();
-    void SetObjectState(int state);
+    void SetObjectState(int newState);
 };
 
 // Slot 17 of UnitScript (vtable 0x4fd698). The switch over the property id
@@ -336,9 +336,9 @@ void UnitScript::SetPieceRotation(int index, int slot, int v)
 }
 
 // FUNCTION: 0x480d40
-void UnitScript::SetObjectState(int param_1)
+void UnitScript::SetObjectState(int newState)
 {
-    state = (ObjectState*)param_1;
+    state = (ObjectState*)newState;
 }
 
 // FUNCTION: 0x480d50

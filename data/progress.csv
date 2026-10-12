@@ -109,8 +109,8 @@ address,size,file,symbol,status,similarity
 0x408f30,546,src/ai/ai_player_408f30.cpp,?insert@?$vector@PAUUnit@@V?$allocator@PAUUnit@@@std@@@std@@QAEXPAPAUUnit@@IABQAU3@@Z,matched,100.0
 0x409160,783,src/ai/ai_player.cpp,??0PlayerAI@@QAE@E@Z,matched,100.0
 0x409470,176,src/ai/ai_player.cpp,?InitUnitTables@PlayerAI@@QAEXXZ,matched,100.0
-0x409520,166,src/ai/ai_player.cpp,?RateWeapons@@YGHPAUUnitDef@@@Z,matched,100.0
-0x4095d0,346,src/ai/ai_player.cpp,?RateUnitType@@YGHPAUUnitDef@@@Z,matched,100.0
+0x409520,166,src/ai/ai_player.cpp,?RateWeapons@@YGHPAVUnitDef@@@Z,matched,100.0
+0x4095d0,346,src/ai/ai_player.cpp,?RateUnitType@@YGHPAVUnitDef@@@Z,matched,100.0
 0x409730,1678,src/ai/ai_player_409730.cpp,?ComputeBaseWeights@PlayerAI@@QAEXXZ,matched,100.0
 0x409dc0,208,src/ai/ai_player.cpp,?ScaleUnitWeights@@YGXHPAIMH@Z,matched,100.0
 0x409e90,144,src/ai/ai_player.cpp,?SetUnitLimits@@YGXHPAIHH@Z,matched,100.0
@@ -119,9 +119,9 @@ address,size,file,symbol,status,similarity
 0x40a040,185,src/ai/ai_player.cpp,?ReparseAiWeightScriptsIfLimitNotSticky@@YGXH@Z,matched,100.0
 0x40a100,75,src/ai/ai_player.cpp,?ResetAIPlayers@@YGXXZ,matched,100.0
 0x40a150,265,src/ai/ai_player.cpp,?InitPlacementGrid@PlayerAI@@QAEXXZ,matched,100.0
-0x40a260,834,src/ai/ai_player.cpp,?FindCellNearFeatures@PlayerAI@@QAE_NPAUUnitDef@@PAUVec3@@PAV?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@HPAUPoint16@@@Z,matched,100.0
+0x40a260,834,src/ai/ai_player.cpp,?FindCellNearFeatures@PlayerAI@@QAE_NPAVUnitDef@@PAUVec3@@PAV?$vector@UElem_0040cc40@@V?$allocator@UElem_0040cc40@@@std@@@std@@HPAUPoint16@@@Z,matched,100.0
 0x40a5b0,19,src/ai/ai_player.cpp,??0Elem_0040cc40@@QAE@ABU0@@Z,matched,100.0
-0x40a5d0,473,src/ai/ai_player.cpp,?FindRandomPlacementCell@PlayerAI@@QAE_NPAUUnitDef@@PAUVec3@@HPAUPoint16@@@Z,matched,100.0
+0x40a5d0,473,src/ai/ai_player.cpp,?FindRandomPlacementCell@PlayerAI@@QAE_NPAVUnitDef@@PAUVec3@@HPAUPoint16@@@Z,matched,100.0
 0x40a7b0,644,src/ai/ai_player.cpp,?BuildFeatureCells@PlayerAI@@QAEXXZ,matched,100.0
 0x40aa40,725,src/ai/player_ai.cpp,?RefreshUnitLists@PlayerAI@@QAEXXZ,matched,100.0
 0x40ad20,73,src/ai/ai_player.cpp,?UpdateEveryThirtyTicks@PlayerAI@@QAEXXZ,matched,100.0
@@ -140,7 +140,7 @@ address,size,file,symbol,status,similarity
 0x40bb00,686,src/ai/ai_player.cpp,?GetBuildRating@@YGHHG@Z,matched,100.0
 0x40bdb0,244,src/ai/ai_player.cpp,?ChooseBuildOption@@YGGIPAUUnit@@@Z,matched,100.0
 0x40beb0,302,src/ai/ai_player.cpp,?MoveToward@@YG?AUVec3_0040beb0@@PBU1@0H@Z,matched,100.0
-0x40bfe0,535,src/ai/ai_player.cpp,?FindBuildPosition@@YGHHPBUVec3@@PAUUnitDef@@PAU1@@Z,matched,100.0
+0x40bfe0,535,src/ai/ai_player.cpp,?FindBuildPosition@@YGHHPBUVec3@@PAVUnitDef@@PAU1@@Z,matched,100.0
 0x40c200,34,src/ai/ai_player.cpp,?GetUnitCount@@YGHHI@Z,matched,100.0
 0x40c230,17,src/ai/ai_player.cpp,?GetBuilderCount@@YGHH@Z,matched,100.0
 0x40c250,664,src/ai/ai_player.cpp,?DumpPlayerAI@@YGXHPAU_iobuf@@@Z,matched,100.0

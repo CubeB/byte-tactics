@@ -335,24 +335,10 @@ struct Unit_0046e330 {
     unsigned int key;                  // +0x13e
 };
 
-struct Data_0046e0b0 {
-    char unknown_0[0x94];
-    unsigned char kind;                  // +0x94
-    char unknown_95[0xa7 - 0x95];
-    unsigned char versionMajor;          // +0xa7
-    unsigned char versionMinor;          // +0xa8
-};
-
-struct Player_0046e0b0 {                // 0x14b bytes
-    int active;                         // +0x0
-    char unknown_4[0x27 - 0x4];
-    Data_0046e0b0* data;                 // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    unsigned char type;                  // +0x73
-    char unknown_74[0x14b - 0x74];
-};
-
 #pragma pack(pop)
+
+#include "player.h"
+#include "player_info.h"
 
 #pragma pack(push, 1)
 // The 0xe-byte command packet of type 0x1a that UnitSync sends and
@@ -562,7 +548,7 @@ public:
 int __cdecl GetLocalHumanDpid();
 unsigned int GetHostDpid();
 void __stdcall SendPacketToPlayer(int a, unsigned int b, void* c, int d);
-Player_0046e0b0* __stdcall FindPlayerByDpid(int id);
+Player* __stdcall FindPlayerByDpid(int id);
 int __stdcall ComputeUnitScriptChecksum(UnitDef* def);
 void ProtectUnitDefsReadWrite();
 void ProtectUnitDefsReadOnly();
@@ -1105,10 +1091,10 @@ void UnitSync::CheckUnitAvailable(unsigned int key, int y)
         for (PlayerSync_0046e0b0* e = players.begin(); e != players.end(); e++) {
             int flag;
             if (y != 0) {
-                Player_0046e0b0* pl = FindPlayerByDpid(e->id);
+                Player* pl = FindPlayerByDpid(e->id);
                 if (pl == 0)
                     break;
-                flag = pl->data->versionMajor >= 2 ? 1 : (pl->data->versionMajor == 1 && pl->data->versionMinor >= 2 ? 1 : 0);
+                flag = pl->info->versionMajor >= 2 ? 1 : (pl->info->versionMajor == 1 && pl->info->versionMinor >= 2 ? 1 : 0);
             } else {
                 flag = 0;
             }
@@ -1181,11 +1167,11 @@ int UnitSync::AllPlayersSynced()
     if (p == players.end())
         return 1;
     for (; p != players.end(); p++) {
-        Player_0046e0b0* pl = FindPlayerByDpid(p->id);
+        Player* pl = FindPlayerByDpid(p->id);
         if (pl != 0) {
             // pl->active is tested again in the second test: the original
             // reloads it rather than reusing the first test's result.
-            if (pl->active != 0 && pl->type == 3 && pl->data->kind == 2)
+            if (pl->active != 0 && pl->type == 3 && pl->info->kind == 2)
                 continue;
             if (pl->active != 0 && pl->type == 2)
                 continue;
@@ -1209,10 +1195,10 @@ int UnitSync::IsPlayerSynced(int id)
 {
     if (direct == 0)
         return 0;
-    Player_0046e0b0* player;
+    Player* player;
     if (disabled != 0
         || (player = FindPlayerByDpid(id)) == 0
-        || (player->active != 0 && player->type == 3 && player->data->kind == 2)
+        || (player->active != 0 && player->type == 3 && player->info->kind == 2)
         || (player->active != 0 && player->type == 2))
         return 1;
     for (std::vector<PlayerSync_0046e0b0>::iterator it = players.begin(); it != players.end(); ++it) {
@@ -1456,9 +1442,6 @@ template<> inline void allocator<Elem_0046faf0>::destroy(Elem_0046faf0* p)
 struct Elem_004702a0 {
     int unknown_0;
 };
-
-// Unused here: real functions declared to keep the file's symbol count (docs/c2-regalloc.md).
-void RegisterUnitOrders(void);
 
 int* __stdcall CopyDwordRangeOverwrite(int* first, int* last, int* dest);
 

@@ -14,11 +14,6 @@ char IsGonzo();
 char IsMemSet();
 int GetMemSetValue();
 void SetMemFussyDefault(void);
-int GetDebugLibInstance(void);
-int GetDebugLibVersion(void);
-void AbortProgram(void);
-void ResetAllocStats(void);
-void* GetBlockMap();
 
 #include "unit_def.h"
 
@@ -78,12 +73,7 @@ struct Game {
     unsigned char seaLevel;            // +0x1427f
 };
 
-struct Player_0048b090 {
-    int active;                        // +0x0
-    int id;                            // +0x4
-    char unknown_8[0x73 - 0x8];
-    char kind;                         // +0x73, 1 or 2 for a real player
-};
+#include "../network/player.h"
 
 struct ActivateFlagsPacket {
     unsigned char type;                // +0x0
@@ -126,7 +116,7 @@ public:
     Node_00489a90* cargo;           // +0x8a, list head of the cargo count
     char unknown_8e[4];
     UnitDef* def;                      // +0x92
-    Player_0048b090* player;           // +0x96
+    Player* player;                    // +0x96
     CobScript* script;                 // +0x9a
     void* state;                       // +0x9e
     PathOrderAttach* head;             // +0xa2
@@ -370,7 +360,7 @@ void Unit::SetStateBits(int mask, int set)
                 QueueUnitSpeech(this, 0xf, 0);
             MarkSelectionOrdersDirty(this);
             if (player->active != 0) {
-                if (player->kind == 1 || player->kind == 2) {
+                if (player->type == 1 || player->type == 2) {
                     ActivateFlagsPacket packet;
                     packet.type = 0x11;
                     packet.unitId = id;

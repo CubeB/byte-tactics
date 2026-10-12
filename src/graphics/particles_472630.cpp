@@ -182,23 +182,6 @@ struct Pos_00473590 {
     short y;                       // +0x08 (record +0x0e)
 };
 
-struct MapSize_00473590 {
-    unsigned int width;            // +0x80
-    unsigned int height;           // +0x84
-
-    int Contains(int col, int row)
-    {
-        return (unsigned int)col < width && (unsigned int)row < height;
-    }
-};
-
-struct Player_00473590 {
-    char unknown_0[0x7c];
-    unsigned char* seen;           // +0x7c
-    MapSize_00473590 size;         // +0x80
-    char unknown_88[0x14b - 0x88];
-};
-
 // The integer halves of the 16.16 position.
 struct Pos_004739b0 {
     char unknown_0[0x2];
@@ -216,98 +199,6 @@ struct Rect_004b0510 {
     int y2;                          // +0xc
 };
 
-struct MapSize_00473a00 {
-    unsigned int width;              // +0x0
-    unsigned int height;             // +0x4
-
-    int Contains(unsigned int tx, unsigned int ty)
-    {
-        return tx < width && ty < height;
-    }
-};
-
-struct ByteMap_00473a00 {
-    unsigned char* data;             // +0x0
-    MapSize_00473a00 size;           // +0x4
-
-    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
-};
-
-struct Player_00473a00 {
-    char unknown_0[0x7c];
-    ByteMap_00473a00 explored;       // +0x7c
-    char unknown_88[0x14b - 0x88];   // stride 331
-};
-
-struct MapSize_004745e0 {
-    unsigned int width;             // +0x80
-    unsigned int height;            // +0x84
-
-    int Contains(int col, int row)
-    {
-        return (unsigned int)col < width && (unsigned int)row < height;
-    }
-};
-
-struct ByteMap_004745e0 {
-    unsigned char* data;            // +0x7c
-    MapSize_004745e0 size;          // +0x80
-
-    unsigned char Get(int tx, int ty) { return data[size.width * ty + tx]; }
-};
-
-struct Map_004745e0 {               // one entry of g_game->players
-    char unknown_0[0x7c];
-    ByteMap_004745e0 explored;      // +0x7c
-    char unknown_88[0x14b - 0x88];
-};
-
-struct MapSize_00474b80 {
-    unsigned int width;            // +0x80
-    unsigned int height;           // +0x84
-
-    int Contains(int col, int row)
-    {
-        return (unsigned int)col < width && (unsigned int)row < height;
-    }
-};
-
-struct ByteMap_00474b80 {
-    unsigned char* data;           // +0x7c
-    MapSize_00474b80 size;         // +0x80
-
-    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
-};
-
-struct Player_00474b80 {
-    char unknown_0[0x7c];
-    ByteMap_00474b80 explored;     // +0x7c
-    char unknown_88[0x14b - 0x88];
-};
-
-struct MapSize_00475470 {
-    unsigned int width;                // +0x0
-    unsigned int height;               // +0x4
-    int Contains(unsigned int tx, unsigned int ty)
-    {
-        return tx < width && ty < height;
-    }
-};
-
-struct ByteMap_00475470 {
-    unsigned char* data;               // +0x0
-    MapSize_00475470 size;             // +0x4
-    int Index(int x, int y) { return size.width * y + x; }
-    // Get goes through Index: the extra register shapes both arms.
-    unsigned char Get(int x, int y) { return data[Index(x, y)]; }
-};
-
-struct Player_00475470 {
-    char unknown_0[0x7c];
-    ByteMap_00475470 explored;         // +0x7c
-    char unknown_88[0x14b - 0x88];
-};
-
 struct Position_00475150 {             // 16.16 fixed point; only high words read
     short xFrac;
     short x;                           // +0x2
@@ -318,18 +209,12 @@ struct Position_00475150 {             // 16.16 fixed point; only high words rea
 };
 #pragma pack(pop)
 
+#include "../network/player.h"
+
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1b63];
-    // The five partial views of one player slot the inlined fog tests below
-    // were matched with; one file cannot hold five of the header's type.
-    union {
-        Player_00473590 players_00473590[10];   // +0x1b63, stride 0x14b
-        Player_00473a00 players_00473a00[10];
-        Map_004745e0 players_004745e0[10];
-        Player_00474b80 players_00474b80[10];
-        Player_00475470 players_00475470[10];
-    };
+    Player players[10];               // +0x1b63
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x14263 - 0x2a44];
@@ -365,67 +250,6 @@ int __stdcall GetGafFrameCount(void* ptr);
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 int __stdcall GetGroundHeight(void* pos);
 
-// The second arm of the spark draws, inlined. The two player parameters are
-// not a typo: the Contains test reads the map width through `p` and the index
-// reads it through `q`, two address nodes, which is what stops the width load
-// folding into the imul and keeps the original's `mov edx,[edx+0x80]; imul
-// edx,ecx` pair.
-static inline int IsSeen_00473590(Player_00473590* p, Player_00473590* q, int col, int row)
-{
-    if (!p->size.Contains(col, row))
-        return 0;
-    return (g_game->visibilityMask[q->size.width * row + col] &
-            (1 << g_game->playerIndex)) != 0;
-}
-
-// The allocation lever, as at 0x473a00: the wrap pins the prologue, the
-// pre-branch block and the mask arm's register choice without emitting a
-// single extra instruction.
-static inline int Identity_00473590(int v) { return v; }
-
-static inline int Identity_00473a00(int v) { return v; }
-
-static inline int IsSeen_00473a00(Player_00473a00* p, Player_00473a00* q, int col, int row)
-{
-    if (!p->explored.size.Contains((unsigned int)col, (unsigned int)row))
-        return 0;
-    return (g_game->visibilityMask[q->explored.size.width * row + col] &
-            (1 << g_game->playerIndex)) != 0;
-}
-
-static inline int Identity_00474170(int v) { return v; }
-
-static inline int IsSeen_00474170(Player_00473590* p, Player_00473590* q, int col, int row)
-{
-    if (!p->size.Contains(col, row))
-        return 0;
-    return (g_game->visibilityMask[q->size.width * row + col] &
-            (1 << g_game->playerIndex)) != 0;
-}
-
-// The pin the earlier passes were looking for: a helper that returns its
-// argument. It emits no instruction, but MSVC 5 allocates what it returns as a
-// fresh live range, which is what holds the frame in place.
-static inline int Identity_004745e0(int v) { return v; }
-
-static inline int IsSeen_004745e0(Map_004745e0* p, Map_004745e0* q, int col, int row)
-{
-    if (!p->explored.size.Contains(col, row))
-        return 0;
-    return (g_game->visibilityMask[q->explored.size.width * row + col] &
-            (1 << g_game->playerIndex)) != 0;
-}
-
-static inline int Identity_00474b80(int v) { return v; }
-
-static inline int IsSeen_00474b80(Player_00474b80* p, Player_00474b80* q, int col, int row)
-{
-    if (!p->explored.size.Contains(col, row))
-        return 0;
-    return (g_game->visibilityMask[q->explored.size.width * row + col] &
-            (1 << g_game->playerIndex)) != 0;
-}
-
 #pragma pack(push, 1)
 struct Pos_004745e0 {
     short x;                        // +0
@@ -433,31 +257,6 @@ struct Pos_004745e0 {
     short height;                   // +4
     char unknown_6[2];
     short y;                        // +8
-
-    // Is this record's position inside the explored byte map of the local
-    // player (map flags bit 1 set), or inside their bit of the shared visibility
-    // mask (bit clear)? The two arms keep their own fail block, as the original
-    // does.
-    int Visible()
-    {
-        Map_004745e0* p = &g_game->players_004745e0[g_game->playerIndex];
-        Map_004745e0* p2 = &g_game->players_004745e0[g_game->playerIndex];
-        int visible;
-        if ((g_game->mapFlags & 2) == 2) {
-            int col = x >> 5;
-            int row = (y - (height >> 1)) >> 5;
-            if (p->explored.size.Contains(col, row) &&
-                p->explored.Get(col, row) != 0)
-                visible = 1;
-            else
-                visible = 0;
-        } else {
-            int col = x >> 5;
-            int row = (y - (height >> 1)) >> 5;
-            visible = Identity_004745e0(IsSeen_004745e0(p, p2, col, row));
-        }
-        return visible;
-    }
 };
 #pragma pack(pop)
 

@@ -872,7 +872,7 @@ address,size,file,symbol,status,similarity
 0x444ea0,616,src/frontend/multi.cpp,?OpenMultiMapSelector@@YGXXZ,matched,100.0
 0x445110,495,src/frontend/multi.cpp,?OpenLogoSelectDialog@@YGXXZ,matched,100.0
 0x445300,152,src/frontend/multi.cpp,?ExpandGadgetTextToType5@@YGXPAUGadget@@@Z,matched,100.0
-0x4453a0,176,src/frontend/multi.cpp,?SwapPlayerSlots@@YGXPAUPlayer_00444930@@0@Z,matched,100.0
+0x4453a0,176,src/frontend/multi.cpp,?SwapPlayerSlots@@YGXPAUPlayer@@0@Z,matched,100.0
 0x445450,341,src/frontend/multi.cpp,?CompactActivePlayerSlots@@YGXXZ,matched,100.0
 0x4455b0,1468,src/frontend/multi.cpp,?BuildPlayerSlotGadgets@@YAXXZ,matched,100.0
 0x445b70,249,src/frontend/multi.cpp,?UpdateMaxUnitsText@@YGXPAUGui@@H@Z,matched,100.0
@@ -888,13 +888,13 @@ address,size,file,symbol,status,similarity
 0x446450,127,src/frontend/multi.cpp,?UpdateWatchingGadgets@@YGXXZ,matched,100.0
 0x4464d0,475,src/frontend/multi.cpp,?HandleControlDialogClick@@YGXPAUGui@@@Z,matched,100.0
 0x4466b0,262,src/frontend/multi.cpp,?OpenControlDialog@@YGXXZ,matched,100.0
-0x4467c0,43,src/frontend/multi.cpp,?ArePlayersAllied@@YG_NPAUPlayer_00444930@@0@Z,matched,100.0
+0x4467c0,43,src/frontend/multi.cpp,?ArePlayersAllied@@YG_NPAUPlayer@@0@Z,matched,100.0
 0x4467f0,204,src/frontend/multi.cpp,?CountPlayersInAlliance@@YGHH@Z,matched,100.0
 0x4468c0,248,src/frontend/multi.cpp,?AreAllPlayersInOneAlliance@@YGDXZ,matched,100.0
 0x4469c0,137,src/frontend/multi.cpp,?FindNextAlly@@YGHHH@Z,matched,100.0
 0x446a50,537,src/frontend/multi.cpp,?RefreshTeamIcons@@YGXXZ,matched,100.0
 0x446c70,529,src/frontend/multi.cpp,?SyncMutualAlliances@@YGXXZ,matched,100.0
-0x446e90,177,src/frontend/multi.cpp,?ClearAlliances@@YGXPAUPlayer_00444930@@@Z,matched,100.0
+0x446e90,177,src/frontend/multi.cpp,?ClearAlliances@@YGXPAUPlayer@@@Z,matched,100.0
 0x446f50,88,src/frontend/multi.cpp,?CyclePlayerAlliance@@YGXH@Z,matched,100.0
 0x446fb0,414,src/frontend/multi.cpp,?RebuildAllyList@@YGXXZ,matched,100.0
 0x447150,552,src/frontend/multi.cpp,?HandleAlliesClick@@YGXPAUGui@@@Z,matched,100.0

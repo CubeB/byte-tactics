@@ -86,12 +86,7 @@ struct Body_0048a1e0 {
     int age;                           // +0x2a
 };
 
-struct Player_0048b090 {
-    int active;                        // +0x0
-    int id;                            // +0x4
-    char unknown_8[0x73 - 0x8];
-    unsigned char type;                // +0x73, 1 or 2 for a real player, 3 spreads damage
-};
+#include "../network/player.h"
 
 class Unit {
 public:
@@ -114,7 +109,7 @@ public:
     } pos;
     char unknown_76[0x92 - 0x76];
     UnitType* def;                     // +0x92
-    Player_0048b090* player;           // +0x96
+    Player* player;                    // +0x96
     CobScript* script;                 // +0x9a
     char unknown_9e[0xa2 - 0x9e];
     union {
@@ -546,7 +541,7 @@ void __stdcall ApplyUnitDamage(UnitDamagePacket* ev)
         int ticks = ev->amount;
         if (unit->flags & 0x10000000) {
             if (!(unit->flags & 0x4000)) {
-                Player_0048b090* owner = unit->player;
+                Player* owner = unit->player;
                 if (owner->active && (owner->type == 1 || owner->type == 2)) {
                     if (!(unit->def->f241 & 0x4000000)) {
                         MissionType kind(s_paralyze_00508d80);
@@ -597,7 +592,7 @@ void __stdcall ParalyzeUnit(Unit* unit, int ticks)
         return;
     if (unit->flags & 0x4000)
         return;
-    Player_0048b090* owner = unit->player;
+    Player* owner = unit->player;
     if (!owner->active)
         return;
     if (owner->type == 1 || owner->type == 2) {

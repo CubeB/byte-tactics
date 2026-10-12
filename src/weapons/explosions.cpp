@@ -8,6 +8,7 @@
 #include <minmax.h>
 #include <setjmp.h>
 
+// Own Vec3, not vec3.h: it has operator+.
 struct Vec3 {
     int x;
     int y;

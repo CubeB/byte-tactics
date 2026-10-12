@@ -183,6 +183,7 @@ struct Flags241_00409730 {
     unsigned int bits_25 : 7;
 };
 
+// Keeps its own view: with unit_def.h's symbol ids ComputeBaseWeights (0x409730) no longer matches.
 struct UnitDef {
     int HasField1ce() { return extractsMetal != 0.0f; }
     char unknown_0[0x186];

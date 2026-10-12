@@ -23,9 +23,9 @@ public:
     char side[0x1e];                   // +0x0a0
     char f0be[0x40];                   // +0x0be, the FBI's ai_weight
     char f0fe[0x40];                   // +0x0fe, the FBI's ai_limit
-    int f13e;                          // +0x13e
-    int f142;                          // +0x142
-    int f146;                          // +0x146
+    unsigned int fbiChecksum;          // +0x13e
+    int scriptChecksum;                // +0x142
+    int weaponHashXor;                 // +0x146
     union {
         int f14a;                      // +0x14a
         struct {
@@ -41,7 +41,7 @@ public:
     // The unit type ids it can build; vtol_orders_414380.cpp tests it as
     // canBuild, but every indexing read is unsigned short.
     unsigned short* ids;               // +0x156
-    int f15a;                          // +0x15a
+    int maxThisUnit;                   // +0x15a
     // The model bounding box (nModelMinX..nModelSizeZ in Thaldren's UnitDef);
     // each file that reads it as a Vec3 casts at the use.
     int modelMinX;                     // +0x15e

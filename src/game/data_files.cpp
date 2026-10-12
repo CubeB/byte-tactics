@@ -742,6 +742,8 @@ void FreeTextureGafs()
 
 #include <vector>
 
+#include "../units/unit_def.h"
+
 // The reference-counted string handle: a pointer to the characters with the
 // reference count in the int just before them.
 class StringRef {
@@ -756,15 +758,6 @@ public:
     StringRef* AssignText(const char* text);
     StringRef* MakeLower();
 };
-
-#pragma pack(push, 1)
-struct UnitDef {
-    char unknown_0[0x20];
-    char name[0x122];                  // +0x20
-    unsigned int scriptChecksum;       // +0x142
-    unsigned int weaponHashXor;        // +0x146
-};
-#pragma pack(pop)
 
 int __stdcall ComputeChecksum(unsigned char* data, int len);
 void __stdcall ListDirectory(const char* pattern, int flags, std::vector<StringRef>* out);
@@ -786,7 +779,7 @@ void __stdcall ComputeUnitScriptChecksum(UnitDef* def)
 
     char path[256];
     int size;
-    BuildDataPath(path, "scripts", def->name, "cob");
+    BuildDataPath(path, "scripts", def->unitname, "cob");
     void* data = HAPI_LoadFile(path, &size);
     if (data) {
         def->scriptChecksum ^= ComputeChecksum((unsigned char*)data, size);
@@ -795,7 +788,7 @@ void __stdcall ComputeUnitScriptChecksum(UnitDef* def)
 
     std::vector<StringRef> files;
     char name[64];
-    strcpy(name, def->name);
+    strcpy(name, def->unitname);
     strcat(name, "*");
 
     BuildDataPath(path, "guis", name, "gui");
@@ -810,7 +803,7 @@ void __stdcall ComputeUnitScriptChecksum(UnitDef* def)
         }
     }
 
-    BuildDataPath(path, "download", def->name, "tdf");
+    BuildDataPath(path, "download", def->unitname, "tdf");
     void* f = HAPI_OpenFileRead(path);
     if (f) {
         size = HAPI_FileLength(f);

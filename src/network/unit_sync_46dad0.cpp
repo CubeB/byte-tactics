@@ -6,6 +6,8 @@
 #include <map>
 #include <vector>
 
+#include "../units/unit_def.h"
+
 struct Data_0046dad0 {
     char unknown_0[0x94];
     unsigned char kind;     // +0x94
@@ -28,13 +30,6 @@ struct UnitSyncPacket { // 0xe bytes
     int id;              // +0x2
     int key;             // +0x6
     int value;           // +0xa
-};
-
-struct UnitDef { // 0x249 bytes
-    char unknown_0[0x13e];
-    unsigned int key; // +0x13e
-    int y;            // +0x142
-    char unknown_146[0x249 - 0x146];
 };
 
 struct Game {
@@ -268,8 +263,8 @@ void UnitSync::ProcessSync() {
                 UnitDef* def = &game->unitDefs[checksumProgress];
                 ComputeUnitScriptChecksum(def);
                 // y then key, read into locals before the disabled test.
-                int y = def->y;
-                unsigned int key = def->key;
+                int y = def->scriptChecksum;
+                unsigned int key = def->fbiChecksum;
                 if (disabled == 0) {
                     UnitSyncPacket packet;
                     packet.type = 0x1a;

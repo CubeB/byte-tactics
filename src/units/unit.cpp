@@ -2,11 +2,25 @@
 
 // <windows.h> is needed for CanRepair's operand order (see there).
 #include <windows.h>
-// Only for their symbol ids: SetStateBits matches at one symbol count.
-#include <malloc.h>
+// Only for its symbol ids: SetStateBits matches at one symbol count.
 #include <ddraw.h>
 
 #include "cob_script.h"
+
+// Unused here: the symbol ids these declarations take keep SetStateBits (0x48b090)
+// matching (docs/c2-regalloc.md).
+char IsMemFussy();
+char IsGonzo();
+char IsMemSet();
+int GetMemSetValue();
+void SetMemFussyDefault(void);
+int GetDebugLibInstance(void);
+int GetDebugLibVersion(void);
+void AbortProgram(void);
+void ResetAllocStats(void);
+void* GetBlockMap();
+
+#include "unit_def.h"
 
 // Unused here: these headers and forward declarations take the symbol ids that keep
 // CanLoad (0x489a90) and SetStateBits (0x48b090) matching (docs/c2-regalloc.md).
@@ -50,31 +64,6 @@ union Flags_00489a90 {
         unsigned int unknown_1 : 12;
     } bits;
     int all;
-};
-
-// The unit's type.
-struct UnitDef {
-    char unknown_0[0x14a];
-    short f14a;                        // +0x14a, compared signed
-    char unknown_14c[0x16e - 0x14c];
-    union {
-        int f16e;                      // +0x16e, 16.16
-        struct {
-            unsigned short f16e_fraction;
-            short f170;                // +0x170, compared signed
-        };
-    };
-    char unknown_172[0x1be - 0x172];
-    short f1be;                        // +0x1be, compared signed
-    short f1c0;                        // +0x1c0, tested for < 0
-    char unknown_1c2[0x1fa - 0x1c2];
-    int f1fa;                          // +0x1fa, compared against a sign extended short
-    char unknown_1fe[0x22a - 0x1fe];
-    unsigned char f22a;                // +0x22a
-    unsigned char f22b;                // +0x22b
-    char unknown_22c[0x241 - 0x22c];
-    int f241;                          // +0x241, bits 11 and 21
-    Flags_00489a90 f245;               // +0x245, bits 8, 9, 10, 12 and 19
 };
 
 struct Node_00489a90 {
@@ -256,16 +245,16 @@ int Unit::CanReclaim(void *param_1)
 int Unit::CanRepair(Unit* other)
 {
     if (other
-        && (def->f245.all & 0x200)
-        && (other->health != other->def->f1fa)
+        && (def->flags2 & 0x200)
+        && (other->health != other->def->maxHealth)
         && ((other->flags & 3) != 2)) {
-        if (def->f241 & 0x800) {
-            if (!(def->f241 & 0x200000) && other->f70 + other->def->f170 < g_game->seaLevel)
+        if (def->flags1 & 0x800) {
+            if (!(def->flags1 & 0x200000) && other->f70 + other->def->field_170 < g_game->seaLevel)
                 goto fail;
         }
         // Tests the same condition again, not an else.
-        if (!(def->f241 & 0x800)) {
-            if (other->f70 + other->def->f170 < g_game->seaLevel - def->f1be)
+        if (!(def->flags1 & 0x800)) {
+            if (other->f70 + other->def->field_170 < g_game->seaLevel - def->maxwaterdepth)
                 goto fail;
         }
         return 1;
@@ -294,22 +283,22 @@ int Unit::CountCargo()
 int Unit::CanLoad(Unit* other)
 {
     UnitDef* theirDef = other->def;
-    if (theirDef->f245.bits.flag19)
+    if (((Flags_00489a90*)&theirDef->flags2)->bits.flag19)
         return 0;
     UnitDef* ourDef = def;
-    if (!(ourDef->f245.all & 0x100))
+    if (!(ourDef->flags2 & 0x100))
         return 0;
-    if (CountCargo() >= ourDef->f22b)
+    if (CountCargo() >= (unsigned char)ourDef->transportcapacity)
         return 0;
     if (!other->motion)
         return 0;
-    if (theirDef->f14a > ourDef->f22a)
+    if (theirDef->footprintx > ourDef->capacity)
         return 0;
     if ((other->flags & 3) == 2)
         return 0;
-    if (!(ourDef->f241 & 0x800) && theirDef->f1c0 >= 0)
+    if (!(ourDef->flags1 & 0x800) && theirDef->minwaterdepth >= 0)
         return 0;
-    if (other->f6e + theirDef->f16e <= (g_game->seaLevel << 16))
+    if (other->f6e + theirDef->modelMaxY <= (g_game->seaLevel << 16))
         return 0;
     if (other->buildLeft != 0.0f)           // the fcomp tests equality, not a range
         return 0;

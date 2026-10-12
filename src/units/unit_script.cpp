@@ -12,15 +12,9 @@
 #include <string.h>
 
 #include "../util/vec3.h"
+#include "unit_def.h"
 
 #pragma pack(push, 1)
-struct UnitDef {
-    char unknown_0[0x16e];
-    int modelMaxY;                      // +0x16e
-    char unknown_172[0x1fa - 0x172];
-    unsigned int maxHealth;             // +0x1fa
-};
-
 struct Unit {
     char unknown_0[0x66];
     short heading;                     // +0x66

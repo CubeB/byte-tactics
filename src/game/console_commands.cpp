@@ -9,8 +9,9 @@
 // The lean <windows.h> and the two symbol-only headers below are what the
 // symbol-id windows of the drawing functions (0x417bb0 to 0x418310) need
 // (docs/c2-regalloc.md); the full <windows.h> moves them out.
-// The same window of 0x4181d0 keeps the (CommandArgs*) casts and the void*
-// parameters of the commands above it: removing any of them moves it.
+// The members of CommandArgs and Sound that nothing here calls take the symbol
+// ids the (CommandArgs*) casts of the commands above 0x4181d0 used to, which
+// its window needs. The commands with a void* parameter keep their casts.
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
@@ -284,6 +285,9 @@ public:
     char* GetArg(int index, char* fallback);
     int Tokenize(char* text, char* end);
     CommandArgs* InitArgs();
+    // Not called here: the two take the ids of removed casts (see the top).
+    void ShiftArgs(int n);
+    void SubstituteArgs(CommandArgs* other);
 };
 
 class Sound {
@@ -294,6 +298,13 @@ public:
     void Enable3D();
     void SetTrackCategory(int);
     int StopCdAudio();
+    // Not called here: the six take the ids of removed casts (see the top).
+    int GetTrackCount();
+    int GetTrackCategory();
+    int IsFirstTrackData();
+    int GetCurrentTrack();
+    int IsCdPlaying();
+    int GetPlayState();
 };
 
 // Unused here: the symbol ids this declaration takes keep the allocation after
@@ -507,7 +518,6 @@ extern Display_00417a60* GetDisplay();
 void ToggleFullScreen();
 void __cdecl GameAllocIgnoreTag(char* name, unsigned int size);
 void __stdcall ExecuteCommand(void* obj, int mask);
-int __stdcall GetGroundHeight(Pos_00417bb0* pos);
 // The real callee takes unsigned char; int here reproduces the original's
 // loop-invariant widening of the colour byte.
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
@@ -562,7 +572,7 @@ void __stdcall CmdAI(CommandArgs* args)
 // FUNCTION: 0x416310
 void __stdcall CmdAssign(CommandArgs* args)
 {
-    MissionType kind(((CommandArgs*)args)->GetArg(1, DAT_005119b8));
+    MissionType kind(args->GetArg(1, DAT_005119b8));
     if (kind.index) {
         int a = args->GetIntArg(1, 0);
         int b = args->GetIntArg(2, 0);
@@ -731,7 +741,7 @@ void __stdcall CmdSearch(CommandArgs* args)
         g_game->pathfinder->value = args->GetIntArg(1, 0);
     }
     if (args->count == 3) {
-        g_game->pathfinder->fixed = (int)(atof(((CommandArgs*)args)->GetArg(2, DAT_005119b8)) * 65536.0);
+        g_game->pathfinder->fixed = (int)(atof(args->GetArg(2, DAT_005119b8)) * 65536.0);
     }
 }
 
@@ -765,7 +775,7 @@ void __stdcall CmdSound3D(int unused)
 // FUNCTION: 0x416860
 void __stdcall CmdMove(CommandArgs* args)
 {
-    if (_strcmpi(((CommandArgs*)args)->GetArg(0, DAT_005119b8), "move") == 0) {
+    if (_strcmpi(args->GetArg(0, DAT_005119b8), "move") == 0) {
         int dx = args->GetIntArg(1, 0);
         g_game->pos.x += dx << 20;
         int dz = args->GetIntArg(2, 0);
@@ -868,11 +878,11 @@ void __stdcall CmdGive(CommandArgs* args)
         Player* p = &g_game->players[i];
         if (p->active != 0 && (p->type == 1 || p->type == 2 || p->type == 3)
             && p->index != 10) {
-            if (_strcmpi(((CommandArgs*)args)->GetArg(3, DAT_005119b8), "metal") == 0) {
+            if (_strcmpi(args->GetArg(3, DAT_005119b8), "metal") == 0) {
                 TransferEnergy(g_game->localPlayer, args->GetIntArg(1, 0),
                              (float)args->GetIntArg(2, 0), 1);
             }
-            if (_strcmpi(((CommandArgs*)args)->GetArg(3, DAT_005119b8), "energy") == 0) {
+            if (_strcmpi(args->GetArg(3, DAT_005119b8), "energy") == 0) {
                 TransferMetal(g_game->localPlayer, args->GetIntArg(1, 0),
                              (float)args->GetIntArg(2, 0), 1);
             }
@@ -883,6 +893,7 @@ void __stdcall CmdGive(CommandArgs* args)
 // FUNCTION: 0x416cf0
 void __stdcall CmdScrollSpeed(void* args)
 {
+    // The void* parameter stays: retyping it moves the window of 0x4181d0 (docs/c2-regalloc.md).
     unsigned char result = ((CommandArgs*)args)->GetIntArg(1, 0);
     g_game->scrollSpeed = result;
     SaveSettings();
@@ -891,6 +902,7 @@ void __stdcall CmdScrollSpeed(void* args)
 // FUNCTION: 0x416d20
 void __stdcall CmdIFace(void* args)
 {
+    // The void* parameter stays: retyping it moves the window of 0x4181d0 (docs/c2-regalloc.md).
     int result = ((CommandArgs*)args)->GetIntArg(1, 0);
     g_game->interfaceType = result;
     SaveSettings();
@@ -1173,6 +1185,7 @@ void __stdcall CmdNetStats(int)
 // FUNCTION: 0x4175e0
 void __stdcall CmdMusicMode(void* args)
 {
+    // The void* parameter stays: retyping it moves the window of 0x4181d0 (docs/c2-regalloc.md).
     CommandArgs* obj = (CommandArgs*)args;
     int result = obj->GetIntArg(1, 0);
     void* p = *(void**)((char*)g_game + 0x10);
@@ -1185,9 +1198,9 @@ void __stdcall CmdMakePoster(CommandArgs* args)
     int w = 0xc80;
     int h = 0x960;
     if (args->count > 1)
-        w = ((CommandArgs*)args)->GetIntArg(1, 0);
+        w = args->GetIntArg(1, 0);
     if (args->count > 2)
-        h = ((CommandArgs*)args)->GetIntArg(2, 0);
+        h = args->GetIntArg(2, 0);
     if (_strcmpi(args->GetArg(1, DAT_005119b8), "all") == 0) {
         w = g_game->mapPixelWidth;
         h = g_game->mapPixelHeight;
@@ -1268,7 +1281,7 @@ void __stdcall DefaultCommandHandler(CommandArgs* args)
         if (MatchWildcard(def->unitname,args->GetArg(0,DAT_005119b8))) {
             if (count) pos.x-=def->modelMinX;
             SnapWorldPosToFootprint(def,&pos);
-            CreateUnit(((CommandArgs*)args)->GetIntArg(1,0),i,pos,1,1,0);
+            CreateUnit(args->GetIntArg(1,0),i,pos,1,1,0);
             pos.x+=def->modelMaxX+0x200000;
             if (pos.x >= (g_game->mapPixelWidth<<16)) { pos.x=0xa00000; pos.z+=0xa00000; }
             ++count;
@@ -1332,17 +1345,20 @@ void __stdcall CmdDebugBreak(CommandArgs* args)
 // FUNCTION: 0x417b50
 void __stdcall ExecuteCommandLine(char* commandLine, int mask)
 {
-    char buf[0xd4];
+    CommandArgs buf;
 
     if (commandLine == 0)
         commandLine = g_commandLineBuf;
     else
         strncpy(g_commandLineBuf, commandLine, 0x4f);
 
-    ((CommandArgs*)buf)->InitArgs();
-    ((CommandArgs*)buf)->Tokenize(commandLine, 0);
-    ExecuteCommand(buf, mask);
+    buf.InitArgs();
+    buf.Tokenize(commandLine, 0);
+    ExecuteCommand(&buf, mask);
 }
+
+// Declared here, after CmdMakePoster: its symbol ids stay out of that window.
+int __stdcall GetGroundHeight(Pos_00417bb0* pos);
 
 // Converts a 16.16 fixed-point world position into screen coordinates.
 // FUNCTION: 0x417bb0

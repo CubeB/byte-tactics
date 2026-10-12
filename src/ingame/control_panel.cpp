@@ -276,7 +276,9 @@ struct MouseEvent {
     int x;                             // +0x0
     int y;                             // +0x4
     unsigned int keyFlags;             // +0x8
-    int unknown_c[3];                  // +0xc
+    int scaledTick;                    // +0xc
+    int msg;                           // +0x10
+    int dblClick;                      // +0x14
 };
 
 struct CursorState {
@@ -398,15 +400,8 @@ extern Option_00419560 g_consoleCommands;
 extern Option_00419560 g_cheatCommands;
 extern Option_00419560 g_debugCommands;
 
-// The second part's own views and externs: the mouse and the display its
-// functions read.
+// The second part's own views and externs: the display its functions read.
 #pragma pack(push, 1)
-struct Mouse_0041ce90 {
-    int x;                             // +0x0
-    int y;                             // +0x4
-    int unknown_8[4];
-};
-
 struct Display_0041ce90 {
     char unknown_0[0x40];
     HWND hwnd;                         // +0x40
@@ -423,7 +418,7 @@ int GetScreenHeight();
 void __stdcall SetCursorPosition(int x, int y);
 void HideSoftwareCursor();
 void ShowSoftwareCursor();
-void __stdcall GetCurrentMouseEvent(Mouse_0041ce90* mouse);
+void __stdcall GetCurrentMouseEvent(MouseEvent* mouse);
 Display_0041ce90* GetDisplay();
 
 void __stdcall RegisterCommands(Option_00419560* option);
@@ -1933,7 +1928,7 @@ void UpdateMouseScroll()
 // FUNCTION: 0x41ce90
 void UpdateEdgeScroll()
 {
-    Mouse_0041ce90 mouse;
+    MouseEvent mouse;
     POINT pt;
     // Through a local: the direct spelling loads the scale into ebx.
     Game* g = g_game;

@@ -1522,11 +1522,11 @@ void __stdcall ParseDownloadableAiWeightScripts(int player)
         UnitDef* def = &g_game->unitDefs[i];
         if (((Flags241*)&def->flags1)->downloadable) {
             if (p->vec_bd[i].unknown_0 != 1) {
-                int len = strlen(def->f0be);
+                int len = strlen(def->aiWeight);
                 if (len != 0) {
                     CommandArgs vars;
                     vars.InitArgs();
-                    ExecuteCommandText(def->f0be, len, &vars, -1);
+                    ExecuteCommandText(def->aiWeight, len, &vars, -1);
                 }
             }
         }
@@ -1542,11 +1542,11 @@ void __stdcall ReparseAiWeightScriptsIfLimitNotSticky(int player)
         UnitDef* def = &g_game->unitDefs[i];
         if (((Flags241*)&def->flags1)->downloadable) {
             if (p->locked[i].unknown_0 != 1) {
-                int len = strlen(def->f0be);
+                int len = strlen(def->aiWeight);
                 if (len != 0) {
                     CommandArgs vars;
                     vars.InitArgs();
-                    ExecuteCommandText(def->f0be, len, &vars, -1);
+                    ExecuteCommandText(def->aiWeight, len, &vars, -1);
                 }
             }
         }

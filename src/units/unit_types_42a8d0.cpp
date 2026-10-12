@@ -145,8 +145,8 @@ public:
     char description[0x40];            // +0x040
     char objectname[0x20];             // +0x080
     char side[0x1e];                   // +0x0a0
-    char ai_weight[0x40];              // +0x0be
-    char ai_limit[0x40];               // +0x0fe
+    char aiWeight[0x40];               // +0x0be
+    char aiLimit[0x40];                // +0x0fe
     unsigned int checksum;             // +0x13e
     int scriptChecksum;                // +0x142
     int weapons;                       // +0x146
@@ -304,8 +304,8 @@ int LoadUnitInfo()
             GetLocalizedString(&parser, u->name, "name", 0x20, 0);
             parser.GetString(u->unitname, "unitname", 0x20, DAT_005119b8);
             parser.GetString(u->side, "side", 0x1e, DAT_005119b8);
-            parser.GetString(u->ai_weight, "ai_weight", 0x40, DAT_005119b8);
-            parser.GetString(u->ai_limit, "ai_limit", 0x40, DAT_005119b8);
+            parser.GetString(u->aiWeight, "ai_weight", 0x40, DAT_005119b8);
+            parser.GetString(u->aiLimit, "ai_limit", 0x40, DAT_005119b8);
             if (parser.GetString(u->objectname, "objectname", 0x20, DAT_005119b8) == 0)
                 strcpy(u->objectname, u->unitname);
             u->buildcostenergy = (float)parser.GetInt("buildcostenergy", 0);

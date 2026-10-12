@@ -21,8 +21,8 @@ public:
     char description[0x40];            // +0x040
     char objectname[0x20];             // +0x080
     char side[0x1e];                   // +0x0a0
-    char f0be[0x40];                   // +0x0be, the FBI's ai_weight
-    char f0fe[0x40];                   // +0x0fe, the FBI's ai_limit
+    char aiWeight[0x40];               // +0x0be, the FBI's ai_weight
+    char aiLimit[0x40];                // +0x0fe, the FBI's ai_limit
     unsigned int fbiChecksum;          // +0x13e
     int scriptChecksum;                // +0x142
     int weaponHashXor;                 // +0x146

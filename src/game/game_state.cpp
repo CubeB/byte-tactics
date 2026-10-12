@@ -16,11 +16,7 @@ struct Src_004ab400;
 #pragma pack(push, 1)
 #include "../gui/gui.h"
 
-struct Player_004917d0 {
-    char unknown_0[0x140];
-    int unitsCreated;                  // +0x140
-    char unknown_144[0x14b - 0x144];
-};
+#include "../network/player.h"
 
 struct Zero11_004917d0 {
     int a;
@@ -48,7 +44,7 @@ struct Game {
     char unknown_120f[0x12ef - 0x120f];
     char chatHudRing[4];  // +0x12ef
     char unknown_12f3[0x1b63 - 0x12f3];
-    Player_004917d0 players[10];   // +0x1b63
+    Player players[10];            // +0x1b63
     char unknown_2851[0x29a0 - 0x2851];
     void* options;      // +0x29a0
     char unknown_29a4[0x2a44 - 0x29a4];

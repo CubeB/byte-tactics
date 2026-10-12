@@ -112,26 +112,12 @@ struct Struct_00440a70 {
 };
 #pragma pack(pop)
 
-struct PlayerInfo;
+#include "../network/player.h"
 
-#pragma pack(push, 1)
-struct Player_00440c10 {               // 0x14b bytes
-    int active;                        // +0x0
-    char unknown_4[0x27 - 0x4];
-    PlayerInfo* info;               // +0x27
-    char unknown_2b[0x73 - 0x2b];
-    unsigned char type;                // +0x73
-    char unknown_74[0x146 - 0x74];
-    unsigned char side;                // +0x146
-    char unknown_147[0x14b - 0x147];
-};
-
-struct Player_00440cd0 {
-    char unknown_0[0x27];
-    PlayerInfo* data;                  // +0x27
-    char unknown_2b[0x14b - 0x2b];
-};
-#pragma pack(pop)
+// Unused here: real functions declared to keep the symbol ids RefreshPassMap and
+// SetPassMapCell match in (docs/c2-regalloc.md).
+void SetMemFussyDefault(void);
+void AbortProgram(void);
 
 class Mission {
 public:
@@ -142,10 +128,7 @@ public:
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1b63];
-    union {
-        Player_00440c10 players[10];   // +0x1b63
-        Player_00440cd0 players2[10];  // +0x1b63
-    };
+    Player players[10];                // +0x1b63
     char unknown_2851[0x14233 - 0x2851];
     unsigned int mapWidthTiles;        // +0x14233
     unsigned int mapHeightTiles;       // +0x14237
@@ -570,8 +553,8 @@ int FindUnusedLogo()
     int used[10];
     memset(used, 0, sizeof(used));
     for (int i = 0; i < 10; i++) {
-        Player_00440c10* p = &g_game->players[i];
-        if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->side != 10)
+        Player* p = &g_game->players[i];
+        if (p->active && (p->type == 1 || p->type == 2 || p->type == 3) && p->index != 10)
             used[p->info->color < 9 ? p->info->color : 9] = 1;
     }
     int result = 0;
@@ -602,7 +585,7 @@ int CheckMapCrc()
     PlayerInfo* data = 0;
     int check = 0;
     if (me != 10) {
-        data = g_game->players2[me].data;
+        data = g_game->players[me].info;
         if (data->versionMajor >= 2 || (data->versionMajor == 1 && data->versionMinor >= 2)) {
             check = 1;
         }

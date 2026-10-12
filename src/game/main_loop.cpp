@@ -39,16 +39,7 @@ struct Sub_00496db0 {
 struct Obj_004ab400;
 struct Src_004ab400;
 
-struct PlayerInfo_00496ce0 {
-    char unknown_0[0x97];
-    unsigned char flags;               // +0x97, bit 0 tested
-};
-
-struct Player_00496ee0 {
-    char unknown_0[0x95];
-    unsigned char side;                // +0x95
-    unsigned char color;               // +0x96
-};
+#include "../network/player_info.h"
 
 struct Flags_00496ce0 {
     unsigned short low : 4;            // +0x2b4c, bits 0-3
@@ -125,10 +116,7 @@ struct Player {                        // 0x14b bytes, array at g_game+0x1b63
     int active;                        // +0x0
     int id;                            // +0x4
     char unknown_8[0x27 - 0x8];
-    union {
-        PlayerInfo_00496ce0* info;     // +0x27
-        Player_00496ee0* player;
-    };
+    PlayerInfo* info;                  // +0x27
     char unknown_2b[0x73 - 0x2b];
     char type;                         // +0x73
     char unknown_74[0xdc - 0x74];
@@ -500,7 +488,7 @@ void PreBattleFrame()
     char msg;
     Player* p = &g_game->players[g_game->localPlayer];
     // Each branch keeps its own copy of the state change.
-    if (p->info->flags & 1) {
+    if (p->info->flags_97 & 1) {
         msg = 8;
         BroadcastPacket(p->id, &msg, 1);
         g_game->frontendState = 5;
@@ -568,7 +556,7 @@ void __stdcall SetStartingStorageBonus(Struct_00496e90* obj, int height, int wid
 // view is centred on the position afterwards.
 //
 // Layout notes, for whoever reads the neighbours of this code:
-// - the ten team records at g_game+0x1b63 are 0x14b bytes: +0x27 the player
+// - the ten team records at g_game+0x1b63 are 0x14b bytes: +0x27 the PlayerInfo
 //   (its +0x95 is the index into the name table, its +0x96 the second copied
 //   byte), +0xdc and +0xe0 the two clamped sizes as floats, +0x149 a 1-bit
 //   unsigned short bitfield.
@@ -583,8 +571,8 @@ void __stdcall SetStartingStorageBonus(Struct_00496e90* obj, int height, int wid
 // FUNCTION: 0x496ee0
 void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
 {
-    g_game->players[team].player->side = g_game->options[team].nameIndex;
-    g_game->players[team].player->color = g_game->options[team].index2;
+    g_game->players[team].info->side = g_game->options[team].nameIndex;
+    g_game->players[team].info->color = g_game->options[team].index2;
     Player* p = &g_game->players[team];
     int w = g_game->options[team].size2;
     int v = g_game->options[team].size1;
@@ -595,7 +583,7 @@ void __stdcall SpawnCommanderAtStartPos(int team, int startpos)
     FixedPos_00496ee0 pos;
     if (g_game->net->GetStartPosition((Vec3_00437320*)&pos, startpos)) {
         unsigned short id = FindUnitTypeId(
-            g_game->names[g_game->players[team].player->side].name);
+            g_game->names[g_game->players[team].info->side].name);
         CreateUnit(team, id, pos, 1, 1, 0);
     } else {
         char buf[128];

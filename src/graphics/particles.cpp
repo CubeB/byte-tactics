@@ -95,23 +95,6 @@ struct Pos_00473590 {
     short y;                       // +0x08 (record +0x0e)
 };
 
-struct MapSize_00473590 {
-    unsigned int width;            // +0x80
-    unsigned int height;           // +0x84
-
-    int Contains(int col, int row)
-    {
-        return (unsigned int)col < width && (unsigned int)row < height;
-    }
-};
-
-struct Player_00473590 {
-    char unknown_0[0x7c];
-    unsigned char* seen;           // +0x7c
-    MapSize_00473590 size;         // +0x80
-    char unknown_88[0x14b - 0x88];
-};
-
 // Is this record's position inside the explored byte map of the local player
 // (flags bit 1 set), or inside their bit of the shared visibility mask (bit
 // clear)? Visible's body is below, after g_game. The two arms keep their own
@@ -628,29 +611,6 @@ struct Vec3_00474cd0 {
 // The TimedSubParticles 16.16 position and the class.
 #include "timed_sub_particles.h"
 
-struct MapSize_00475470 {
-    unsigned int width;                // +0x0
-    unsigned int height;               // +0x4
-    int Contains(unsigned int tx, unsigned int ty)
-    {
-        return tx < width && ty < height;
-    }
-};
-
-struct ByteMap_00475470 {
-    unsigned char* data;               // +0x0
-    MapSize_00475470 size;             // +0x4
-    int Index(int x, int y) { return size.width * y + x; }
-    // Get goes through Index: the extra register shapes both arms.
-    unsigned char Get(int x, int y) { return data[Index(x, y)]; }
-};
-
-struct Player_00475470 {
-    char unknown_0[0x7c];
-    ByteMap_00475470 explored;         // +0x7c
-    char unknown_88[0x14b - 0x88];
-};
-
 struct Position_00475150 {             // 16.16 fixed point; only high words read
     short xFrac;
     short x;                           // +0x2
@@ -706,29 +666,6 @@ public:
 };
 
 // The explored-cell views of the smoke draws.
-struct MapSize_00473a00 {
-    unsigned int width;              // +0x0
-    unsigned int height;             // +0x4
-
-    int Contains(unsigned int tx, unsigned int ty)
-    {
-        return tx < width && ty < height;
-    }
-};
-
-struct ByteMap_00473a00 {
-    unsigned char* data;             // +0x0
-    MapSize_00473a00 size;           // +0x4
-
-    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
-};
-
-struct Player_00473a00 {
-    char unknown_0[0x7c];
-    ByteMap_00473a00 explored;       // +0x7c
-    char unknown_88[0x14b - 0x88];   // stride 331
-};
-
 struct MapSize_004745e0 {
     unsigned int width;             // +0x80
     unsigned int height;            // +0x84
@@ -752,39 +689,28 @@ struct Map_004745e0 {               // one entry of g_game->players
     char unknown_88[0x14b - 0x88];
 };
 
-struct MapSize_00474b80 {
-    unsigned int width;            // +0x80
-    unsigned int height;           // +0x84
-
-    int Contains(int col, int row)
-    {
-        return (unsigned int)col < width && (unsigned int)row < height;
-    }
-};
-
-struct ByteMap_00474b80 {
-    unsigned char* data;           // +0x7c
-    MapSize_00474b80 size;         // +0x80
-
-    unsigned char Get(int x, int y) { return data[size.width * y + x]; }
-};
-
-struct Player_00474b80 {
-    char unknown_0[0x7c];
-    ByteMap_00474b80 explored;     // +0x7c
-    char unknown_88[0x14b - 0x88];
-};
 #pragma pack(pop)
+
+#include "../network/player.h"
+
+// Unused here: real functions declared to keep the symbol ids that
+// WakeParticle::DrawParticle (0x4745e0) matches in (docs/c2-regalloc.md).
+void SetMemFussyDefault(void);
+void AbortProgram(void);
+void ResetAllocStats(void);
+void MemFussyAtexitHandler(void);
+void GonzoAtexitHandler(void);
+void MemSetAtexitHandler(void);
+void SetValueAtexitHandler(void);
 
 #pragma pack(push, 1)
 struct Game {
     char unknown_0[0x1b63];
     union {
-        Player_00473590 players_00473590[10];   // +0x1b63, stride 0x14b
-        Player_00473a00 players_00473a00[10];
+        Player players[10];                // +0x1b63, stride 0x14b
+        // Stays its own view: the wake draw (0x4745e0) matches only with this
+        // map's Get member, which re-reads the width.
         Map_004745e0 players_004745e0[10];
-        Player_00474b80 players_00474b80[10];
-        Player_00475470 players_00475470[10];
     };
     char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
@@ -846,16 +772,25 @@ int __stdcall GetGafFrameCount(void* ptr);
 void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
 int __stdcall GetGroundHeight(void* pos);
 
+// Whether the cell is inside the explored map. Returned as 0 or 1, not tested
+// in place: the callers branch on the result, which gives each arm its own fail
+// block as in the original.
+static inline int InsideExplored(Player* p, int col, int row)
+{
+    return (unsigned int)col < (unsigned int)p->exploredWidth &&
+           (unsigned int)row < (unsigned int)p->exploredHeight;
+}
+
 // The second arm of the spark draws, inlined. The two player parameters are
-// not a typo: the Contains test reads the map width through `p` and the index
+// not a typo: the bounds test reads the map width through `p` and the index
 // reads it through `q`, two address nodes, which is what stops the width load
 // folding into the imul and keeps the original's `mov edx,[edx+0x80]; imul
 // edx,ecx` pair.
-static inline int IsSeen_00473590(Player_00473590* p, Player_00473590* q, int col, int row)
+static inline int IsSeen_00473590(Player* p, Player* q, int col, int row)
 {
-    if (!p->size.Contains(col, row))
+    if (!InsideExplored(p, col, row))
         return 0;
-    return (g_game->visibilityMask[q->size.width * row + col] &
+    return (g_game->visibilityMask[q->exploredWidth * row + col] &
             (1 << g_game->playerIndex)) != 0;
 }
 
@@ -866,21 +801,21 @@ static inline int Identity_00473590(int v) { return v; }
 
 static inline int Identity_00473a00(int v) { return v; }
 
-static inline int IsSeen_00473a00(Player_00473a00* p, Player_00473a00* q, int col, int row)
+static inline int IsSeen_00473a00(Player* p, Player* q, int col, int row)
 {
-    if (!p->explored.size.Contains((unsigned int)col, (unsigned int)row))
+    if (!InsideExplored(p, col, row))
         return 0;
-    return (g_game->visibilityMask[q->explored.size.width * row + col] &
+    return (g_game->visibilityMask[q->exploredWidth * row + col] &
             (1 << g_game->playerIndex)) != 0;
 }
 
 static inline int Identity_00474170(int v) { return v; }
 
-static inline int IsSeen_00474170(Player_00473590* p, Player_00473590* q, int col, int row)
+static inline int IsSeen_00474170(Player* p, Player* q, int col, int row)
 {
-    if (!p->size.Contains(col, row))
+    if (!InsideExplored(p, col, row))
         return 0;
-    return (g_game->visibilityMask[q->size.width * row + col] &
+    return (g_game->visibilityMask[q->exploredWidth * row + col] &
             (1 << g_game->playerIndex)) != 0;
 }
 
@@ -899,11 +834,11 @@ static inline int IsSeen_004745e0(Map_004745e0* p, Map_004745e0* q, int col, int
 
 static inline int Identity_00474b80(int v) { return v; }
 
-static inline int IsSeen_00474b80(Player_00474b80* p, Player_00474b80* q, int col, int row)
+static inline int IsSeen_00474b80(Player* p, Player* q, int col, int row)
 {
-    if (!p->explored.size.Contains(col, row))
+    if (!InsideExplored(p, col, row))
         return 0;
-    return (g_game->visibilityMask[q->explored.size.width * row + col] &
+    return (g_game->visibilityMask[q->exploredWidth * row + col] &
             (1 << g_game->playerIndex)) != 0;
 }
 
@@ -1795,16 +1730,16 @@ void TeleportParticle::DrawParticle(void* dest, short px, short py)
     // Two locals with the same value. The original reads the map width twice
     // per arm, once for the bounds test and once for the index, and a single
     // pointer makes MSVC 5 fold one of the two away.
-    Player_00473590* p = &g_game->players_00473590[g_game->playerIndex];
-    Player_00473590* p2 = &g_game->players_00473590[g_game->playerIndex];
+    Player* p = &g_game->players[g_game->playerIndex];
+    Player* p2 = &g_game->players[g_game->playerIndex];
     int visible;
     if ((g_game->mapFlags & 2) == 2) {
         int col = posw.x >> 5;
         int row = (posw.y - (posw.h >> 1)) >> 5;
         // Local free on purpose: the width is re-read and the fog map pointer
         // folds into the add, which is what the original does.
-        if (p->size.Contains(col, row) &&
-            p->seen[p2->size.width * row + col] != 0)
+        if (InsideExplored(p, col, row) &&
+            p->explored[p2->exploredWidth * row + col] != 0)
             visible = 1;
         else
             visible = 0;
@@ -1938,14 +1873,14 @@ void ThrustParticle::DrawParticle(void* dest, short px, short py)
     Pos_00473590* q = &posw;
     short sx = q->x - px + 0x80;
     short sy = q->y - (q->h >> 1) - py + 0x20;
-    Player_00473590* p = &g_game->players_00473590[g_game->playerIndex];
-    Player_00473590* p2 = &g_game->players_00473590[g_game->playerIndex];
+    Player* p = &g_game->players[g_game->playerIndex];
+    Player* p2 = &g_game->players[g_game->playerIndex];
     int visible;
     if ((g_game->mapFlags & 2) == 2) {
         int col = posw.x >> 5;
         int row = (posw.y - (posw.h >> 1)) >> 5;
-        if (p->size.Contains(col, row) &&
-            p->seen[p2->size.width * row + col] != 0)
+        if (InsideExplored(p, col, row) &&
+            p->explored[p2->exploredWidth * row + col] != 0)
             visible = 1;
         else
             visible = 0;

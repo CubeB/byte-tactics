@@ -76,7 +76,8 @@ struct WeaponDef {
 };
 
 struct Holder_00453640;
-struct Layer_004538f0;
+#include "../gui/gui.h"
+#include "../gui/layer.h"
 struct Net_4517b0;
 // The forward declaration takes one symbol id: Unused_00452960 has one parameter fewer.
 struct ChatPacket;
@@ -239,7 +240,7 @@ struct Game {
             char message[0x531 - 0x519];
             union {
                 Holder_00453640* layer;    // +0x531
-                Layer_004538f0* layer_531;
+                Layer* layer_531;
             };
             char unknown_535[0x12ef - 0x535];
             Ring_00453640 chatHudRing[30];  // +0x12ef
@@ -1231,18 +1232,6 @@ struct Entry_004538f0 {
     char text[0x15b - 0xb6];           // +0xb6
 };
 
-struct Layer_004538f0 {
-    int unknown_0;
-    Entry_004538f0* entries;           // +0x04
-};
-
-struct Gadget_004538f0 {
-    char unknown_0[0x18];
-    Layer_004538f0* layer;             // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int selected;                      // +0x60
-};
-
 // The 0x15b-byte entry table returned by FindGadgetChecked.
 struct OutEntry_00453a50 {
     char unknown_0[0x19];
@@ -1387,7 +1376,7 @@ void __stdcall ShareMapInfo(unsigned char from, unsigned char to);
 void __stdcall HandlePlayerEconomy(void* packet, Player* player);
 void __stdcall SetGameSpeed(int speed, int param_2);
 void __stdcall PlaySoundByName(char* name, int param_2);
-int __stdcall IsCurrentGadgetNamed(Gadget_004538f0* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gui* gadget, char* name);
 Entry_004538f0* __stdcall FindGadgetChecked_B(Entry_004538f0* entries, char* name);
 int __stdcall SendChatMessage(Player* from, char* text, int key, char* to);
 int __stdcall FindGadgetIndex(void* gadgets, const char* name, int flag);
@@ -2679,11 +2668,11 @@ void UpdateTimeoutDialog()
 }
 
 // FUNCTION: 0x4538f0
-void __stdcall HandleTimeoutDialog(Gadget_004538f0* gadget)
+void __stdcall HandleTimeoutDialog(Gui* gadget)
 {
-    Entry_004538f0* entries = gadget->layer->entries;
+    Entry_004538f0* entries = (Entry_004538f0*)gadget->layer->entries;
 
-    if (gadget->selected == -1) {
+    if (gadget->hotGadgetIndex == -1) {
         PlaySoundByName("Previous", 0);
         if (g_loungeChatter)
             GameFreeThunk(g_loungeChatter);

@@ -500,21 +500,6 @@ struct Sub_0045f800 {
     char unknown_0[0x10];
 };
 
-struct Table_0045f8c0 {
-    char unknown_0[0xb6];
-    short count;                       // +0xb6
-};
-
-struct Layer_0045f8c0 {
-    char unknown_0[4];
-    char* entries;                     // +0x4
-};
-
-struct Sub_0045f8c0 {
-    char unknown_0[0x18];
-    Layer_0045f8c0* layer;             // +0x18
-};
-
 struct Sub_0045fb30 {
     char unknown_0[0x10];
 };
@@ -738,7 +723,6 @@ void __stdcall MarkChanged(Dialog* obj);
 void __stdcall MarkChanged(void* obj);
 void __stdcall MarkChanged(Menu_0045de30* obj);
 void __stdcall MarkChanged(Gui* gui);
-void __stdcall MarkChanged(Sub_0045f8c0* sub);
 void __stdcall MarkChanged(char* menu);
 
 void __stdcall BlitMenuLayers(Sub_0045cf60* sub, unsigned int* a, int* b);
@@ -817,8 +801,6 @@ int __stdcall FindGadgetIndex(void* entries, const char* name, int type);
 void __stdcall LoadPictureCached(char* name, int a, int b, int c);
 void __stdcall LoadPictureCached(const char* name, int a, int b, int c);
 void __stdcall BuildDataPath(char* out, const char* dir, const char* name, const char* ext);
-int __stdcall AddTextGadget(Layer_0045f8c0* layer, char* type, char* text, int x, int y,
-                            int width, int attr);
 void __stdcall AddTextGadget(Layer* layer, char* type, char* text, int x, int y,
                              int width, int attr);
 char* __stdcall SkipTextLines(char* text, int n);
@@ -2357,7 +2339,7 @@ void OpenBriefingDialog()
 
 // Emits one help line as its two text fields, left of the '|' and right of it,
 // and marks both entries as used.
-static inline void AddLine(Page_0045f8c0* page, Layer_0045f8c0* layer, char* value, int y)
+static inline void AddLine(Page_0045f8c0* page, Layer* layer, char* value, int y)
 {
     if (value[0] == '|') {
         strcpy(value, page->blank);
@@ -2369,16 +2351,16 @@ static inline void AddLine(Page_0045f8c0* page, Layer_0045f8c0* layer, char* val
         p[-1] = 0;
     }
     AddTextGadget(layer, "TEXT", Translate(SkipTextLines(value, 0)), 0x28, y, 0x4e, 2);
-    ((Gadget*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].attribs = 1;
+    layer->entries[layer->entries->count].attribs = 1;
     AddTextGadget(layer, "TEXT", Translate(SkipTextLines(value, 1)), 0x7d, y, 0x12c, 2);
-    ((Gadget*)layer->entries)[((Table_0045f8c0*)layer->entries)->count].attribs = 1;
+    layer->entries[layer->entries->count].attribs = 1;
 }
 
 // FUNCTION: 0x45f8c0
-void __stdcall FillHelpPage(Sub_0045f8c0* sub, int page, int lineCount)
+void __stdcall FillHelpPage(Gui* sub, int page, int lineCount)
 {
-    Layer_0045f8c0* layer = sub->layer;
-    ((Table_0045f8c0*)layer->entries)->count = g_helpDialogBaseGadgetCount;
+    Layer* layer = sub->layer;
+    layer->entries->count = g_helpDialogBaseGadgetCount;
     TdfFile parser;
     char path[256];
     char key[12];

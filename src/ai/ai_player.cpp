@@ -95,6 +95,8 @@ union Fixed {                          // a 16.16 fixed-point value
     };
 };
 
+// Own Vec3, not vec3.h: each coordinate is also a Fixed or two words, and it has
+// operator+ and operator-.
 struct Vec3 {
     union {
         int x;

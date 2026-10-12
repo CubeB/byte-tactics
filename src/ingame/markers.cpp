@@ -37,6 +37,7 @@ struct Point {
     short y;                          // +0x2
 };
 
+// Own Vec3, not vec3.h: it has the Length member.
 struct Vec3 {
     int x, y, z;
 

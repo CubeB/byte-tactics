@@ -18,11 +18,7 @@
 #include "../util/point.h"
 
 // A vertex of the 3D outlines: the position, with z the 16.16 depth.
-struct Vec3 {
-    int x;
-    int y;
-    int z;
-};
+#include "../util/vec3.h"
 
 #include "surface.h"
 
@@ -134,12 +130,10 @@ void __stdcall FillFlatSpan(int row, Span* span, GafFrame* surf,
                             unsigned char color);
 // Unused here: real blitter declarations from the gaf module whose symbol ids
 // keep the allocation of the later fills after the Surface view became
-// surface.h (docs/c2-regalloc.md).
+// surface.h and the Vec3 view vec3.h (docs/c2-regalloc.md).
 void __cdecl BlitRectKeyed(Surface* dst, Surface* src, Rect* rect, Rect* pos,
                            int colour);
 void __cdecl BlitRect(Surface* dst, Surface* src, Rect* rect, Rect* pos);
-void __cdecl BlitRectRemapDest(Surface* dst, Surface* src, Rect* rect,
-                               Rect* pos, int colour, unsigned char* table);
 
 
 // Draws into `surface`, or into the screen (locked with LockScreen and

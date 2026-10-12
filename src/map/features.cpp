@@ -41,6 +41,7 @@ struct AnimPair {
     AnimSrc* shadow;
 };
 
+// Own Vec3, not vec3.h: it has constructors, operator+= and NonZero.
 struct Vec3 {
     int x, y, z;
 

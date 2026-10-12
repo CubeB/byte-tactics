@@ -13,34 +13,14 @@ class Mission;
 // Pack 1: the 4-byte pad after the pointer at +0x391e9 would shift later fields.
 #pragma pack(push, 1)
 #include "../gui/gadget.h"
+#include "../gui/gui.h"
+#include "../gui/layer.h"
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int DrawTriangleContours(int, int, int, int, int, int, int);
 int DrawRangeCircle(int, int, int, int, int, int, int);
 int AddOrder(int, int, int, int, int, int, int);
 int UpdatePlayerEconomy(int);
-
-struct Layer_00491ec0 {
-    int unknown_0;
-    Gadget* entries;                   // +0x04
-};
-
-struct Menu_00491ec0 {
-    char unknown_0[0x18];
-    Layer_00491ec0* layer;             // +0x18
-};
-
-struct Layer_00492360 {
-    int unknown_0;
-    Gadget* entries;                     // +0x04
-};
-
-struct Gadget_00492360 {
-    char unknown_0[0x18];
-    Layer_00492360* layer;               // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int selected;                        // +0x60
-};
 
 // A player's side block, the SideData behind PlayerState::pSideData (Thaldren
 // SideData); the byte at +0x95 is the side id the campaign setup writes.
@@ -60,30 +40,6 @@ struct SkirmishInfo {
     char aMapName[0x100];                // +0x11c
 };
 
-struct Layer_00492df0 {
-    int unknown_0;
-    Gadget* entries;                     // +0x04
-};
-
-struct Gadget_00492df0 {
-    char unknown_0[0x18];
-    Layer_00492df0* layer;               // +0x18
-    char unknown_1c[0x60 - 0x1c];
-    int selected;                        // +0x60
-};
-
-struct Layer_00493060 {
-    int unknown_0;
-    Gadget* entries;                   // +0x04
-    void (__stdcall* handler)(Gadget_00492df0*); // +0x08
-    void* data;                        // +0x0c
-};
-
-struct Menu_00493060 {
-    char unknown_0[0x18];
-    Layer_00493060* layer;             // +0x18
-};
-
 struct Entry_004931d0 {
     char unknown_0[0xce];
     void* handler;                     // +0xce
@@ -92,7 +48,7 @@ struct Entry_004931d0 {
 struct Gadget_004931d0 {
     char unknown_0[4];
     Entry_004931d0* info;              // +0x4
-    void (__stdcall* handler)(Gadget_00492360*); // +0x8
+    void (__stdcall* handler)(Gui*);   // +0x8
     void* context;                     // +0xc
 };
 
@@ -105,7 +61,7 @@ struct Save_00492df0 {
     char path[0x100];                    // +8
 };
 
-// One view of the game state. The menu pointer at +0x519 is read as a Menu
+// One view of the game state. The GUI object at +0x519 is read as a Gui
 // (0x491ec0, 0x493060), as a raw byte pointer (0x492b10) and as the message
 // buffer (0x492360, 0x492df0); the flags at +0x2a44 are read both as the
 // b0..b3 bitfield union (0x492360) and as bits0/bit2/bits3 (0x492df0).
@@ -114,8 +70,7 @@ struct Game {
     union {
         char message[0x1b8a - 0x519];    // +0x519
         char menu[1];
-        Menu_00491ec0 menu_00491ec0;
-        Menu_00493060 menu_00493060;
+        Gui gui;
     };
     SideData* p1b8a;                     // +0x1b8a
     char unknown_1b8e[0x1cd5 - 0x1b8e];
@@ -187,7 +142,7 @@ extern char* g_savegameDescs;
 extern char* g_savegameSideList;
 extern char* g_savegameRadarPreview;
 
-void __stdcall MarkChanged(Menu_00491ec0* menu);
+void __stdcall MarkChanged(Gui* menu);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
 Gadget* __stdcall FindGadgetChecked(Gadget* entries, char* name);
@@ -196,7 +151,7 @@ Entry_004931d0* __stdcall FindGadgetChecked(void* entries, char* name);
 int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
 int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
 int __stdcall FindGadgetIndex(Gadget* entries, char* name, int type);
-void __stdcall SetGadgetText(Menu_00491ec0* menu, int index, char* text);
+void __stdcall SetGadgetText(Gui* menu, int index, char* text);
 Gadget* __stdcall FindGadgetChecked_E(Gadget* entries, char* name);
 void __stdcall SetGadgetActiveByName(void* menu, char* name, int value);
 void __stdcall SetTranslatedTextByName(void* menu, char* name, char* text, int param_4);
@@ -239,18 +194,18 @@ void __cdecl GameFreeThunk(void* p);
 void* __cdecl GameAllocIgnoreTag(const char* name, unsigned int size);
 void __cdecl operator delete(void* p);
 void* __cdecl operator new(unsigned int size);
-Layer_00493060* __stdcall LoadGuiLayer(Menu_00493060* menu, const char* name, int flags);
+Layer* __stdcall LoadGuiLayer(Gui* menu, const char* name, int flags);
 Gadget_004931d0* __stdcall LoadGuiLayer(char* sub, const char* name, int flags);
-int __stdcall IsCurrentGadgetNamed(Gadget_00492360* gadget, char* name);
-int __stdcall IsCurrentGadgetNamed(Gadget_00492df0* gadget, char* name);
-void __stdcall ClearSelectedGadget(Gadget_00492360* menu);
-void __stdcall ClearSelectedGadget(Gadget_00492df0* menu);
+int __stdcall IsCurrentGadgetNamed(Gui* gadget, char* name);
+int __stdcall IsCurrentGadgetNamed(Gui* gadget, char* name);
+void __stdcall ClearSelectedGadget(Gui* menu);
+void __stdcall ClearSelectedGadget(Gui* menu);
 void __stdcall SetCursorAnimation(void* menu, void* data);
-void __stdcall SetDescListCleanupFlag(Gadget_00492df0* menu, int flag);
+void __stdcall SetDescListCleanupFlag(Gui* menu, int flag);
 const char* __stdcall Translate(const char* key);
 void __stdcall OpenMessageBox(void* menu, const char* message, int a, int b, int c);
-void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget);
-void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget);
+void __stdcall LoadGameScreenHandler(Gui* gadget);
+void __stdcall SaveGameScreenHandler(Gui* gadget);
 void __stdcall SavedGameSelectHandler(int a, int b);
 char* __stdcall ListSavedGames(int* count);
 void ShowSavedGameInfo();
@@ -268,8 +223,8 @@ __inline void DeleteSave_00492360(HapiBank* obj)
 // FUNCTION: 0x491ec0
 void __stdcall ShowSavedGameInfo()
 {
-    Menu_00491ec0* menu = &g_game->menu_00491ec0;
-    Layer_00491ec0* layer = g_game->menu_00491ec0.layer;
+    Gui* menu = &g_game->gui;
+    Layer* layer = g_game->gui.layer;
     Gadget* entries = layer->entries;
     Gadget* games = FindGadgetChecked(entries, "GAMES");
     if (games == 0)
@@ -370,7 +325,7 @@ void __stdcall ShowSavedGameInfo()
         SetTranslatedTextByName(menu, "TIME", DAT_005119b8, 0);
     }
 done:
-    MarkChanged(&g_game->menu_00491ec0);
+    MarkChanged(&g_game->gui);
 #undef gametype
 #undef name
 #undef diffs
@@ -380,17 +335,17 @@ done:
 void __stdcall ShowInvalidSavegameDialog(void* param_1)
 {
     OpenMessageBox(param_1, Translate(g_invalidSavegameText), 0x140, 1, 1);
-    ClearSelectedGadget((Gadget_00492360*)param_1);
+    ClearSelectedGadget((Gui*)param_1);
 }
 
 // Load game screen click handler (sibling of 0x492df0, save game screen).
 // FUNCTION: 0x492360
-void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
+void __stdcall LoadGameScreenHandler(Gui* gadget)
 {
     Gadget* entries = gadget->layer->entries;
     char buf[0x104];
 
-    if (gadget->selected == -1)
+    if (gadget->hotGadgetIndex == -1)
         return;
 
     if (IsCurrentGadgetNamed(gadget, "CANCEL")) {
@@ -412,7 +367,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
         return;
     }
     if (!IsCurrentGadgetNamed(gadget, "LOAD") && !IsCurrentGadgetNamed(gadget, "GAMES")) {
-        if (gadget->selected != -1)
+        if (gadget->hotGadgetIndex != -1)
             ClearSelectedGadget(gadget);
         return;
     }
@@ -428,7 +383,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 OpenMessageBox(g_game->message,
                     Translate("Please insert the Campaign CD (Disc 2) and try again"),
                     200, 1, 1);
-                ClearSelectedGadget((Gadget_00492360*)g_game->message);
+                ClearSelectedGadget((Gui*)g_game->message);
                 return;
             }
             break;
@@ -437,7 +392,7 @@ void __stdcall LoadGameScreenHandler(Gadget_00492360* gadget)
                 OpenMessageBox(g_game->message,
                     Translate("Please insert the Multiplayer CD (Disc 1) and try again"),
                     200, 1, 1);
-                ClearSelectedGadget((Gadget_00492360*)g_game->message);
+                ClearSelectedGadget((Gui*)g_game->message);
                 return;
             }
             break;
@@ -619,11 +574,11 @@ void __stdcall SavedGameSelectHandler(int arg1, int arg2)
 // GAMENAME all take the name typed in the GAMENAME box and, when it is not
 // empty, write the save under that name with a timestamp.
 // FUNCTION: 0x492df0
-void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
+void __stdcall SaveGameScreenHandler(Gui* gadget)
 {
     Gadget* entries = gadget->layer->entries;
     Save_00492df0 save;
-    if (gadget->selected == -1) {
+    if (gadget->hotGadgetIndex == -1) {
         SetDescListCleanupFlag(gadget, 1);
         if (g_savegameFileNames)
             GameFreeThunk(g_savegameFileNames);
@@ -657,7 +612,7 @@ void __stdcall SaveGameScreenHandler(Gadget_00492df0* gadget)
     }
     if (!IsCurrentGadgetNamed(gadget, "GAMES") && !IsCurrentGadgetNamed(gadget, "LOAD") &&
         !IsCurrentGadgetNamed(gadget, "GAMENAME")) {
-        if (gadget->selected != -1)
+        if (gadget->hotGadgetIndex != -1)
             ClearSelectedGadget(gadget);
         return;
     }
@@ -679,15 +634,15 @@ void ShowSaveGameScreen()
     int local;
 
     g_game->flag_38a51 |= 1;
-    Layer_00493060* layer = LoadGuiLayer(&g_game->menu_00493060, "LOADGAME.GUI", 0x880);
-    layer->handler = SaveGameScreenHandler;
+    Layer* layer = LoadGuiLayer(&g_game->gui, "LOADGAME.GUI", 0x880);
+    layer->handler = (void (__stdcall*)(void*))SaveGameScreenHandler;
     layer->data = g_game;
     LoadPictureCached("DSAVEGAME2", 0, 0, 0);
     MakeDirectoryPath(g_savegameDir);
     ListSavedGames(&local);
-    SetTranslatedTextByName(&g_game->menu_00493060, "TITLE", "Save Game", 0);
+    SetTranslatedTextByName(&g_game->gui, "TITLE", "Save Game", 0);
     if (local == 0) {
-        SetGadgetActiveByName(&g_game->menu_00493060, "DELETE", 0);
+        SetGadgetActiveByName(&g_game->gui, "DELETE", 0);
     }
     Gadget* games = FindGadgetChecked(layer->entries, "GAMES");
     if (games != 0) {
@@ -697,12 +652,12 @@ void ShowSaveGameScreen()
     layer->entries[index].attribs |= 2;
     g_savegameSideList = BuildSideList();
     ShowSavedGameInfo();
-    BeginTextEdit(&g_game->menu_00493060, index);
-    SetKeyboardInput(&g_game->menu_00493060, 1);
+    BeginTextEdit(&g_game->gui, index);
+    SetKeyboardInput(&g_game->gui, 1);
     OrLabelAttribs();
-    SetGadgetActiveByName(&g_game->menu_00493060, "LoadGame", 0);
-    EnableKeyCommands(&g_game->menu_00493060);
-    RenderLayer(&g_game->menu_00493060, 0x40);
+    SetGadgetActiveByName(&g_game->gui, "LoadGame", 0);
+    EnableKeyCommands(&g_game->gui);
+    RenderLayer(&g_game->gui, 0x40);
 }
 
 // FUNCTION: 0x4931d0

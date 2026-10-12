@@ -7,14 +7,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-// A 16-byte rectangle: the display's current and start mode, and the argument
-// of PointInRect.
-struct Rect_004b6720 {
-    int left;
-    int top;
-    int right;
-    int bottom;
-};
+#include "rect.h"
 
 // +0xf0: the display context's state flags. Set through the bitfield and read
 // whole by SetFullScreen.
@@ -94,7 +87,7 @@ struct App_4b5980 {
     char unknown_50[0x80 - 0x50];
     void (__cdecl *callback)(int, int, int); // +0x80
     DirectDrawState draw;                // +0x84
-    Rect_004b6720 mode;                  // +0xa0
+    Rect mode;                           // +0xa0
     HFONT font;                          // +0xb0
     char unknown_b4[0xc4 - 0xb4];
     int shadeTable;                      // +0xc4
@@ -111,7 +104,7 @@ struct App_4b5980 {
     char wa_rest[0xfc - 0xf2];
     char unknown_fc[0x1da - 0xfc];
     FrameCounter_4b66a0 counter;         // +0x1da
-    Rect_004b6720 startMode;             // +0x1ea
+    Rect startMode;                      // +0x1ea
     int startWidth;                      // +0x1fa
     int startHeight;                     // +0x1fe
     unsigned short videoFlags;           // +0x202
@@ -1124,7 +1117,7 @@ int GetScreenHeight()
 }
 
 // FUNCTION: 0x4b6720
-int __stdcall PointInRect(Rect_004b6720* r, int x, int y)
+int __stdcall PointInRect(Rect* r, int x, int y)
 {
     if (x < r->left || x > r->right)
         return 0;

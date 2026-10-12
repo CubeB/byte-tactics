@@ -27,12 +27,7 @@ struct Pos_004739b0 {
 
 #pragma pack(push, 1)
 
-struct Rect_004b0510 {
-    int x1;                          // +0x0
-    int y1;                          // +0x4
-    int x2;                          // +0x8
-    int y2;                          // +0xc
-};
+#include "rect.h"
 
 struct MapSize_00473a00 {
     unsigned int width;              // +0x0
@@ -104,16 +99,16 @@ public:
 };
 #pragma pack(pop)
 
-void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect* rect, int color);
 
 // FUNCTION: 0x473a00
 void NanoParticle::DrawParticle(int dest, short x, short y)
 {
-    Rect_004b0510 r;
-    r.x1 = (short)(posw.x - x) + 0x80;
-    r.y1 = (short)(posw.y - y) - (posw.height >> 1) + 0x20;
-    r.x2 = r.x1 + 1;
-    r.y2 = r.y1 + 1;
+    Rect r;
+    r.left = (short)(posw.x - x) + 0x80;
+    r.top = (short)(posw.y - y) - (posw.height >> 1) + 0x20;
+    r.right = r.left + 1;
+    r.bottom = r.top + 1;
 
     // Two locals with the same value. The original reads the map width twice
     // per arm, once for the bounds test and once for the index, and a single

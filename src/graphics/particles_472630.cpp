@@ -192,12 +192,7 @@ struct Pos_004739b0 {
     short y;                           // +0xa
 };
 
-struct Rect_004b0510 {
-    int x1;                          // +0x0
-    int y1;                          // +0x4
-    int x2;                          // +0x8
-    int y2;                          // +0xc
-};
+#include "rect.h"
 
 struct Position_00475150 {             // 16.16 fixed point; only high words read
     short xFrac;
@@ -247,7 +242,7 @@ extern Game* g_game;
 void* __stdcall GetGafFrame(void* a, int b);
 void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
 int __stdcall GetGafFrameCount(void* ptr);
-void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect* rect, int color);
 int __stdcall GetGroundHeight(void* pos);
 
 #pragma pack(push, 1)

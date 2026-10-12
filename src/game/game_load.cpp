@@ -68,13 +68,6 @@ struct Gadget_497180 {
     char* owner;                                 // +0xc
 };
 
-struct Rect_00497ce0 {
-    int x1;
-    int y1;
-    int x2;
-    int y2;
-};
-
 struct Menu_00497ce0 {
     int field_51d;                      // +0x4 (g_game + 0x51d)
     char unknown_8[0x18 - 0x8];
@@ -88,6 +81,7 @@ int CheckDirectXVersion(int, int, int, int, int);
 void EnumPlayersCallback(int, int, int, int, int);
 int AimCobStub(int, int, int, int);
 void EmitBubbles(int, int, int, short);
+void DrawLine(int, int, int, int, int, int);
 
 union LoadFlags_00497f40 {
     unsigned short value;
@@ -173,12 +167,7 @@ struct Pos_00498da0 {
     unsigned int z;                     // +0x8
 };
 
-struct Rect_00498da0 {
-    int left;                           // +0x0
-    int top;                            // +0x4
-    int right;                          // +0x8
-    int bottom;                         // +0xc
-};
+#include "../graphics/rect.h"
 
 struct Point_00498da0 {
     short x;                            // +0x0
@@ -291,7 +280,7 @@ struct Game {
         unsigned short mapFlagsWord;
     };
     char unknown_14283[0x142bb - 0x14283];
-    Rect_00498da0 minimapHitRect;       // +0x142bb
+    Rect minimapHitRect;                // +0x142bb
     char unknown_142cb[0x142e7 - 0x142cb];
     union { short minimapGadgetX; short originX; };  // +0x142e7
     union { short minimapGadgetY; short originY; };  // +0x142e9
@@ -309,7 +298,7 @@ struct Game {
     int screenWidth;                    // +0x37e1f
     int screenHeight;                   // +0x37e23
     union {                             // +0x37e27
-        Rect_00498da0 lim;
+        Rect lim;
         struct {
             int viewCullMinX;
             int viewCullMinY;
@@ -525,7 +514,7 @@ char* __cdecl GetPreferredLanguage();
 int __stdcall ClampWorldPosToTerrain(int x, int y, int param_3);
 void __stdcall ClampWorldPosToTerrain(int x, int y, Pos_00498da0* out);
 int __stdcall GetGroundHeight(Pos_00498d00* pos);
-int __stdcall PointInRect(Rect_00498da0* r, int x, int y);
+int __stdcall PointInRect(Rect* r, int x, int y);
 Cell* __stdcall GetMapCell(int x, int y);
 unsigned short __stdcall GetCellFeature(Cell* cell);
 
@@ -865,10 +854,10 @@ void __stdcall DrawSyncStatus(void* surface)
 
         int x;
         int slot = 620 / countA;
-        Rect_00497ce0 r;
-        r.x1 = 10;
-        r.y1 = 420;
-        r.y2 = 435;
+        Rect r;
+        r.left = 10;
+        r.top = 420;
+        r.bottom = 435;
         off = 0;
         x = 11;
         for (; off < 10 * (int)sizeof(PlayerRec_00497ce0); off += sizeof(PlayerRec_00497ce0)) {
@@ -877,13 +866,13 @@ void __stdcall DrawSyncStatus(void* surface)
             if (!(q->present && (q->team == 1 || q->team == 2 || q->team == 3) && q->kind != 10))
                 continue;
             {
-                r.x1 = x;
-                r.x2 = slot + x - 2;
+                r.left = x;
+                r.right = slot + x - 2;
                 FillRectangle(surface, &r, g_game->color1);
                 int pc = q->percent;
-                r.x2 = r.x1 + (pc * (slot - 2)) / 100;
+                r.right = r.left + (pc * (slot - 2)) / 100;
                 FillRectangle(surface, &r, g_game->color2);
-                DrawTextClipped(surface, q->name, r.x1, 420, slot - 2, 0);
+                DrawTextClipped(surface, q->name, r.left, 420, slot - 2, 0);
                 x += slot;
             }
         }
@@ -1197,7 +1186,7 @@ void __stdcall UpdateCursorWorldPos(View_00498da0* r)
         g_game->inputFlags.value |= 1;
         g_game->inputFlags.value &= ~2;
     } else {
-        Rect_00498da0* lim = &g_game->lim;
+        Rect* lim = &g_game->lim;
         mx = g_game->scrollX + MIN(MAX(r->x, lim->left), lim->right) - lim->left;
         my = g_game->scrollY + MIN(MAX(r->y, lim->top), lim->bottom) - lim->top;
         g_game->inputFlags.value &= ~1;

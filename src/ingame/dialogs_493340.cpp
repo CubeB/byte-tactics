@@ -105,7 +105,7 @@ struct Game {
     char unknown_2a3e[0x2a42 - 0x2a3e];
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
-    unsigned char flags_2a44;          // +0x2a44
+    unsigned char netGameFlags;        // +0x2a44
     char unknown_2a45[0x2bee - 0x2a45];
     union {
         unsigned short lobbyUiDirtyFlags;  // +0x2bee
@@ -1057,7 +1057,7 @@ void __stdcall DrawScorePanel(void* surface)
 // FUNCTION: 0x494e70
 void UpdateCdCategoryByActivity()
 {
-    if ((g_game->flags_2a44 & 4)
+    if ((g_game->netGameFlags & 4)
         && (!(g_game->loadingFlags & 1) || (g_game->loadingFlags & 2))
         && GetTicks() > g_cdActivityLastSampleTick + 0x1e) {
         int state = g_game->sound->GetTrackCategory();

@@ -369,9 +369,8 @@ struct Game {
     unsigned char localPlayer;         // +0x2a42
     char playerIndex;                  // +0x2a43
     union {                            // +0x2a44
-        unsigned char field_2a44;
-        unsigned char flags_2a44_byte;
-        unsigned short flags_2a44;
+        unsigned char netGameFlags;
+        unsigned short netGameFlagsWord;
         struct {
             unsigned short pad_2a44 : 2;
             unsigned short bit2 : 1;
@@ -2134,7 +2133,7 @@ void __stdcall HandleSelectGameClick(Gui* param_1)
             b = FindHostSlot();
             if (b != 0xa &&
                 (g_game->players[b].info->flags & 0x10) == 0x10)
-                g_game->field_2a44 |= 4;
+                g_game->netGameFlags |= 4;
             if (IsCurrentGadgetNamed(param_1, "WATCH")) {
                 cur = g_game->localPlayer;
                 g_game->players[cur].info->flags |= 0x40;
@@ -3212,8 +3211,8 @@ void RefreshTeamIcons()
     for (; i < 10; i++) {
         Player_00444930* p = &g_game->players[i];
         if (IsPlaying(p) && p->type != 4
-            && (!(g_game->flags_2a44 & 4) || IsCounted(p))
-            && (!(g_game->flags_2a44 & 4) || p->info->color != 0xff)) {
+            && (!(g_game->netGameFlagsWord & 4) || IsCounted(p))
+            && (!(g_game->netGameFlagsWord & 4) || p->info->color != 0xff)) {
             if (g_game->bit2) {
                 wsprintfA(buffer, "TEAMICONS%d", teamIcon);
                 teamIcon++;
@@ -3512,7 +3511,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
         // Two helpers, not one: gives the register rotation of the second sprintf group.
         if (!IsWatching_00447380(p) && IsActive_00447380(p)
             && (i != g_game->localPlayer || param_1 == 0)
-            && (!(g_game->flags_2a44 & 4) || IsCounted_00447380(p))
+            && (!(g_game->netGameFlagsWord & 4) || IsCounted_00447380(p))
             && p->info->color != 0xff) {
             sprintf(player, "PLAYER%d", n);
             sprintf(logo, "LOGO%d", n);
@@ -3561,7 +3560,7 @@ void __stdcall RefreshAlliesScreen(int param_1)
 
             int value;
             if (p->active != 0 && (p->type == 1 || p->type == 2)
-                && !(g_game->flags_2a44 & 4)) {
+                && !(g_game->netGameFlagsWord & 4)) {
                 value = 0;
             } else {
                 value = 1;
@@ -3598,7 +3597,7 @@ static inline int IsCounted_004478b0(Player_00446f50* p)
 static inline int CountAlliance_004478b0(int alliance)
 {
     int count = 0;
-    unsigned char f = (g_game->flags_2a44 >> 2) & 1;
+    unsigned char f = (g_game->netGameFlagsWord >> 2) & 1;
     for (int j = 0; j < 10; j++) {
         Player_00446f50* q = &g_game->players[j];
         if (f) {
@@ -3678,7 +3677,7 @@ static inline int CountAlliance_00447b10(int alliance)
     if (alliance == 5)
         return 0;
     int count = 0;
-    unsigned char f = (g_game->flags_2a44 >> 2) & 1;
+    unsigned char f = (g_game->netGameFlagsWord >> 2) & 1;
     for (int j = 0; j < 10; j++) {
         Player_00446f50* q = &g_game->players[j];
         if (f) {

@@ -58,7 +58,7 @@ struct Game {
     char unknown_29a4[0x2a3c - 0x29a4];
     unsigned short numPlayers;         // +0x2a3c
     char unknown_2a3e[0x2a44 - 0x2a3e];
-    Flags16_00499200 flags_2a44;       // +0x2a44
+    Flags16_00499200 netGameFlags;     // +0x2a44
     char unknown_2a46[0x2c76 - 0x2a46];
     View view;                         // +0x2c76
     char unknown_2c8e[0x2c92 - 0x2c8e];
@@ -386,8 +386,8 @@ void BattleFrame(void)
             char* b = g_game->mapInfo->GetCampaignName();
             g_game->mapInfo->LoadCampaign(b);
             if (g_game->mapInfo->SelectMission(a) != 0) {
-                g_game->flags_2a44.bits.b3 = 1;
-                g_game->flags_2a44.value |= 4;
+                g_game->netGameFlags.bits.b3 = 1;
+                g_game->netGameFlags.value |= 4;
             }
             g_game->frontendState = 2;
             g_game->handler = MenuFrame;
@@ -402,7 +402,7 @@ void BattleFrame(void)
             g_game->numPlayers = saved;
             g_game->mapInfo->LoadMissionByName(g_game->options + 0x11c);
             ApplySlotsToGamePlayers();
-            g_game->flags_2a44.value |= 4;
+            g_game->netGameFlags.value |= 4;
             g_game->frontendState = 2;
             g_game->handler = MenuFrame;
             SetCloseHandler(LeaveNetGameCallback, 0);

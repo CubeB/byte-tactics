@@ -89,7 +89,7 @@ struct Game {
     char unknown_2a3c[6];
     unsigned char localPlayer;         // +0x2a42
     char playerIndex;
-    unsigned char flags_2a44;          // +0x2a44
+    unsigned char netGameFlags;        // +0x2a44
     char unknown_2a45[0x2be3 - 0x2a45];
     char password[0x2bee - 0x2be3];    // +0x2be3
     unsigned short dirty : 1;          // +0x2bee
@@ -486,7 +486,7 @@ static inline int CommandAllowed(unsigned char* bytes)
 // FUNCTION: 0x453d40
 int HandleNetPackets()
 {
-    if (!(g_game->flags_2a44 & 1))
+    if (!(g_game->netGameFlags & 1))
         return 0;
     int messages = 0;
     for (unsigned char i = 0; i < 10; i++)
@@ -518,7 +518,7 @@ int HandleNetPackets()
                     break;
                 if (!InGame(p))
                     break;
-                if (!(g_game->flags_2a44 & 4) && (p->info->flags_97 & 1) && p->state == 3) {
+                if (!(g_game->netGameFlags & 4) && (p->info->flags_97 & 1) && p->state == 3) {
                     RejectPlayer(p->id, 1);
                     RejectPlayer(LocalPlayer()->id, 10);
                     p->SetType(0);
@@ -653,7 +653,7 @@ int HandleNetPackets()
             break;
         case 24:
             g_game->players[to].info->color = packet[1];
-            if (to == g_game->localPlayer && (g_game->flags_2a44 & 1)) {
+            if (to == g_game->localPlayer && (g_game->netGameFlags & 1)) {
                 for (int i = 0; i < 10; i++) {
                     Player* p = &g_game->players[i];
                     // Declared here, not inside the IsConnected block: keeps the pushes after the stores.
@@ -686,7 +686,7 @@ int HandleNetPackets()
             if (IsConnected(b)) {
                 SetAlliance(ally->fromNetId, ally->toNetId, ally->allied,
                              ally->force);
-                if (!(g_game->flags_2a44 & 4))
+                if (!(g_game->netGameFlags & 4))
                     g_game->dirty = 1;
                 else
                     RebuildAllyList();
@@ -699,7 +699,7 @@ int HandleNetPackets()
             Player* p = PlayerBySlot(allyTeam->id);
             if (p)
                 p->alliance = packet[5];
-            if (!(g_game->flags_2a44 & 4))
+            if (!(g_game->netGameFlags & 4))
                 g_game->dirty = 1;
             break;
         }
@@ -767,7 +767,7 @@ int HandleNetPackets()
             break;
         case 8:
             more = 0;
-            g_game->flags_2a44 |= 4;
+            g_game->netGameFlags |= 4;
             break;
         case 9:
             CreateUnitFromPacket(from, packet);

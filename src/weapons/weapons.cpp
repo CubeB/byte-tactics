@@ -328,8 +328,8 @@ struct Game {
     char localPlayer;                  // +0x2a42
     char playerIndex;
     union {
-        unsigned char flags;           // +0x2a44
-        unsigned short flags_2a44;
+        unsigned char netGameFlags;    // +0x2a44
+        unsigned short netGameFlagsWord;
     };
     char unknown_2a46[0x2cf3 - 0x2a46];
     WeaponDef weaponDefs[0x100];       // +0x2cf3
@@ -487,7 +487,7 @@ void __stdcall SendWeaponFirePacket(Unit* unit, Obj_00499ab0* source,
                             Vec3_00499ab0* b)
 {
     WeaponFirePacket packet;
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlagsWord & 1) {
         packet.type = 0xd;
         packet.origin = *(Vec3*)a;
         packet.aimOrVel = *(Vec3*)b;
@@ -519,7 +519,7 @@ int __cdecl GetLocalDpid();
 void __stdcall BroadcastWeaponFire(char param_1, Vec3_00499ba0* a, Vec3_00499ba0* b)
 {
     WeaponFirePacket packet;
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlagsWord & 1) {
         packet.type = 0xd;
         packet.origin = *(Vec3*)a;
         packet.aimOrVel = *(Vec3*)b;
@@ -2306,7 +2306,7 @@ int __stdcall FireTurretWeapon(Unit* fire, Unit* unit,
             return 0;
         unit->f_8 = 0;
         unit->f_1b &= 0xfe;
-        if (g_game->flags & 1) {
+        if (g_game->netGameFlags & 1) {
             WeaponFirePacket msg;
             msg.type = 0xd;
             msg.origin = gunpos;
@@ -2429,7 +2429,7 @@ int __stdcall FireLineOfSightWeapon(Unit* unit, Aim_0049d9c0* aim,
                                        (short)((int)_hypot((double)dx, (double)dz) >> 16));
     if (AimWithinTolerance(unit, aim, unit->heading, unit->pitch)) {
         if (FireLineOfSightProjectile(aim, unit, &p, point, target)) {
-            if (g_game->flags & 1) {
+            if (g_game->netGameFlags & 1) {
                 WeaponFirePacket msg;
                 msg.type = 0xd;
                 msg.origin = unit->pos;
@@ -2514,7 +2514,7 @@ int __stdcall FireVLaunchWeapon(Object_0049db70* source, Shot_0049db70* shot,
             p = 0;
         }
         if (FireVLaunchProjectile(shot, source, &pos, aim, target, p)) {
-            if (g_game->flags_2a44 & 1) {
+            if (g_game->netGameFlagsWord & 1) {
                 WeaponFirePacket packet;
                 packet.type = 0xd;
                 packet.origin = pos;
@@ -2588,7 +2588,7 @@ int __stdcall FireDroppedWeapon(Unit* unit, Aim_0049dd60* aim,
         projectile->velY = 0;
         projectile->velX = -FUN_004b70ef(projectile->heading, unit->owner->id);
         projectile->velZ = -FUN_004b7123(projectile->heading, unit->owner->id);
-        if (g_game->flags & 1) {
+        if (g_game->netGameFlags & 1) {
             WeaponFirePacket packet;
             packet.type = 0xd;
             packet.origin = p;
@@ -2645,11 +2645,11 @@ int __stdcall SpawnProjectile(WeaponDef* weapon, Vec3* a, Vec3* b, int flag)
     proj->dir = *b;
     if (flag) {
         // Read into a local first: only then does MSVC hoist the byte load
-        // above the g_game->flags_2a44 test, into the low byte of the register
+        // above the g_game->netGameFlagsWord test, into the low byte of the register
         // that held `weapon`, which is what leaves al free for the `lea` and
         // pushes the +0xd store and the type store in their original places.
         unsigned char team = weapon->index;
-        if (g_game->flags_2a44 & 1) {
+        if (g_game->netGameFlagsWord & 1) {
             WeaponFirePacket packet;
             packet.type = 0xd;
             packet.origin = *a;

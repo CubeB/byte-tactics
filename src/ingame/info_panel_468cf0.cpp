@@ -231,7 +231,7 @@ struct Game {
   char unknown_299c[0x2a42 - 0x299c];
   unsigned char localPlayer;            // +0x2a42
   unsigned char playerIndex;            // +0x2a43
-  unsigned char flags_2a44;             // +0x2a44
+  unsigned char netGameFlags;           // +0x2a44
   char unknown_2a45[0x2c76 - 0x2a45];
   int cursorScreenX;                    // +0x2c76
   int cursorScreenY;                    // +0x2c7a
@@ -752,7 +752,7 @@ void __stdcall DrawBattleFrame(int param_1, int param_2)
             g_game->bits_3923b.b0 ? "ON" : "OFF");
     DrawString((int)&ctx, (int)debugText, 0x1ee, ty, -1);
     ty += GetFontHeight();
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
       FormatNetStats((int)debugText);
       DrawString((int)&ctx, (int)debugText, 0xbc, ty, -1);
     }

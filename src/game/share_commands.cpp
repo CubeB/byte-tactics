@@ -14,7 +14,7 @@ struct Game {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
-    unsigned char flags_2a44;          // +0x2a44
+    unsigned char netGameFlags;        // +0x2a44
     char unknown_2a45[0x391bf - 0x2a45];
     int showRanges;                    // +0x391bf
     int showBps;                       // +0x391c3
@@ -40,7 +40,7 @@ extern char g_fxEventPoolBlocked;
 void __stdcall CmdShareMetal(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         g_game->players[g_game->localPlayer].info->shareMetal =
             !g_game->players[g_game->localPlayer].info->shareMetal;
         sprintf(buf, "Toggled ShareMetal to: %s",
@@ -57,7 +57,7 @@ void __stdcall CmdShareMetal(int unused)
 void __stdcall CmdShareEnergy(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags_97_wide = (data->flags_97_wide & ~4) | (~data->flags_97_wide & 4);
         sprintf(buf, "Toggled ShareEnergy to: %s",
@@ -74,7 +74,7 @@ void __stdcall CmdShareEnergy(int unused)
 void __stdcall CmdShareMapping(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags_97_wide = (data->flags_97_wide & ~0x20) | (~data->flags_97_wide & 0x20);
         sprintf(buf, "Toggled ShareMapping to: %s",
@@ -90,7 +90,7 @@ void __stdcall CmdShareMapping(int unused)
 void __stdcall ToggleShareLos(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         g_game->players[g_game->localPlayer].info->shareLOS =
             !g_game->players[g_game->localPlayer].info->shareLOS;
         sprintf(buf, "Toggled ShareLOS to: %s",
@@ -107,7 +107,7 @@ void __stdcall ToggleShareLos(int unused)
 void __stdcall CmdShareRadar(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         g_game->players[g_game->localPlayer].info->shareRadar =
             !g_game->players[g_game->localPlayer].info->shareRadar;
         sprintf(buf, "Toggled ShareRadar to: %s",
@@ -126,7 +126,7 @@ void __stdcall CmdShareRadar(int unused)
 static inline void ShareMetal(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags_97_wide = (data->flags_97_wide & ~2) | (~data->flags_97_wide & 2);
         sprintf(buf, "Toggled ShareMetal to: %s",
@@ -140,7 +140,7 @@ static inline void ShareMetal(int unused)
 static inline void ShareEnergy(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags_97_wide = (data->flags_97_wide & ~4) | (~data->flags_97_wide & 4);
         sprintf(buf, "Toggled ShareEnergy to: %s",
@@ -154,7 +154,7 @@ static inline void ShareEnergy(int unused)
 static inline void ShareMapping(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags_97_wide = (data->flags_97_wide & ~0x20) | (~data->flags_97_wide & 0x20);
         sprintf(buf, "Toggled ShareMapping to: %s",
@@ -168,7 +168,7 @@ static inline void ShareMapping(int unused)
 static inline void ShareRadar(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         PlayerInfo* data = g_game->players[g_game->localPlayer].info;
         data->flags_97_wide = (data->flags_97_wide & ~0x40) | (~data->flags_97_wide & 0x40);
         sprintf(buf, "Toggled ShareRadar to: %s",
@@ -182,7 +182,7 @@ static inline void ShareRadar(int unused)
 // FUNCTION: 0x419090
 void __stdcall CmdShareAll(int unused)
 {
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         ShareMetal(unused);
         ShareEnergy(unused);
         ShareMapping(unused);
@@ -196,7 +196,7 @@ void __stdcall CmdShareAll(int unused)
 void __stdcall CmdSetShareMetal(CommandArgs* args)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         Player* p = &g_game->players[g_game->localPlayer];
         // __min macro with an explicit (float) cast: the cast places the store
         // after the next call's pushes.
@@ -213,7 +213,7 @@ void __stdcall CmdSetShareMetal(CommandArgs* args)
 void __stdcall CmdSetShareEnergy(CommandArgs* args)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         Player* p = &g_game->players[g_game->localPlayer];
         // __min macro with an explicit (float) cast: the cast places the store
         // after the next call's pushes.
@@ -235,7 +235,7 @@ void __stdcall CmdShowRanges(int unused)
 void __stdcall CmdCompression(int unused)
 {
     char buf[256];
-    if (g_game->flags_2a44 & 1) {
+    if (g_game->netGameFlags & 1) {
         g_game->compressionOff = (g_game->compressionOff == 0);
         sprintf(buf, "Ok.  Outgoing packet compression turned %s",
                 g_game->compressionOff ? "OFF" : "ON");

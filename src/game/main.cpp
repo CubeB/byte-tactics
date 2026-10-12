@@ -114,7 +114,7 @@ struct Game {
     void* displayContext;                    // +0xc
     Sound* sound;                            // +0x10
     char unknown_14[0x2a44 - 0x14];
-    unsigned short flags_2a44;               // +0x2a44
+    unsigned short netGameFlags;             // +0x2a44
     char unknown_2a46[0x37f14 - 0x2a46];
     unsigned char musicMode;                 // +0x37f14
     unsigned char field_37f15;               // +0x37f15
@@ -324,7 +324,7 @@ int __stdcall GameMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             }
             if (PeekMessageA(&msg, NULL, 0, 0, 0) != 0)
                 break;
-            if (g_displayContext.active == 0 && (g_game->flags_2a44 & 1) == 0)
+            if (g_displayContext.active == 0 && (g_game->netGameFlags & 1) == 0)
                 break;
             MainFrameTick();
             {

@@ -3,14 +3,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct View {
-    int x;                             // +0x0
-    int y;                             // +0x4
-    unsigned int keyFlags;             // +0x8
-    int tick;                          // +0xc
-    int msg;                           // +0x10
-    int doubleClick;                   // +0x14
-};
+#include "../gui/mouse_event.h"
 
 #include "../util/vec3.h"
 
@@ -60,7 +53,7 @@ struct Game {
     char unknown_2a3e[0x2a44 - 0x2a3e];
     Flags16_00499200 netGameFlags;     // +0x2a44
     char unknown_2a46[0x2c76 - 0x2a46];
-    View view;                         // +0x2c76
+    MouseEvent mouse;                  // +0x2c76
     char unknown_2c8e[0x2c92 - 0x2c8e];
     int boxStartX;                     // +0x2c92
     int boxStartHeight;                // +0x2c96
@@ -130,10 +123,10 @@ int __stdcall ResolveCursorModeForSelection(char mode);
 void ShutdownIngameSystems();
 void __stdcall PopUntilNamedLayout(int a);
 void MainLoopTick();
-void __stdcall UpdateCursorWorldPos(View* p);
-void __stdcall IssueMobileBuildOrders(View* arg);
+void __stdcall UpdateCursorWorldPos(MouseEvent* p);
+void __stdcall IssueMobileBuildOrders(MouseEvent* arg);
 void __stdcall PlaySoundByName(char* name, int broadcast);
-void __stdcall ClickSelectHoverUnit(View* arg);
+void __stdcall ClickSelectHoverUnit(MouseEvent* arg);
 void __stdcall IssueOrderToSelection(void* a, unsigned char b, MissionType kind, Vec3* d, int e, int f);
 int __stdcall FindGadgetIndexBySubstring(int value, char* name);
 void __stdcall ClearGroupStatus(void* obj, int index);
@@ -149,15 +142,15 @@ void MenuFrame();
 void __cdecl LeaveNetGameCallback();
 
 // FUNCTION: 0x498f70
-void __stdcall HandleLeftClick(View* view)
+void __stdcall HandleLeftClick(MouseEvent* mouse)
 {
     int index;
 
     if (g_game->orderMode == 0xe) {
         if (g_game->inputFlags & 0x40) {
-            IssueMobileBuildOrders(view);
+            IssueMobileBuildOrders(mouse);
             PlaySoundByName("oktobuild", 0);
-            if (view->keyFlags & 4) {
+            if (mouse->keyFlags & 4) {
                 g_game->inputFlags |= 0x20;
                 return;
             }
@@ -173,7 +166,7 @@ void __stdcall HandleLeftClick(View* view)
         return;
     }
     if (g_game->cursorMode == 0xf) {
-        ClickSelectHoverUnit(view);
+        ClickSelectHoverUnit(mouse);
         return;
     }
     if (g_game->cursorMode >= 0x11) {
@@ -186,9 +179,9 @@ void __stdcall HandleLeftClick(View* view)
     {
         MissionType kind;
         kind.index = 0;
-        IssueOrderToSelection(view, g_game->orderMode, kind, &g_game->pos, 0, 0);
+        IssueOrderToSelection(mouse, g_game->orderMode, kind, &g_game->pos, 0, 0);
     }
-    if (view->keyFlags & 4) {
+    if (mouse->keyFlags & 4) {
         g_game->inputFlags |= 0x20;
         return;
     }
@@ -206,7 +199,7 @@ void __stdcall HandleLeftClick(View* view)
 // (+0x2cc6): bit 1 cancels the current order, bit 0 switches to the 0x13
 // (STOP) selection, bit 2 hands a zero order kind to IssueOrderToSelection.
 // FUNCTION: 0x499100
-void __stdcall HandleRightClick(View* view)
+void __stdcall HandleRightClick(MouseEvent* mouse)
 {
     if (g_game->orderMode != 1) {
         g_game->orderMode = 1;
@@ -219,7 +212,7 @@ void __stdcall HandleRightClick(View* view)
     }
     if (g_game->interfaceType == 0) {
         if (g_game->inputFlags & 2) {
-            if (view->keyFlags & 8) {
+            if (mouse->keyFlags & 8) {
                 BeginMouseScroll();
                 return;
             }
@@ -237,7 +230,7 @@ void __stdcall HandleRightClick(View* view)
         }
     } else if (g_game->inputFlags & 4) {
         MissionType kind;
-        IssueOrderToSelection(view, 1, kind, &g_game->pos, 0, 0);
+        IssueOrderToSelection(mouse, 1, kind, &g_game->pos, 0, 0);
     }
 }
 
@@ -250,7 +243,7 @@ static inline void SetCursor(int n)
     }
 }
 
-// Main-loop frame handler. Copies the 24-byte view/input block off g_game,
+// Main-loop frame handler. Copies the 24-byte mouse record off g_game,
 // feeds it to the camera update, then runs the order/selection state machine
 // off the flags byte at +0x2cc6 and the mouse message stored in the block.
 // Advances the frame queues and, on the network/skirmish paths, flips the
@@ -258,8 +251,8 @@ static inline void SetCursor(int n)
 // FUNCTION: 0x499200
 void BattleFrame(void)
 {
-    View view = g_game->view;
-    UpdateCursorWorldPos(&view);
+    MouseEvent mouse = g_game->mouse;
+    UpdateCursorWorldPos(&mouse);
 
     unsigned char flags = g_game->inputFlags;
     if ((flags & 2) != 0 && g_game->orderMode == 0xe) {
@@ -286,13 +279,13 @@ void BattleFrame(void)
     flags = g_game->inputFlags;
     if ((flags & 0x10) != 0) {
         if (g_game->interfaceType == 0) {
-            if (view.msg == 0x205) {
+            if (mouse.msg == 0x205) {
                 g_game->inputFlags = flags & 0xef;
             } else {
                 CenterCameraOnRadarClick();
             }
         } else {
-            if (view.msg == 0x202) {
+            if (mouse.msg == 0x202) {
                 g_game->inputFlags = flags & 0xef;
             } else {
                 CenterCameraOnRadarClick();
@@ -300,14 +293,14 @@ void BattleFrame(void)
         }
     } else if (g_game->middleScrollActive != 0) {
         UpdateMouseScroll();
-    } else if (view.msg == 0x204) {
-        HandleRightClick(&view);
+    } else if (mouse.msg == 0x204) {
+        HandleRightClick(&mouse);
     } else if (g_game->orderMode != 1) {
-        if (view.msg == 0x201) {
-            HandleLeftClick(&view);
+        if (mouse.msg == 0x201) {
+            HandleLeftClick(&mouse);
         }
     } else if ((flags & 8) != 0) {
-        if (view.msg == 0x202) {
+        if (mouse.msg == 0x202) {
             g_game->inputFlags = flags & 0xf7;
             int dx = g_game->boxStartX - g_game->boxEndX;
             int dz = g_game->boxStartZ - g_game->boxEndZ;
@@ -315,8 +308,8 @@ void BattleFrame(void)
             dz = abs(dz);
             int now = GetTicks();
             if (g_game->boxStartTick + 0x19 > now && dx < 0x20 && dz < 0x20) {
-                HandleLeftClick(&view);
-            } else if (SelectUnitsInBox(&view) == 0) {
+                HandleLeftClick(&mouse);
+            } else if (SelectUnitsInBox(&mouse) == 0) {
                 ClearSelection();
                 PopUntilNamedLayout(1);
             }
@@ -325,7 +318,7 @@ void BattleFrame(void)
             g_game->boxEndHeight = g_game->yWhole;
             g_game->boxEndZ = g_game->zWhole;
         }
-    } else if (view.msg == 0x201) {
+    } else if (mouse.msg == 0x201) {
         if ((flags & 2) != 0) {
             g_game->inputFlags = flags | 8;
             g_game->boxStartTick = GetTicks();
@@ -342,7 +335,7 @@ void BattleFrame(void)
                 SetCursor(0x13);
             }
         } else if ((flags & 1) != 0) {
-            HandleLeftClick(&view);
+            HandleLeftClick(&mouse);
         }
     }
 

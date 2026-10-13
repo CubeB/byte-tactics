@@ -249,15 +249,17 @@ void __stdcall GetCursorPosition(int* x, int* y)
     *y = pt.y;
 }
 
+#include "mouse_event.h"
+
 // FUNCTION: 0x4c2340
-void __stdcall GetCurrentMouseEvent(int* event)
+void __stdcall GetCurrentMouseEvent(MouseEvent* event)
 {
     int ptr = (int)GetDisplay();
     memcpy(event, (void*)(ptr + 0x196), 6 * 4);
 }
 
 // FUNCTION: 0x4c2360
-void __stdcall SetCurrentMouseEvent(int* event)
+void __stdcall SetCurrentMouseEvent(MouseEvent* event)
 {
     int eax = (int)GetDisplay();
     int edi = eax + 0x196;

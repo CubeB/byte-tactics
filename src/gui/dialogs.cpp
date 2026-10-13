@@ -53,11 +53,8 @@ struct Flags_004ab400 {
     unsigned int rest : 31;
 };
 
-// A mouse event, 0x18 bytes (gui.h's pointX to pointDoubleClick): the point
-// at +0x0/+0x4, the code at +0x8 and the message at +0x10.
-struct Event_004ab5d0 {
-    int data[6];
-};
+// A mouse event, 0x18 bytes (gui.h's pointX to pointDoubleClick).
+#include "mouse_event.h"
 
 struct Rect_004b6720 {
     int left;
@@ -146,9 +143,9 @@ extern void __stdcall SetCursorSprite(int handle);
 int GetCursorSprite();
 
 extern void __stdcall AdvanceGafSequence(Ref_004ab400* ref, int step);
-extern int __stdcall PeekMouseEvent(Event_004ab5d0* out);
-extern void __stdcall GetCurrentMouseEvent(Event_004ab5d0* out);
-extern void __stdcall PopMouseEvent(Event_004ab5d0* out);
+extern int __stdcall PeekMouseEvent(MouseEvent* out);
+extern void __stdcall GetCurrentMouseEvent(MouseEvent* out);
+extern void __stdcall PopMouseEvent(MouseEvent* out);
 extern void __stdcall GetGadgetScreenRect(Gadget* table, int index, Rect_004b6720* out);
 extern int __stdcall IsPointInRect(Rect_004b6720* r, int px, int py);
 
@@ -694,19 +691,19 @@ void __stdcall UpdateCursorAndMouse(Gui* p)
             SetCursorSprite(GetGafSequenceFrame((Ref_004ab400*)&p->cursorIndex));
     }
 
-    Event_004ab5d0 e;
+    MouseEvent e;
     if (PeekMouseEvent(&e) != 0) {
         if (p->layer != 0) {
             Rect_004b6720 r;
             GetGadgetScreenRect(p->layer->entries, 0, &r);
-            if (IsPointInRect(&r, e.data[0], e.data[1]) != 0 || e.data[2] == 0) {
+            if (IsPointInRect(&r, e.x, e.y) != 0 || e.keyFlags == 0) {
                 PopMouseEvent(&e);
-                p->mouseKeyFlags = e.data[2];
-                *(Event_004ab5d0*)&p->pointX = e;
+                p->mouseKeyFlags = e.keyFlags;
+                *(MouseEvent*)&p->pointX = e;
             }
         }
     } else {
-        GetCurrentMouseEvent((Event_004ab5d0*)&p->pointX);
+        GetCurrentMouseEvent((MouseEvent*)&p->pointX);
     }
 }
 
@@ -1317,7 +1314,6 @@ struct Block_004c5ff0;
 struct BmpFileHeader;
 struct BmpInfo;
 struct BmpInfoHeader;
-struct Bounds_src_004b8310;
 void __stdcall CopyPaletteEntries(char* obj, void* dest);
 
 // Builds a 256-entry remap table: for each colour of the source palette,

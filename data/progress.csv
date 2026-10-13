@@ -2068,8 +2068,8 @@ address,size,file,symbol,status,similarity
 0x498cd0,44,src/game/game_load.cpp,?OffsetWorldPosFromView@@YGXPAUPoint_00498cd0@@PAUView_00498cd0@@H@Z,matched,100.0
 0x498d00,145,src/game/game_load.cpp,?MinimapCursorToWorldPos@@YGXPAUPos_00498d00@@@Z,matched,100.0
 0x498da0,459,src/game/game_load.cpp,?UpdateCursorWorldPos@@YGXPAUView_00498da0@@@Z,matched,100.0
-0x498f70,395,src/ingame/build_placement.cpp,?HandleLeftClick@@YGXPAUView@@@Z,matched,100.0
-0x499100,254,src/ingame/build_placement.cpp,?HandleRightClick@@YGXPAUView@@@Z,matched,100.0
+0x498f70,395,src/ingame/build_placement.cpp,?HandleLeftClick@@YGXPAUMouseEvent@@@Z,matched,100.0
+0x499100,254,src/ingame/build_placement.cpp,?HandleRightClick@@YGXPAUMouseEvent@@@Z,matched,100.0
 0x499200,1655,src/ingame/build_placement.cpp,?BattleFrame@@YGXXZ,matched,100.0
 0x499880,5,src/ingame/build_placement.cpp,?EndGameFrame@@YGXXZ,matched,100.0
 0x499890,411,src/ingame/screenshots.cpp,?MainFrameTick@@YGXXZ,matched,100.0
@@ -2715,8 +2715,8 @@ address,size,file,symbol,status,similarity
 0x4c22d0,18,src/gui/keyboard.cpp,?SetCursorOverlayEnabled@@YGXH@Z,matched,100.0
 0x4c22f0,19,src/gui/keyboard.cpp,?SetCursorPosition@@YGXHH@Z,matched,100.0
 0x4c2310,40,src/gui/keyboard.cpp,?GetCursorPosition@@YGXPAH0@Z,matched,100.0
-0x4c2340,29,src/gui/keyboard.cpp,?GetCurrentMouseEvent@@YGXPAH@Z,matched,100.0
-0x4c2360,29,src/gui/keyboard.cpp,?SetCurrentMouseEvent@@YGXPAH@Z,matched,100.0
+0x4c2340,29,src/gui/keyboard.cpp,?GetCurrentMouseEvent@@YGXPAUMouseEvent@@@Z,matched,100.0
+0x4c2360,29,src/gui/keyboard.cpp,?SetCurrentMouseEvent@@YGXPAUMouseEvent@@@Z,matched,100.0
 0x4c2380,85,src/gui/mouse.cpp,?DrawSoftwareCursor@@YGXXZ,matched,100.0
 0x4c23e0,129,src/gui/mouse.cpp,?RestoreCursorBackground@@YGXPAUObj_004c2380@@@Z,matched,100.0
 0x4c2470,62,src/gui/mouse.cpp,?HideSoftwareCursor@@YGXXZ,matched,100.0

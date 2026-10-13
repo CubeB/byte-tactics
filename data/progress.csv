@@ -1359,12 +1359,12 @@ address,size,file,symbol,status,similarity
 0x4679a0,126,src/ingame/info_panel.cpp,?LoadLightBar@@YGXXZ,matched,100.0
 0x467a20,40,src/ingame/info_panel.cpp,?BlitGafFrameAtOffset@@YGXPAXPAFHH@Z,matched,100.0
 0x467a50,259,src/ingame/info_panel.cpp,?DrawRotatedQuadOutline@@YGXPAXPAUVec3@@1PAF@Z,matched,100.0
-0x467b60,157,src/ingame/info_panel.cpp,?DrawProgressBar@@YGXPAXHHPAURect_004b0510@@PAUColors_00467b60@@H@Z,matched,100.0
-0x467c00,175,src/ingame/info_panel.cpp,?BlitSideLogoToRect@@YGXPAXPAUPlayer@@PAURect_467c00@@H@Z,matched,100.0
+0x467b60,157,src/ingame/info_panel.cpp,?DrawProgressBar@@YGXPAXHHPAURect@@PAUColors_00467b60@@H@Z,matched,100.0
+0x467c00,175,src/ingame/info_panel.cpp,?BlitSideLogoToRect@@YGXPAXPAUPlayer@@PAURect@@H@Z,matched,100.0
 0x467cb0,192,src/ingame/info_panel.cpp,?DrawKillCount@@YGXPAXPAUUnit@@HH@Z,matched,100.0
 0x467d70,218,src/ingame/info_panel.cpp,?DrawLightBars@@YGXXZ,matched,100.0
 0x467e50,1212,src/ingame/info_panel.cpp,?DrawUnitStateProbe@@YGHPAX@Z,matched,100.0
-0x468310,108,src/ingame/info_panel.cpp,?DrawPercentBar@@YGXPAXPAURect_004b0510@@H@Z,matched,100.0
+0x468310,108,src/ingame/info_panel.cpp,?DrawPercentBar@@YGXPAXPAURect@@H@Z,matched,100.0
 0x468380,539,src/ingame/info_panel.cpp,?DrawNetworkStats@@YGXPAX@Z,matched,100.0
 0x4685a0,1045,src/ingame/info_panel.cpp,?DrawUnitBuilderProbe@@YGHPAX@Z,matched,100.0
 0x4689c0,803,src/ingame/info_panel.cpp,?DrawStatusPanel@@YGXPAUSurface@@@Z,matched,100.0

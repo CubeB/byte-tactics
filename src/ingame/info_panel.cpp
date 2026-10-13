@@ -340,25 +340,13 @@ public:
     virtual void ApplySonarJamFlag(Unit* unit);
 };
 
-struct Rect_004b0510 {
-    int x1;                            // +0x0
-    int y1;                            // +0x4
-    int x2;                            // +0x8
-    int y2;                            // +0xc
-};
+#include "../graphics/rect.h"
 
 struct Colors_00467b60 {
     char unknown_0[4];
     unsigned char empty;               // +0x4
     char unknown_5[5];
     unsigned char full;                // +0xa
-};
-
-struct Rect_467c00 {
-    int left;                          // +0
-    int top;                           // +4
-    int right;                         // +8
-    int bottom;                        // +0xc
 };
 
 struct Quad_467c00 {
@@ -388,13 +376,6 @@ struct OrderType {
     MissionName_00467e50* GetTableEntry();
 };
 
-struct Rect_004685a0 {
-    int left;                          // +0x0
-    int top;                           // +0x4
-    int right;                         // +0x8
-    int bottom;                        // +0xc
-};
-
 #include "../graphics/surface.h"
 
 // The frame-time profile at g_game+0x38d85: last tick at +0, one accumulator
@@ -408,23 +389,9 @@ struct Flags_0046a530 {
     unsigned short rest : 13;
 };
 
-struct Rect_0046b900 {
-    int a;                             // +0x0
-    int b;                             // +0x4
-    int c;                             // +0x8
-    int d;                             // +0xc
-};
-
 struct Size_0046b9d0 {
     short w;
     short h;
-};
-
-struct Rect_0046b9d0 {
-    int x1;
-    int y1;
-    int x2;
-    int y2;
 };
 
 class Prim_0046bae0 {                  // a model primitive, 0x20 bytes
@@ -468,13 +435,13 @@ void __stdcall DrawFrame(void* dst, void* bmp, int x, int y);
 void __stdcall RotateByAngles(Vec3* in, Vec3* out, short* angles);
 void __stdcall DrawLine(void* surface, int x1, int y1, int x2, int y2, int color);
 
-void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect* rect, int color);
 int __stdcall FillRectangle(void* surface, void* rect, int color);
-void __stdcall FillRectangle(int surface, Rect_0046b900* rect, int color);
+void __stdcall FillRectangle(int surface, Rect* rect, int color);
 
-void __stdcall DrawRectangle(void* surface, Rect_004b0510* rect, int color);
+void __stdcall DrawRectangle(void* surface, Rect* rect, int color);
 void __stdcall DrawRectangle(void* surface, void* rect, int color);
-void __stdcall DrawRectangle(int surface, Rect_0046b900* rect, int color);
+void __stdcall DrawRectangle(int surface, Rect* rect, int color);
 
 void __stdcall DrawFrameQuad(void* surf, void* entry, Quad_467c00* dst, Quad_467c00* src);
 
@@ -494,7 +461,7 @@ void FlipScreen();
 void GetDisplayFieldE4();
 unsigned long GetMilliseconds();
 
-void __stdcall FadeRectangle(void* surface, Rect_004b0510* rect, int level);
+void __stdcall FadeRectangle(void* surface, Rect* rect, int level);
 void __stdcall FadeRectangle(void* surface, void* rect, int level);
 void __stdcall GetByteRates(unsigned int* sent, unsigned int* received);
 int __stdcall GetBuildRating(int player, unsigned short type);
@@ -625,20 +592,20 @@ void __stdcall DrawRotatedQuadOutline(void* surface, Vec3* offset,
 // `dy`) in one colour and, when not full, the rest in another.
 
 // FUNCTION: 0x467b60
-void __stdcall DrawProgressBar(void* surface, int value, int max, Rect_004b0510* rect, Colors_00467b60* colors, int dy)
+void __stdcall DrawProgressBar(void* surface, int value, int max, Rect* rect, Colors_00467b60* colors, int dy)
 {
-    Rect_004b0510 r = *rect;
-    r.y1 += dy;
-    r.y2 += dy;
+    Rect r = *rect;
+    r.top += dy;
+    r.bottom += dy;
     if (value < 0)
         value = 0;
     if (value > max)
         value = max;
-    r.x2 = (rect->x2 - rect->x1) * value / max + r.x1;
+    r.right = (rect->right - rect->left) * value / max + r.left;
     FillRectangle(surface, &r, colors->full);
-    if (r.x2 != rect->x2) {
-        r.x1 = r.x2 + 1;
-        r.x2 = rect->x2;
+    if (r.right != rect->right) {
+        r.left = r.right + 1;
+        r.right = rect->right;
         FillRectangle(surface, &r, colors->empty);
     }
 }
@@ -648,7 +615,7 @@ void __stdcall DrawProgressBar(void* surface, int value, int max, Rect_004b0510*
 // texture rectangle, dst the screen rectangle.
 
 // FUNCTION: 0x467c00
-void __stdcall BlitSideLogoToRect(void* surf, Player* player, Rect_467c00* rect, int dy)
+void __stdcall BlitSideLogoToRect(void* surf, Player* player, Rect* rect, int dy)
 {
     unsigned char idx = player->info->color;
     Entry_467c00* entry = (Entry_467c00*)*(void**)((char*)g_game->logos32 + idx * 8 + 0x28);
@@ -736,7 +703,7 @@ int __stdcall DrawUnitStateProbe(void* surface)
     char* names[3];
     unsigned char* colors;
     Unit* unit;
-    Rect_004b0510 r;
+    Rect r;
     int lineH;
     int y;
     int prev;
@@ -757,13 +724,13 @@ int __stdcall DrawUnitStateProbe(void* surface)
     y = lineH * 7;
     GetDisplayFieldE4();
     prev = g_probePanelBottom;
-    r.x1 = 0x83;
-    r.x2 = 0x191;
-    r.y1 = y;
-    r.y2 = prev == 0 ? lineH * 20 : prev;
+    r.left = 0x83;
+    r.right = 0x191;
+    r.top = y;
+    r.bottom = prev == 0 ? lineH * 20 : prev;
     FadeRectangle(surface, &r, -0x18);
-    r.x2++;
-    r.y2++;
+    r.right++;
+    r.bottom++;
     DrawRectangle(surface, &r, colors[5]);
     y += 3;
     DrawString(surface, "Unit State Probe", 0x86, y, -1);
@@ -851,14 +818,14 @@ int __stdcall DrawUnitStateProbe(void* surface)
 // Both calls take the colour byte at g_game+0xdda through one reference.
 
 // FUNCTION: 0x468310
-void __stdcall DrawPercentBar(void* surface, Rect_004b0510* rect, int percent)
+void __stdcall DrawPercentBar(void* surface, Rect* rect, int percent)
 {
     unsigned char& color = g_game->shadowColor;
     DrawRectangle(surface, rect, color);
     if (percent >= 100)
         percent = 100;
     if (percent > 0) {
-        rect->x2 = (rect->x2 - rect->x1) * percent / 100 + rect->x1;
+        rect->right = (rect->right - rect->left) * percent / 100 + rect->left;
         FillRectangle(surface, rect, color);
     }
 }
@@ -870,14 +837,14 @@ void __stdcall DrawPercentBar(void* surface, Rect_004b0510* rect, int percent)
 // the second one starts just under the first bar.
 
 // DrawPercentBar, the out-of-line bar, written here so both calls inline.
-static void Bar(void* surface, Rect_004b0510* rect, int percent)
+static void Bar(void* surface, Rect* rect, int percent)
 {
     unsigned char& color = g_game->shadowColor;
     DrawRectangle(surface, rect, color);
     if (percent >= 100)
         percent = 100;
     if (percent > 0) {
-        rect->x2 = (rect->x2 - rect->x1) * percent / 100 + rect->x1;
+        rect->right = (rect->right - rect->left) * percent / 100 + rect->left;
         FillRectangle(surface, rect, color);
     }
 }
@@ -888,29 +855,29 @@ void __stdcall DrawNetworkStats(void* surface)
     unsigned int sent;
     unsigned int received;
     char buf[0x20];
-    Rect_004b0510 r;
-    r.x1 = 0x81;
-    r.x2 = 0xc1;
-    r.y1 = g_game->screenHeight - 0x5f;
-    r.y2 = r.y1 + 8;
+    Rect r;
+    r.left = 0x81;
+    r.right = 0xc1;
+    r.top = g_game->screenHeight - 0x5f;
+    r.bottom = r.top + 8;
     int h = GetFontHeight();
     GetByteRates(&sent, &received);
     sprintf(buf, "Send - %1.1f K/s", sent * 0.001);
-    DrawString(surface, buf, r.x1, r.y1, -1);
-    r.y1 += h;
-    r.y2 = r.y1 + 8;
+    DrawString(surface, buf, r.left, r.top, -1);
+    r.top += h;
+    r.bottom = r.top + 8;
     Bar(surface, &r, sent * 100 / 5600);
-    r.x1 = 0x81;
-    r.x2 = 0xc1;
-    r.y1 = r.y2 + 1;
+    r.left = 0x81;
+    r.right = 0xc1;
+    r.top = r.bottom + 1;
     sprintf(buf, "Receive - %1.1f K/s", received * 0.001);
-    DrawString(surface, buf, r.x1, r.y1, -1);
-    r.y1 += h;
-    r.y2 = r.y1 + 8;
+    DrawString(surface, buf, r.left, r.top, -1);
+    r.top += h;
+    r.bottom = r.top + 8;
     Bar(surface, &r, received * 100 / 5600);
 }
 
-static void Bar_004685a0(void* surface, Rect_004685a0* rect, int percent)
+static void Bar_004685a0(void* surface, Rect* rect, int percent)
 {
     unsigned char& color = g_game->colors[15];
     DrawRectangle(surface, rect, color);
@@ -938,7 +905,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
     int lineHeight = GetFontHeight() + 3;
     int y = lineHeight * 3;
     GetDisplayFieldE4();
-    Rect_004685a0 r;
+    Rect r;
     r.left = 0x83;
     r.right = 0x191;
     r.top = y;
@@ -984,7 +951,7 @@ int __stdcall DrawUnitBuilderProbe(void* surface)
                 unsigned short id = unit->type->ids[i];
                 int prob = GetBuildRating(unit->playerIndex, id);
                 Def_004685a0* def = &g_game->unitDefs[id];
-                Rect_004685a0 bar;
+                Rect bar;
                 bar.left = 0x88;
                 bar.top = y + 1;
                 bar.right = 0xa2;
@@ -1099,20 +1066,20 @@ void __stdcall DrawHitPointBar(void* surface, Unit* unit, int x, int y)
     if (unit->health <= 0)
         return;
     unsigned char* colors = g_game->colors;
-    Rect_004b0510 r;
-    r.x1 = x - 17;
-    r.y1 = y - 2;
-    r.x2 = x + 17;
-    r.y2 = y + 2;
+    Rect r;
+    r.left = x - 17;
+    r.top = y - 2;
+    r.right = x + 17;
+    r.bottom = y + 2;
     FillRectangle(surface, &r, colors[0]);
     // The width has to be a separate local: written inline, MSVC tail merges
     // the three colour calls below into one.
     int width;
-    r.x1++;
-    r.y1++;
-    r.y2--;
+    r.left++;
+    r.top++;
+    r.bottom--;
     width = unit->health * 32 / unit->def->maxHealth;
-    r.x2 = r.x1 + width;
+    r.right = r.left + width;
     if (unit->health > (int)(unit->def->maxHealth / 3) * 2)
         FillRectangle(surface, &r, colors[10]);
     else if (unit->health > (int)(unit->def->maxHealth / 3))
@@ -1161,26 +1128,26 @@ void __stdcall DrawSelectionBox(Vec3* view, Unit* unit)
 // FUNCTION: 0x46b900
 void __stdcall DrawProfileBarLine(int surface, const char* text, int index)
 {
-    Rect_0046b900 rect;
+    Rect rect;
     int x = g_game->screenWidth - 0x5a;
     int c = GetFontHeight();
 
-    rect.a = x - 0xc8;
-    rect.c = 0x27f;
-    rect.b = 0x26;
-    rect.d = c * 9 + 0x29;
+    rect.left = x - 0xc8;
+    rect.right = 0x27f;
+    rect.top = 0x26;
+    rect.bottom = c * 9 + 0x29;
     DrawRectangle(surface, &rect, 0xff);
 
     // No named local for c * index + 0x28: it must stay a compiler temp.
     DrawString(surface, text, x + 5, c * index + 0x28, -1);
 
     int w = g_game->values[index] * 100 / g_game->total * 2;
-    // Stored first: any order with rect.c first changes register use.
-    rect.a = x - w;
-    rect.c = x;
-    rect.d = c * index + 0x28;
-    rect.b = rect.d;
-    rect.d = rect.d + c;
+    // Stored first: any order with rect.right first changes register use.
+    rect.left = x - w;
+    rect.right = x;
+    rect.bottom = c * index + 0x28;
+    rect.top = rect.bottom;
+    rect.bottom = rect.bottom + c;
     FillRectangle(surface, &rect, index + 1);
 }
 
@@ -1195,16 +1162,16 @@ void __stdcall DrawMapTileSelectionOutline(void* surface, short* pos, Size_0046b
     int h = GetCellHeight(pos);
     int y1 = (pos[1] << 4) - g_game->scrollY;
     int x1 = ((pos[0] + 8) << 4) - g_game->scrollX;
-    Rect_0046b9d0 rect;
-    rect.x1 = x1;
-    rect.y1 = y1 - (h >> 1) + 0x20;
-    rect.x2 = x1 + (size.w << 4);
-    rect.y2 = rect.y1 + (size.h << 4);
+    Rect rect;
+    rect.left = x1;
+    rect.top = y1 - (h >> 1) + 0x20;
+    rect.right = x1 + (size.w << 4);
+    rect.bottom = rect.top + (size.h << 4);
     if (kind == 4) {
-        rect.x1++;
-        rect.y1++;
-        rect.x2--;
-        rect.y2--;
+        rect.left++;
+        rect.top++;
+        rect.right--;
+        rect.bottom--;
     }
     DrawRectangle(surface, &rect, colors[kind]);
 }

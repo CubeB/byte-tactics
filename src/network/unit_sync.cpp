@@ -139,7 +139,9 @@ inline void __stdcall swap(_Ty& _X, _Ty& _Y)
 
 // --- the game-event reporting the statistics DLL calls -----------------------
 
-struct Rect_0046c620 {                  // 16 bytes, the rect at net+0x465
+// Four ints, but the session GUID instance GetSessionGuidInstance returns at
+// net+0x465, not a rectangle, so it stays off rect.h.
+struct Rect_0046c620 {                  // 16 bytes
     int x0;
     int y0;
     int x1;

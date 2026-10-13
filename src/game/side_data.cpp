@@ -6,49 +6,41 @@
 class TdfFile;
 
 #include "../util/tdf.h"
-
-
-// One x1/y1/x2/y2 block of the TDF section.
-struct Rect_00431a60 {
-    int x1;                             // +0x0
-    int y1;                             // +0x4
-    int x2;                             // +0x8
-    int y2;                             // +0xc
-};
+#include "../graphics/rect.h"
 
 #pragma pack(push, 1)
 struct Side_00431a60 {                  // 0x232 bytes
     char name[0x1e];                    // +0x00
     char nameprefix[4];                 // +0x1e
     char commander[0x20];               // +0x22
-    Rect_00431a60 logo;                 // +0x42
-    Rect_00431a60 energyBar;            // +0x52
-    Rect_00431a60 energyNum;            // +0x62
-    Rect_00431a60 metalBar;             // +0x72
-    Rect_00431a60 metalNum;             // +0x82
-    Rect_00431a60 totalUnits;           // +0x92
-    Rect_00431a60 totalTime;            // +0xa2
-    Rect_00431a60 energyMax;            // +0xb2
-    Rect_00431a60 metalMax;             // +0xc2
-    Rect_00431a60 energy0;              // +0xd2
-    Rect_00431a60 metal0;               // +0xe2
-    Rect_00431a60 energyProduced;       // +0xf2
-    Rect_00431a60 energyConsumed;       // +0x102
-    Rect_00431a60 metalProduced;        // +0x112
-    Rect_00431a60 metalConsumed;        // +0x122
-    Rect_00431a60 logo2;                // +0x132
-    Rect_00431a60 unitName;             // +0x142
-    Rect_00431a60 damageBar;            // +0x152
-    Rect_00431a60 unitEnergyMake;       // +0x162
-    Rect_00431a60 unitEnergyUse;        // +0x172
-    Rect_00431a60 unitMetalMake;        // +0x182
-    Rect_00431a60 unitMetalUse;         // +0x192
-    Rect_00431a60 missionText;          // +0x1a2
-    Rect_00431a60 unitName2;            // +0x1b2
-    Rect_00431a60 damageBar2;           // +0x1c2
-    Rect_00431a60 nameBlock;            // +0x1d2
-    Rect_00431a60 description;          // +0x1e2
-    Rect_00431a60 reload[3];            // +0x1f2
+    Rect logo;                          // +0x42
+    Rect energyBar;                     // +0x52
+    Rect energyNum;                     // +0x62
+    Rect metalBar;                      // +0x72
+    Rect metalNum;                      // +0x82
+    Rect totalUnits;                    // +0x92
+    Rect totalTime;                     // +0xa2
+    Rect energyMax;                     // +0xb2
+    Rect metalMax;                      // +0xc2
+    Rect energy0;                       // +0xd2
+    Rect metal0;                        // +0xe2
+    Rect energyProduced;                // +0xf2
+    Rect energyConsumed;                // +0x102
+    Rect metalProduced;                 // +0x112
+    Rect metalConsumed;                 // +0x122
+    Rect logo2;                         // +0x132
+    Rect unitName;                      // +0x142
+    Rect damageBar;                     // +0x152
+    Rect unitEnergyMake;                // +0x162
+    Rect unitEnergyUse;                 // +0x172
+    Rect unitMetalMake;                 // +0x182
+    Rect unitMetalUse;                  // +0x192
+    Rect missionText;                   // +0x1a2
+    Rect unitName2;                     // +0x1b2
+    Rect damageBar2;                    // +0x1c2
+    Rect nameBlock;                     // +0x1d2
+    Rect description;                   // +0x1e2
+    Rect reload[3];                     // +0x1f2
     int energyColor;                    // +0x222
     int metalColor;                     // +0x226
     int sideNumber;                     // +0x22a
@@ -211,50 +203,50 @@ void __stdcall LoadSideData(void)
         s->energyColor = parser.current->GetFieldInt("energycolor", 0);
         s->metalColor = parser.current->GetFieldInt("metalcolor", 0);
 
-        LoadSideRect(&parser, &s->logo.x1, "LOGO", s->name, msgLogo);
+        LoadSideRect(&parser, &s->logo.left, "LOGO", s->name, msgLogo);
 
-        LoadSideRect(&parser, &s->energyBar.x1, "ENERGYBAR", s->name, msgEnergybar);
+        LoadSideRect(&parser, &s->energyBar.left, "ENERGYBAR", s->name, msgEnergybar);
 
-        LoadSideRect(&parser, &s->energyNum.x1, "ENERGYNUM", s->name, msgEnergynum);
+        LoadSideRect(&parser, &s->energyNum.left, "ENERGYNUM", s->name, msgEnergynum);
 
-        LoadSideRect(&parser, &s->metalBar.x1, "METALBAR", s->name, msgMetalbar);
+        LoadSideRect(&parser, &s->metalBar.left, "METALBAR", s->name, msgMetalbar);
 
-        LoadSideRect(&parser, &s->metalNum.x1, "METALNUM", s->name, msgMetalnum);
+        LoadSideRect(&parser, &s->metalNum.left, "METALNUM", s->name, msgMetalnum);
 
-        LoadSideRect(&parser, &s->totalUnits.x1, "TOTALUNITS", s->name, msgTotalunits);
+        LoadSideRect(&parser, &s->totalUnits.left, "TOTALUNITS", s->name, msgTotalunits);
 
-        LoadSideRect(&parser, &s->totalTime.x1, "TOTALTIME", s->name, msgTotaltime);
+        LoadSideRect(&parser, &s->totalTime.left, "TOTALTIME", s->name, msgTotaltime);
 
-        LoadSideRect(&parser, &s->energy0.x1, "ENERGY0", s->name, msgEnergy0);
+        LoadSideRect(&parser, &s->energy0.left, "ENERGY0", s->name, msgEnergy0);
 
-        LoadSideRect(&parser, &s->metal0.x1, "METAL0", s->name, msgMetal0);
+        LoadSideRect(&parser, &s->metal0.left, "METAL0", s->name, msgMetal0);
 
-        LoadSideRect(&parser, &s->energyMax.x1, "ENERGYMAX", s->name, msgEnergymax);
+        LoadSideRect(&parser, &s->energyMax.left, "ENERGYMAX", s->name, msgEnergymax);
 
-        LoadSideRect(&parser, &s->metalMax.x1, "METALMAX", s->name, msgMetalmax);
+        LoadSideRect(&parser, &s->metalMax.left, "METALMAX", s->name, msgMetalmax);
 
-        ReadSideRect(&parser, &s->energyProduced.x1, "ENERGYPRODUCED", s->name);
-        ReadSideRect(&parser, &s->energyConsumed.x1, "ENERGYCONSUMED", s->name);
-        ReadSideRect(&parser, &s->metalProduced.x1, "METALPRODUCED", s->name);
-        ReadSideRect(&parser, &s->metalConsumed.x1, "METALCONSUMED", s->name);
-        ReadSideRect(&parser, &s->logo2.x1, "LOGO2", s->name);
-        ReadSideRect(&parser, &s->unitName.x1, "UNITNAME", s->name);
-        ReadSideRect(&parser, &s->damageBar.x1, "DAMAGEBAR", s->name);
-        ReadSideRect(&parser, &s->unitMetalMake.x1, "UNITMETALMAKE", s->name);
-        ReadSideRect(&parser, &s->unitMetalUse.x1, "UNITMETALUSE", s->name);
-        ReadSideRect(&parser, &s->unitEnergyMake.x1, "UNITENERGYMAKE", s->name);
-        ReadSideRect(&parser, &s->unitEnergyUse.x1, "UNITENERGYUSE", s->name);
-        ReadSideRect(&parser, &s->missionText.x1, "MISSIONTEXT", s->name);
-        ReadSideRect(&parser, &s->unitName2.x1, "UNITNAME2", s->name);
-        ReadSideRect(&parser, &s->damageBar2.x1, "DAMAGEBAR2", s->name);
-        ReadSideRect(&parser, &s->nameBlock.x1, "NAME", s->name);
-        ReadSideRect(&parser, &s->description.x1, "DESCRIPTION", s->name);
+        ReadSideRect(&parser, &s->energyProduced.left, "ENERGYPRODUCED", s->name);
+        ReadSideRect(&parser, &s->energyConsumed.left, "ENERGYCONSUMED", s->name);
+        ReadSideRect(&parser, &s->metalProduced.left, "METALPRODUCED", s->name);
+        ReadSideRect(&parser, &s->metalConsumed.left, "METALCONSUMED", s->name);
+        ReadSideRect(&parser, &s->logo2.left, "LOGO2", s->name);
+        ReadSideRect(&parser, &s->unitName.left, "UNITNAME", s->name);
+        ReadSideRect(&parser, &s->damageBar.left, "DAMAGEBAR", s->name);
+        ReadSideRect(&parser, &s->unitMetalMake.left, "UNITMETALMAKE", s->name);
+        ReadSideRect(&parser, &s->unitMetalUse.left, "UNITMETALUSE", s->name);
+        ReadSideRect(&parser, &s->unitEnergyMake.left, "UNITENERGYMAKE", s->name);
+        ReadSideRect(&parser, &s->unitEnergyUse.left, "UNITENERGYUSE", s->name);
+        ReadSideRect(&parser, &s->missionText.left, "MISSIONTEXT", s->name);
+        ReadSideRect(&parser, &s->unitName2.left, "UNITNAME2", s->name);
+        ReadSideRect(&parser, &s->damageBar2.left, "DAMAGEBAR2", s->name);
+        ReadSideRect(&parser, &s->nameBlock.left, "NAME", s->name);
+        ReadSideRect(&parser, &s->description.left, "DESCRIPTION", s->name);
         {
             int n = 3;
             int k = 1;
             while (n) {
                 sprintf(name, "RELOAD%d", k);
-                ReadSideRect(&parser, &s->reload[k - 1].x1, name, s->name);
+                ReadSideRect(&parser, &s->reload[k - 1].left, name, s->name);
                 n--;
                 k++;
             }

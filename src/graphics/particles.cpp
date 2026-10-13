@@ -620,12 +620,7 @@ struct Position_00475150 {             // 16.16 fixed point; only high words rea
     short z;                           // +0xa
 };
 
-struct Rect_004b0510 {
-    int x1;                          // +0x0
-    int y1;                          // +0x4
-    int x2;                          // +0x8
-    int y2;                          // +0xc
-};
+#include "rect.h"
 
 // One particle of TimedSubParticles, 0x20 bytes.
 struct TimedSubParticle {
@@ -769,7 +764,7 @@ extern void __stdcall ExitParticlePool();
 void* __stdcall GetGafFrame(void* a, int b);
 void __stdcall DrawFrameBlended(void* dest, void* src, int x, int y);
 int __stdcall GetGafFrameCount(void* ptr);
-void __stdcall FillRectangle(void* surface, Rect_004b0510* rect, int color);
+void __stdcall FillRectangle(void* surface, Rect* rect, int color);
 int __stdcall GetGroundHeight(void* pos);
 
 // Whether the cell is inside the explored map. Returned as 0 or 1, not tested
@@ -1975,13 +1970,13 @@ void WakeParticle::Step()
 // FUNCTION: 0x4745e0
 void WakeParticle::DrawParticle(void* surface, short px, short py)
 {
-    Rect_004b0510 r;
+    Rect r;
     short sx = posw.x - px;
     short sy = posw.y - py;
-    r.x1 = sx + 0x80;
-    r.y1 = sy - (posw.height >> 1) + 0x20;
-    r.x2 = r.x1 + 1;
-    r.y2 = r.y1 + 1;
+    r.left = sx + 0x80;
+    r.top = sy - (posw.height >> 1) + 0x20;
+    r.right = r.left + 1;
+    r.bottom = r.top + 1;
     // Visible() stays a member: inlined here, the arms' pos loads are CSE'd
     // against the header's.
     if (posw.Visible())

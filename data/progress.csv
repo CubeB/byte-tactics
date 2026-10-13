@@ -2483,9 +2483,9 @@ address,size,file,symbol,status,similarity
 0x4b66a0,96,src/graphics/display.cpp,?GetFrameRate@@YGHXZ,matched,100.0
 0x4b6700,12,src/graphics/display.cpp,?GetScreenWidth@@YGHXZ,matched,100.0
 0x4b6710,12,src/graphics/display.cpp,?GetScreenHeight@@YGHXZ,matched,100.0
-0x4b6720,46,src/graphics/display.cpp,?PointInRect@@YGHPAURect_004b6720@@HH@Z,matched,100.0
-0x4b6750,123,src/util/registry.cpp,?RectInsideRect@@YGHPAURect_004b6750@@0@Z,matched,100.0
-0x4b67d0,74,src/util/registry.cpp,?RectsOverlap@@YGHPAURect_004b6750@@0@Z,matched,100.0
+0x4b6720,46,src/graphics/display.cpp,?PointInRect@@YGHPAURect@@HH@Z,matched,100.0
+0x4b6750,123,src/util/registry.cpp,?RectInsideRect@@YGHPAURect@@0@Z,matched,100.0
+0x4b67d0,74,src/util/registry.cpp,?RectsOverlap@@YGHPAURect@@0@Z,matched,100.0
 0x4b6820,26,src/util/registry.cpp,?CompareByte1Equal@@YGHHH@Z,matched,100.0
 0x4b6840,28,src/util/registry.cpp,?SetBytes1To3@@YGXPAEEEE@Z,matched,100.0
 0x4b6860,32,src/util/registry.cpp,?ReadRegistryValue@@YGHPBD0PAXPAI@Z,matched,100.0

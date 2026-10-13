@@ -4,42 +4,37 @@
 #include <windows.h>
 #include <string.h>
 
-struct Rect_004b6750 {
-    int x1;                            // +0x0
-    int y1;                            // +0x4
-    int x2;                            // +0x8
-    int y2;                            // +0xc
-};
+#include "../graphics/rect.h"
 
 int __stdcall AccessRegistryValue(char* subKey, char* valueName, LPBYTE data, LPDWORD size,
                                   DWORD type, DWORD read);
 
 // Returns 1 when rectangle a lies entirely inside rectangle b.
 // FUNCTION: 0x4b6750
-int __stdcall RectInsideRect(Rect_004b6750* a, Rect_004b6750* b)
+int __stdcall RectInsideRect(Rect* a, Rect* b)
 {
-    if (a->x1 < b->x1) {
+    if (a->left < b->left) {
         return 0;
     }
-    if (a->x1 > b->x2) {
+    if (a->left > b->right) {
         return 0;
     }
-    if (a->x2 < b->x1) {
+    if (a->right < b->left) {
         return 0;
     }
-    if (a->x2 > b->x2) {
+    if (a->right > b->right) {
         return 0;
     }
-    if (a->y1 < b->y1) {
+    if (a->top < b->top) {
         return 0;
     }
-    if (a->y1 > b->y2) {
+    if (a->top > b->bottom) {
         return 0;
     }
-    if (a->y2 < b->y1) {
+    if (a->bottom < b->top) {
         return 0;
     }
-    if (a->y2 > b->y2) {
+    if (a->bottom > b->bottom) {
         return 0;
     }
     return 1;
@@ -47,18 +42,18 @@ int __stdcall RectInsideRect(Rect_004b6750* a, Rect_004b6750* b)
 
 // Returns 1 when rectangles a and b overlap.
 // FUNCTION: 0x4b67d0
-int __stdcall RectsOverlap(Rect_004b6750* a, Rect_004b6750* b)
+int __stdcall RectsOverlap(Rect* a, Rect* b)
 {
-    if (a->x1 > b->x2) {
+    if (a->left > b->right) {
         return 0;
     }
-    if (a->x2 < b->x1) {
+    if (a->right < b->left) {
         return 0;
     }
-    if (a->y1 > b->y2) {
+    if (a->top > b->bottom) {
         return 0;
     }
-    return a->y2 >= b->y1 ? 1 : 0;
+    return a->bottom >= b->top ? 1 : 0;
 }
 
 // FUNCTION: 0x4b6820

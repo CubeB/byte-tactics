@@ -22,8 +22,20 @@
 
 #include "surface.h"
 
-// Unused here: the symbol ids these declarations take keep 0x4c0b10 and
-// 0x4c1320 matching (docs/c2-regalloc.md).
+// Unused here: the symbol ids these thirteen declarations take keep
+// 0x4bf4d0 and 0x4c1320 matching. Ten stand for the four display-object views
+// joined into the one DisplayContext below; the last three are the ones that
+// already stood here for 0x4c0b10 and 0x4c1320 (docs/c2-regalloc.md).
+void RegisterAICommands(void);
+void FUN_00406f40(void);
+void ResetAIPlayers(void);
+void ProtectUnitDefsReadOnly(void);
+void ProtectUnitDefsReadWrite(void);
+void SetMemFussyDefault(void);
+char IsMemFussy(void);
+void MemFussyAtexitHandler(void);
+char IsGonzo(void);
+void GonzoAtexitHandler(void);
 void RegisterUnitOrders(void);
 void RegisterGroundOrders(void);
 void EnableAICommands(void);
@@ -65,35 +77,20 @@ struct Segment {
     Point* to;
 };
 
-// The display object's shade and light tables at +0xc4 and +0xc8, and the
-// screen size at +0xd4. A fade darkens through the shade table and brightens
-// through the light one.
-struct Engine_004bf4d0 {
-    char unknown_0[0xc4];
-    unsigned char* shadeTable;         // +0xc4
-    unsigned char* lightTable;         // +0xc8
-    char unknown_cc[0xd4 - 0xcc];
-    int width;                         // +0xd4
-    int height;                        // +0xd8
-};
-
-// The display object's light table at +0xc8, the one DrawLitLine draws through.
-struct App_004bec70 {
-    char unknown_0[0xc8];
-    unsigned char* lightTable;         // +0xc8
-};
-
-// The display object's alpha table at +0xc0, the one DrawBlendedLine draws
-// through (a 256 by 256 byte matrix, indexed level first).
-struct App_004bed70 {
+// The display object GetDisplay returns, kept local like movies.cpp,
+// sound.cpp and hpi.cpp do: including graphics/display_context.h brings its
+// blocks and gui/mouse_event.h with it and moves six of this file's functions
+// out of their register windows (docs/c2-regalloc.md). The members are that
+// header's, at the same offsets, so the two spell the same record; this view
+// names only what the blitters read.
+struct DisplayContext {
     char unknown_0[0xc0];
-    unsigned char* alphaTable;         // +0xc0
-};
-
-// The display object's shade table at +0xc4, indexed level first.
-struct App_004c0b10 {
-    char unknown_0[0xc4];
-    unsigned char* shadeTable;         // +0xc4
+    unsigned char* alphaTable;         // +0xc0, DrawBlendedLine's 256 by 256 matrix
+    unsigned char* shadeTable;         // +0xc4, what a fade darkens through
+    unsigned char* lightTable;         // +0xc8, what a fade brightens through
+    char unknown_cc[0xd4 - 0xcc];
+    int width;                         // +0xd4, the screen width
+    int height;                        // +0xd8, the screen height
 };
 
 // The display object's grey table at +0xcc and its flags at +0xf1.
@@ -278,8 +275,8 @@ fail:
 Surface* __stdcall DrawLitLine(Surface* surface, int x0, int y0,
                                          int x1, int y1, int color)
 {
-    App_004bec70* app = (App_004bec70*)GetDisplay();
-    if (!app->lightTable)
+    DisplayContext* display = (DisplayContext*)GetDisplay();
+    if (!display->lightTable)
         return 0;
     Surface* ret;
     if (surface == 0) {
@@ -287,12 +284,12 @@ Surface* __stdcall DrawLitLine(Surface* surface, int x0, int y0,
         ret = (Surface*)LockScreen(&screen);
         if (ret) {
             if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                BlitLineRemapped(&screen, x0, y0, x1, y1, color, app->lightTable);
+                BlitLineRemapped(&screen, x0, y0, x1, y1, color, display->lightTable);
             UnlockScreen(&screen);
         }
     } else {
         if (ClipLine(surface, &x0, &y0, &x1, &y1))
-            BlitLineRemapped(surface, x0, y0, x1, y1, color, app->lightTable);
+            BlitLineRemapped(surface, x0, y0, x1, y1, color, display->lightTable);
         ret = (Surface*)1;
     }
     return ret;
@@ -309,19 +306,19 @@ Surface* __stdcall DrawLitLine(Surface* surface, int x0, int y0,
 Surface* __stdcall DrawBlendedLine(Surface* surface, int x0, int y0,
                                          int x1, int y1, int color)
 {
-    App_004bed70* app = (App_004bed70*)GetDisplay();
+    DisplayContext* display = (DisplayContext*)GetDisplay();
     Surface* ret;
     if (surface == 0) {
         Surface screen;
         ret = (Surface*)LockScreen(&screen);
         if (ret) {
             if (ClipLine(&screen, &x0, &y0, &x1, &y1))
-                BlitLineRemapped(&screen, x0, y0, x1, y1, color, app->alphaTable);
+                BlitLineRemapped(&screen, x0, y0, x1, y1, color, display->alphaTable);
             UnlockScreen(&screen);
         }
     } else {
         if (ClipLine(surface, &x0, &y0, &x1, &y1))
-            BlitLineRemapped(surface, x0, y0, x1, y1, color, app->alphaTable);
+            BlitLineRemapped(surface, x0, y0, x1, y1, color, display->alphaTable);
         ret = (Surface*)1;
     }
     return ret;
@@ -565,7 +562,7 @@ int __stdcall DrawPolylines(Surface* surface, Point* points, int* counts,
 // FUNCTION: 0x4bf4d0
 int __stdcall FadeRectangle(Surface* surface, Rect* rect, int level)
 {
-    Engine_004bf4d0* engine = (Engine_004bf4d0*)GetDisplay();
+    DisplayContext* display = (DisplayContext*)GetDisplay();
     Surface screen;
     Rect r;
     if (surface == 0) {
@@ -577,8 +574,8 @@ int __stdcall FadeRectangle(Surface* surface, Rect* rect, int level)
     if (rect == 0) {
         r.top = 0;
         r.left = 0;
-        r.right = engine->width;
-        r.bottom = engine->height;
+        r.right = display->width;
+        r.bottom = display->height;
         rect = &r;
     }
     int clipped = ClipRectangle(&screen, rect) != 0;
@@ -592,7 +589,7 @@ int __stdcall FadeRectangle(Surface* surface, Rect* rect, int level)
         if (level < 0) {
             if (level < -0x20)
                 level = -0x20;
-            table = engine->shadeTable;
+            table = display->shadeTable;
             level += 0x20;
             if (table == 0)
                 return 0;
@@ -600,7 +597,7 @@ int __stdcall FadeRectangle(Surface* surface, Rect* rect, int level)
         } else {
             if (level > 0x1f)
                 level = 0x1f;
-            table = engine->lightTable;
+            table = display->lightTable;
             if (table == 0)
                 return 0;
             t = table + (level << 8);
@@ -1288,8 +1285,8 @@ int __stdcall DrawPolygonEdges(GafFrame* surf, Vec3* pts, int count,
 // the cached start, same value because start is span->x1 after the clamp)
 // flips the commutative add destination to edx and matches.
 //
-// Inert: `(app->shadeTable + (si << 8))[color]` and `*(app->shadeTable + (si << 8) + color)`
-// for the shade lookup, do/while for the depth loop (73.2 percent), `for (; count;
+// Inert: `(display->shadeTable + (si << 8))[color]` and
+// `*(display->shadeTable + (si << 8) + color)` for the shade lookup, do/while for the depth loop (73.2 percent), `for (; count;
 // count--)`, an `int zi`, a `w`-less head with cached z1/s1/x1/x2 locals
 // (47 to 52 percent).
 //
@@ -1307,7 +1304,7 @@ void __stdcall FillShadedSpan(int row, Span* span, GafFrame* surf, unsigned char
 {
     unsigned char* p = surf->bits;
     unsigned char* d = surf->depth;
-    App_004c0b10* app = (App_004c0b10*)GetDisplay();
+    DisplayContext* display = (DisplayContext*)GetDisplay();
     int w = span->x2 - span->x1;
     int dz = (span->z2 - span->z1) / w;
     int ds = (span->s2 - span->s1) / w;
@@ -1331,7 +1328,7 @@ void __stdcall FillShadedSpan(int row, Span* span, GafFrame* surf, unsigned char
                 unsigned char zi = z >> 16;
                 if (*d <= zi) {
                     int si = s >> 16;
-                    *p = app->shadeTable[(si << 8) + color];
+                    *p = display->shadeTable[(si << 8) + color];
                     *d = zi;
                 }
                 p++;
@@ -1342,7 +1339,7 @@ void __stdcall FillShadedSpan(int row, Span* span, GafFrame* surf, unsigned char
         } else {
             while (count--) {
                 int si = s >> 16;
-                *p++ = app->shadeTable[(si << 8) + color];
+                *p++ = display->shadeTable[(si << 8) + color];
                 s += ds;
             }
         }

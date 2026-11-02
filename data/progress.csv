@@ -1146,7 +1146,7 @@ address,size,file,symbol,status,similarity
 0x4584d0,461,src/graphics/model_render.cpp,?DrawPiece@CMemoryCache@@QAEXPAUUnitObjectState@@PAXPATVec3@@PAUObject3do@@2EH@Z,matched,100.0
 0x4586a0,267,src/graphics/model_render.cpp,?BuildObjectPicture@UnitTable@@QAEHPAUUnitObjectState@@HH@Z,matched,100.0
 0x4587b0,85,src/graphics/model_render.cpp,?HalveFrame@@YGXPAUGafFrame@@0@Z,matched,100.0
-0x458810,427,src/units/unit_motion.cpp,?DrawObjectState@CMemoryCache@@QAEXPAUList_458810@@PAUVec3@@@Z,matched,100.0
+0x458810,427,src/units/unit_motion.cpp,?DrawObjectState@CMemoryCache@@QAEXPAUUnitObjectState@@PAUVec3@@@Z,matched,100.0
 0x4589c0,861,src/graphics/model_render.cpp,?MergeIntoComposite@CMemoryCache@@QAEXPAUGafFrame@@PAUUnitObjectState@@@Z,matched,100.0
 0x458d20,14,src/graphics/model_render.cpp,?DecrementCountArgument@@YGXHPAUCount_00458d20@@H@Z,matched,100.0
 0x458d30,149,src/graphics/model_render.cpp,?RecolorByShade@CMemoryCache@@QAEXPAUGafFrame@@EHHH@Z,matched,100.0
@@ -1160,7 +1160,7 @@ address,size,file,symbol,status,similarity
 0x45a470,156,src/graphics/model_render.cpp,?MakeSilhouette@CMemoryCache@@QAEPAUGafFrame@@PAU2@@Z,matched,100.0
 0x45a510,254,src/graphics/model_render.cpp,?MeasureShadow@CMemoryCache@@QAEXPAH000PAUUnitObjectState@@@Z,matched,100.0
 0x45a610,379,src/graphics/model_render.cpp,?DrawShadowShape@CMemoryCache@@QAEXPAUGafFrame@@PAUUnitObjectState@@@Z,matched,100.0
-0x45a790,307,src/units/unit_motion.cpp,?BuildShadow@CMemoryCache@@QAEXPAUObjectState@@PAUGafFrame@@@Z,matched,100.0
+0x45a790,307,src/units/unit_motion.cpp,?BuildShadow@CMemoryCache@@QAEXPAUUnitObjectState@@PAUGafFrame@@@Z,matched,100.0
 0x45a8d0,116,src/graphics/model_render.cpp,?CreateObjectState@@YGPAUUnitObjectState@@PAUObject3do@@@Z,matched,100.0
 0x45a950,322,src/graphics/model_render.cpp,?CreatePlayerObjectState@@YGPAUUnitObjectState@@PAUObject3do@@PAUBuildList_0045a950@@H@Z,matched,100.0
 0x45aaa0,100,src/graphics/model_render.cpp,?FreeObjectState@@YGXPAUUnitObjectState@@@Z,matched,100.0

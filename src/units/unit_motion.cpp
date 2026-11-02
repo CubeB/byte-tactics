@@ -33,8 +33,6 @@ struct Chunk_00437a30 {
 
 #include "../graphics/gaf_frame.h"
 
-struct Vertex_458810 { int x; int y; int z; };
-
 // The unit whose object state is drawn: its motion pointer, the draw flags and the
 // z-buffer flag.
 struct Unit_458810 {
@@ -53,41 +51,34 @@ struct Unit_458810 {
     char unknown_115[3];
 };
 
-struct PieceInfo_458810 { char unknown_0[4]; int vertexCount; };
-
 #pragma pack(push, 1)
-struct Piece_458810 {
-    PieceInfo_458810* info;       // +0x00
+struct ObjectPiece {
+    Object3do* info;               // +0x00
     char unknown_4[0x1e];
-    Vertex_458810* vertices;      // +0x22
+    Vec3* vertices;                // +0x22
     char unknown_26[2];
-    unsigned char flags;          // +0x28
+    unsigned char flags;           // +0x28
     char unknown_29[0xd];
 };
 
-struct List_458810 {
-    int pieceCount;               // +0x00
-    int frame;                    // +0x04
+// The object state the pieces are drawn from: Thaldren's UnitObjectState, the
+// record model_render.cpp and memory_cache.h spell by the same name. unit.h
+// still calls it ObjectState behind Unit+0x9e.
+struct UnitObjectState {
+    int pieceCount;               // +0x00, Thaldren's nPieceCount
+    int frame;                    // +0x04, Thaldren's nCacheDrawCount
     char unknown_8[4];
-    Unit_458810* owner;           // +0x0c
-    GafFrame* bitmap;               // +0x10
-    int shadow;                   // +0x14
+    Unit_458810* owner;           // +0x0c, Thaldren's pOwner
+    GafFrame* bitmap;             // +0x10, Thaldren's pDrawFrame
+    GafFrame* shadowFrame;        // +0x14, Thaldren's pShadowFrame
     char unknown_18[0x22 - 0x18];
-    Piece_458810 pieces[1];       // +0x22
+    ObjectPiece pieces[1];        // +0x22, Thaldren's aPieces
 };
 #pragma pack(pop)
 
 class UnitTable {
 public:
-    int BuildObjectPicture(List_458810* list, int param_2, int param_3);
-};
-
-// The state behind Unit+0x9e (Thaldren's UnitObjectState): the frame
-// BuildShadow fills at +0x14.
-struct ObjectState {
-    char unknown_0[0x14];
-    GafFrame* shadowFrame;             // +0x14, Thaldren's pShadowFrame
-    char unknown_18[0x22 - 0x18];
+    int BuildObjectPicture(UnitObjectState* state, int param_2, int param_3);
 };
 
 void __stdcall CutOutFrame(GafFrame* dst, GafFrame* src, int x, int y);
@@ -113,27 +104,27 @@ public:
     int AllocTwoPlaneBitmap(GafFrame** handle, int w, int h);
     void FlushCache();
     void ReleaseHandle(int id);
-    void DrawObjectState(List_458810* list, Vec3* result);
+    void DrawObjectState(UnitObjectState* state, Vec3* result);
     void CopyPicture(GafFrame* source);
-    void BuildShadow(ObjectState* obj, GafFrame* dest);
-    void DrawPiece(List_458810* list, Vec3* param_2, void* param_3,
-        PieceInfo_458810* info, Vertex_458810* vertices, unsigned char kind, int visible);
-    void DrawObjectPicture(void* param_1, List_458810* list, Vec3 coords, int visible);
-    void DrawObjectPieces(Vec3* result, List_458810* list, Vec3 v, int visible);
+    void BuildShadow(UnitObjectState* obj, GafFrame* dest);
+    void DrawPiece(UnitObjectState* state, Vec3* param_2, void* param_3,
+        Object3do* info, Vec3* vertices, unsigned char kind, int visible);
+    void DrawObjectPicture(void* param_1, UnitObjectState* state, Vec3 coords, int visible);
+    void DrawObjectPieces(Vec3* result, UnitObjectState* state, Vec3 v, int visible);
     void MeasureShadow(int* w, int* h, int* x, int* y, void* obj);
     void DrawShadowShape(GafFrame* img, void* obj);
 };
 
-void CMemoryCache::DrawObjectPieces(Vec3* result, List_458810* list, Vec3 v, int visible)
+void CMemoryCache::DrawObjectPieces(Vec3* result, UnitObjectState* state, Vec3 v, int visible)
 {
-    if (list->bitmap != 0) {
-        DrawObjectPicture(result, list, v, visible);
+    if (state->bitmap != 0) {
+        DrawObjectPicture(result, state, v, visible);
         return;
     }
-    for (int i = list->pieceCount - 1; i >= 0; i--) {
-        if (list->pieces[i].flags & 1) {
-            DrawPiece(list, result, &v, list->pieces[i].info,
-                list->pieces[i].vertices, list->owner->playerIndex, visible);
+    for (int i = state->pieceCount - 1; i >= 0; i--) {
+        if (state->pieces[i].flags & 1) {
+            DrawPiece(state, result, &v, state->pieces[i].info,
+                state->pieces[i].vertices, state->owner->playerIndex, visible);
         }
     }
 }
@@ -380,13 +371,13 @@ int __stdcall GetHandleSize(int param_1)
 }
 
 // FUNCTION: 0x458810
-void CMemoryCache::DrawObjectState(List_458810* list, Vec3* result)
+void CMemoryCache::DrawObjectState(UnitObjectState* state, Vec3* result)
 {
     int rebuild = 0;
     int x = g_game->scroll_x << 16;
     int z = g_game->scroll_y << 16;
     int visible;
-    Unit_458810* owner = list->owner;
+    Unit_458810* owner = state->owner;
     if (owner->flags & 0x20000000) {
         int t = (unsigned char)~owner->activateFlags;
         if (t & 1)
@@ -396,35 +387,35 @@ void CMemoryCache::DrawObjectState(List_458810* list, Vec3* result)
     } else {
         visible = owner->motion->speed == 0;
     }
-    if (list->frame == 0)
+    if (state->frame == 0)
         rebuild = 1;
-    if (list->bitmap == 0)
-        list->shadow = 0;
-    GafFrame* bitmap = list->bitmap;
+    if (state->bitmap == 0)
+        state->shadowFrame = 0;
+    GafFrame* bitmap = state->bitmap;
     if ((owner->flags & 0x20000000) != 0) {
         // The bitmap-null case is its own `rebuild = 1` statement.
-        if (list->bitmap == 0)
+        if (state->bitmap == 0)
             rebuild = 1;
-        // The last conjunct goes through `bitmap`, the one before it through `list->bitmap`.
+        // The last conjunct goes through `bitmap`, the one before it through `state->bitmap`.
         else if (owner->buildLeft != 0.0f
                 && (owner->flags & 0x2000) != 0
-                && list->bitmap->scratch == 0
+                && state->bitmap->scratch == 0
                 && bitmap->scratch == 0)
             rebuild = 1;
     }
-    if (list->bitmap == 0 && (owner->flags & 0x20000000) != 0)
+    if (state->bitmap == 0 && (owner->flags & 0x20000000) != 0)
         rebuild = 1;
-    if ((owner->zBufferFlag & 1) != 0 && list->bitmap == 0)
+    if ((owner->zBufferFlag & 1) != 0 && state->bitmap == 0)
         rebuild = 1;
     if (rebuild) {
-        list->shadow = 0;
-        this->BuildObjectPicture(list, 0, 1);
+        state->shadowFrame = 0;
+        this->BuildObjectPicture(state, 0, 1);
     }
     Vec3 coords;
     coords.x = x;
     coords.z = z;
-    DrawObjectPieces(result, list, coords, visible);
-    list->frame++;
+    DrawObjectPieces(result, state, coords, visible);
+    state->frame++;
 }
 
 // Copies an image (size, three header fields, pixels and optional mask) into
@@ -448,7 +439,7 @@ void CMemoryCache::CopyPicture(GafFrame* source)
 // is blitted over it, and the run length compressed result becomes the state's
 // shadow frame (CompressFrame, then a one plane bitmap from the arena).
 // FUNCTION: 0x45a790
-void CMemoryCache::BuildShadow(ObjectState* obj, GafFrame* dest)
+void CMemoryCache::BuildShadow(UnitObjectState* obj, GafFrame* dest)
 {
     int w, h, x, y;
     MeasureShadow(&w, &h, &x, &y, obj);

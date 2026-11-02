@@ -18,9 +18,11 @@ struct Model_4584d0;
 struct Vec3_4584d0;
 struct PieceInfo_4584d0;
 struct Vertex_4584d0;
-struct List_458810;
-struct Vec3_458810;
-struct State_0045a790;
+// Unused here: these forward declarations take the symbol ids that keep
+// 0x420f30, 0x421700 and 0x45e4c0 matching (docs/c2-regalloc.md).
+struct ObjectPiece;
+struct Object3do;
+struct Vector3s;
 struct Model_00458fa0;
 struct Pos_4589c0;
 
@@ -52,9 +54,9 @@ public:
     int AllocTwoPlaneBitmap(GafFrame** handle, int w, int h);
     void FlushCache();
     void ReleaseHandle(int handle);
-    void DrawObjectState(List_458810* list, Vec3_458810* result);
+    void DrawObjectState(UnitObjectState* state, Vec3* result);
     void CopyPicture(GafFrame* source);
-    void BuildShadow(State_0045a790* obj, GafFrame* dest);
+    void BuildShadow(UnitObjectState* obj, GafFrame* dest);
     void DrawPiece(Model_4584d0* model, void* surface, Vec3_4584d0* camera,
         PieceInfo_4584d0* info, Vertex_4584d0* vertices, unsigned int palette,
         int useColor);

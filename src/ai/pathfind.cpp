@@ -224,16 +224,16 @@ struct Grid {
     }
 };
 
-struct Table_0040d880 {
+struct TurnCosts {
     unsigned char values[8];
 };
 
-struct Pair_0040d880 {
+struct DirCosts {
     unsigned char a;
     unsigned char b;
 };
 
-extern const Table_0040d880 g_turnCosts;
+extern const TurnCosts g_turnCosts;
 extern signed char g_dirDeltaX[];      // dx per direction
 extern signed char g_dirDeltaZ[];      // dy per direction
 
@@ -462,11 +462,11 @@ public:
     Target* target;                    // +0x60
     MovementClass* owner;              // +0x64
     union {
-        Table_0040d880 table;          // +0x68
+        TurnCosts table;               // +0x68
         unsigned char turnCost[8];
     };
     union {
-        Pair_0040d880 pairs[4];        // +0x70
+        DirCosts pairs[4];             // +0x70
         unsigned char stepCost[8];
     };
     unsigned char player;              // +0x78

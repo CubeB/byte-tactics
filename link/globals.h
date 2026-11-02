@@ -26,7 +26,7 @@ struct Surface;
 struct UnitRestrictEntry;
 struct WeaponDef;
 
-extern unsigned char g_turnCosts[8];                                                                            // 0x4fca10, 8 bytes; const Table_0040d880 by value in 1 of 1 files
+extern unsigned char g_turnCosts[8];                                                                            // 0x4fca10, 8 bytes; const TurnCosts by value in 1 of 1 files
 extern unsigned char g_movementClassColors[8];                                                                  // 0x4fcc68, 8 bytes; 1 of 1 files
 extern char g_directXWarningText[200];                                                                          // 0x4fd050, 200 bytes; 1 of 1 files
 extern double TWO_PI;                                                                                           // 0x4fd2b0, 8 bytes; 1 of 1 files

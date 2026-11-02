@@ -1720,7 +1720,7 @@ struct Packet_0049df10;
 struct Packet_2;
 struct Packet_4517b0;
 struct Page_0045f8c0;
-struct Pair_0040d880;
+struct DirCosts;
 struct Pair_0040e630;
 struct FreeBlockEntry;
 struct Pair_0046faf0;
@@ -1992,7 +1992,7 @@ struct Surface_004c6f80;
 class Surface_4b6570;
 struct Surfaces_0047bdf0;
 struct ImagehlpSymbolWithName;
-struct Table_0040d880;
+struct TurnCosts;
 struct Table_0041ace0;
 struct Table_004611e0;
 struct Table_0047acd0;
@@ -3276,20 +3276,20 @@ struct Map_0040d7b0 {  // 0x1c bytes, 2 views
     int Get(int, int);
 };
 
-struct Pair_0040d880 {  // 0x2 bytes, 1 view
+struct DirCosts {       // 0x2 bytes, 1 view
     unsigned char a;  // +0x0
     unsigned char b;  // +0x1
 };
 
-struct Table_0040d880 {  // 0x8 bytes, 2 views
+struct TurnCosts {       // 0x8 bytes, 2 views
     unsigned char values[8];  // +0x0
 };
 
 class Class_0040d880 {  // 0x78 bytes, 1 view
 public:
     char unknown_0[104];
-    Table_0040d880 table;  // +0x68
-    Pair_0040d880 pairs[4];  // +0x70
+    TurnCosts table;       // +0x68
+    DirCosts pairs[4];       // +0x70
     void InitCostTables(void);
 };
 
@@ -3679,7 +3679,7 @@ public:
     AiSearchGoal* path;    // +0x5c
     Target_0040e630* target;  // +0x60
     Dummy_00440be0* owner;  // +0x64
-    Table_0040d880 table;  // +0x68
+    TurnCosts table;       // +0x68
     Pair_0040e630 pairs[4];  // +0x70
     int Cost(int, int);
     void StartSearch(Target_0040e630*);

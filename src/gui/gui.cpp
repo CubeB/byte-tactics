@@ -2048,7 +2048,7 @@ void __stdcall SyncAssocGadgets(Gui* param_1, int param_2)
     int attribs = *(int*)(me + 0x1b);
     for (; i < (short)entries->u.count + 1; i++) {
         // Built fresh inside the loop body: strength reduction then rotates the preheader.
-        char* entry = (char*)entries + i * 0x15b + 0x140;
+        char* entry = (char*)&entries[i].knobPos;  // +0x140 of the i-th entry
         if (i != param_2) {
             if (entry[-0x13f] == me[1]) {
                 switch ((unsigned char)entry[-0x140]) {

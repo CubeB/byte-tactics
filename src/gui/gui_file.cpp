@@ -1057,6 +1057,13 @@ struct Table_004aedd0 {
     void* entries[1];                  // +0x28, 8-byte stride
 };
 
+// The loaded GAF file image (Thaldren's GafAnim, 0x10 bytes): the sequence
+// table LoadGaf returns starts at +0xc.
+struct GafAnimFile {
+    char unknown_0[0xc];
+    Table_004aedd0* sequences;         // +0xc, Thaldren's apSequences
+};
+
 struct Object_004aedd0 {
     char unknown_0[8];
     void* items[1];                    // +0x8
@@ -1084,7 +1091,7 @@ void __stdcall LoadGafIntoSlot(Object_004aedd0* obj, char* name, int index)
     if (HAPI_FileLengthByName(path)) {
         void* gaf = LoadGaf(path);
         obj->items[index] = gaf;
-        Table_004aedd0* table = *(Table_004aedd0**)((char*)gaf + 0xc);
+        Table_004aedd0* table = ((GafAnimFile*)gaf)->sequences;
         char* e = (char*)GetGafFrame(table, 0x49);
         int d;
         if (e)

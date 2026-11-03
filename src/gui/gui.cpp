@@ -1038,16 +1038,16 @@ void __stdcall SetQuickKeyByName(Gui* obj, char* name, char value)
 // FUNCTION: 0x4a15c0
 void __stdcall GetGadgetRectByIndex(char* param_1, int param_2, Rect* param_3)
 {
-    char* e = param_1 + param_2 * 0x15b;
-    if (*e == 0) {
+    Gadget* e = (Gadget*)(param_1 + param_2 * 0x15b);
+    if (e->type == 0) {
         param_3->left = 0;
         param_3->top = 0;
     } else {
-        param_3->left = *(short*)(e + 0x13);
-        param_3->top = *(short*)(e + 0x15);
+        param_3->left = e->x;
+        param_3->top = e->y;
     }
-    param_3->right = *(short*)(e + 0x17) - 1 + param_3->left;
-    param_3->bottom = *(short*)(e + 0x19) - 1 + param_3->top;
+    param_3->right = e->width - 1 + param_3->left;
+    param_3->bottom = e->height - 1 + param_3->top;
 }
 
 // Fills the bounding rectangle of a gadget entry: the entry's position and
@@ -1842,6 +1842,10 @@ struct Class_004a1030;
 struct Class_004a1200;
 struct Class_004a1530;
 
+// Unused here: the symbol id this declaration takes keeps 0x4a2580 matching
+// (docs/c2-regalloc.md).
+void FUN_0047caf0(void);
+
 // FUNCTION: 0x4a2580
 void __stdcall DrawSliderBar(Gui* obj, int index)
 {
@@ -2043,54 +2047,55 @@ void __stdcall SyncAssocGadgets(Gui* param_1, int param_2)
 {
     Gadget* entries = param_1->layer->entries;
     int i = 1;
-    char* me = (char*)entries + param_2 * 0x15b;
-    int type = *(unsigned char*)me;
-    int attribs = *(int*)(me + 0x1b);
+    Gadget* me = &entries[param_2];
+    int type = me->type;
+    int attribs = me->attribs;
     for (; i < (short)entries->u.count + 1; i++) {
         // Built fresh inside the loop body: strength reduction then rotates the preheader.
-        char* entry = (char*)&entries[i].knobPos;  // +0x140 of the i-th entry
+        Gadget* other = &entries[i];
+        char* entry = (char*)&other->knobPos;  // +0x140 of the i-th entry
         if (i != param_2) {
-            if (entry[-0x13f] == me[1]) {
-                switch ((unsigned char)entry[-0x140]) {
+            if (other->team == me->team) {
+                switch ((unsigned char)other->type) {
                 case 2:
                     if (type == 2) {
-                        *(short*)(entry - 0x84) = *(short*)(me + 0xbc);
-                        *(short*)(entry - 0x86) = *(short*)(me + 0xba);
+                        other->u.list.firstRow = me->u.list.firstRow;
+                        other->u.list.selected = me->u.list.selected;
                         DrawListBox(param_1, i);
                     } else if (type == 4) {
                         int esi_val;
-                        if (*(unsigned char*)(entry - 0x125) & 0x20) {
-                            esi_val = *(short*)(me + 0x136) / (*(short*)(entry - 0x82) + 1);
+                        if (other->attribs & 0x20) {
+                            esi_val = me->range / (other->u.list.maxFirstRow + 1);
                         } else {
                             esi_val = 0;
                         }
-                        short rows = *(short*)(entry - 0x66);
+                        short rows = other->u.list.scroll;
                         if (rows != 0) {
-                            int edx_val = *(short*)(entry - 0x80) -
-                                *(short*)(entry - 0x127) / rows;
-                            int eax_val = *(short*)(me + 0x140) + esi_val;
+                            int edx_val = other->u.list.rowCount -
+                                other->height / rows;
+                            int eax_val = me->knobPos + esi_val;
                             int result = (int)((float)edx_val * eax_val /
-                                (*(short*)(me + 0x136) - 1));
-                            *(short*)(entry - 0x84) = result;
+                                (me->range - 1));
+                            other->u.list.firstRow = result;
                         }
                         DrawListBox(param_1, i);
                     }
                     break;
                 case 3:
                     if (type == 2 && attribs & 8) {
-                        char* line = SkipTextLines(*(char**)(me + 0xc2), *(short*)(me + 0xba));
+                        char* line = SkipTextLines(me->u.list.listText, me->u.list.selected);
                         strcpy(entry - 0x8a, line);
                         DrawTextInput(param_1, i);
                     }
                     break;
                 case 4:
                     if (type == 2) {
-                        if (*(short*)(me + 0xc0) > 1) {
+                        if (me->u.list.rowCount > 1) {
                             int result;
-                            if (*(short*)(me + 0xbe) != 0) {
-                                short scale = *(short*)(me + 0xbc);
-                                short height = *(short*)(entry - 0xa);
-                                short count = *(short*)(me + 0xbe);
+                            if (me->u.list.maxFirstRow != 0) {
+                                short scale = me->u.list.firstRow;
+                                short height = other->range;
+                                short count = me->u.list.maxFirstRow;
                                 // Split into a named ratio: fixes the x87 operand-staging order.
                                 float ratio = (float)scale * height;
                                 result = (int)(ratio / count);
@@ -2545,7 +2550,7 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
     // Decrements stay in the body with no for-increment, and the test is j > -1.
     for (int j = count - 1; j > -1; ) {
         Item_004a36a0* item = (Item_004a36a0*)*p;
-        unsigned short w = *(unsigned short*)(item->cell + 2);
+        unsigned short w = ((GafFrame*)item->cell)->height;
         v -= w;
         if (v < 0) {
             break;
@@ -2860,6 +2865,23 @@ static inline void ClearEntry(Gadget* e)
 struct Pad_a3eb0_0 { int field; };
 struct Pad_a3eb0_1 { int field; };
 struct Pad_a3eb0_2 { int field; };
+
+// Unused here: the symbol ids these declarations take keep 0x4a3eb0, 0x4a4620,
+// 0x4a4890, 0x4a4930, 0x4a5f40, 0x4a96d0, 0x4a9780 and 0x4a99c0 matching
+// (docs/c2-regalloc.md).
+void GetEnumSessionsErrorText(void);
+void SendNetHeartbeat(void);
+unsigned char FindHostSlot(void);
+void __stdcall SendLoadProgress(void);
+int BroadcastPendingViewState(void);
+void OnlineUnload(void);
+int IsOnlineConfigLoaded(void);
+void FUN_0046c8d0(void);
+void __fastcall DeleteUnitSync(void);
+int IsWindowsSoundAvailable(void);
+void ResumeLoopingWav(void);
+void StopWindowsSound(void);
+int NullStubRet0(void);
 
 // FUNCTION: 0x4a3eb0
 void __stdcall FUN_004a3eb0(Gui* obj, int i)
@@ -3323,11 +3345,11 @@ struct GameState_4a4930 {
 // FUNCTION: 0x4a4930
 void __stdcall ResetProgressBar(GameState_4a4930* param_1, int index)
 {
-    char* e = param_1->arr->base + index * 0x15b;
-    *(int*)(e + 0xb6) = 0;
-    *(int*)(e + 0xbe) = 0;
-    *(int*)(e + 0xc2) = 0;
-    *(short*)(e + 0xc6) = 0;
+    Gadget* e = (Gadget*)(param_1->arr->base + index * 0x15b);
+    e->u.anim.total = 0;
+    e->u.anim.max = 0;
+    e->u.anim.interval = 0;
+    *(short*)&e->u.anim.next = 0;
 }
 // Draws one gadget entry: builds the entry's bounding rect and a destination
 // quad, then either blits a texture (field_be via GetGafFrame, or listText)
@@ -5168,6 +5190,8 @@ void __stdcall SelectAdjacentGadget(Gui* menu, int dir)
     int pos;
     for (int i = 1; i < entries->u.count + 1; i++) {
         // up is declared before b, and b is an explicit pointer to w: induction variable order.
+        // The b reads stay offsets: every typed spelling moves the induction
+        // chains to other registers (best try 93.5% for 0x4a7960).
         int* up = &used[i];
         char* b = (char*)&entries[i].width;
         if (*(signed char*)(b + 0x12) != 0 && !(*(int*)(b + 4) & 0x400)

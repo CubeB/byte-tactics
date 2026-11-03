@@ -442,7 +442,8 @@ void __stdcall BlitMenuLayers(Gui* gui, unsigned int* surface, int* rect)
 // FUNCTION: 0x4ab190
 void __stdcall SetDescListCleanupFlag(int gui, int flag)
 {
-    *(int*)(gui + 0xcc6) = flag;
+    // The int parameter is load-bearing: the decorated name says (int, int).
+    ((Gui*)gui)->pathsReady = flag;
 }
 
 // Appends a type-5 GUI entry to the holder's 0x15b-byte entry table and fills

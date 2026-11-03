@@ -13,6 +13,7 @@
 #include "../util/file_handle.h"
 
 #include "gadget.h"
+#include "../graphics/gaf_frame.h"
 
 extern char g_emptyStringLiteral[];
 extern int DAT_0051fba8;
@@ -822,7 +823,7 @@ void __stdcall WriteGuiFile(char* obj, char* name)
     }
     FileHandle* out = HAPI_CreateFile(path);
     char* p = obj;
-    for (index = 0; index < *(short*)(obj + 0xb6) + 1; index++, p += 0x15b) {
+    for (index = 0; index < ((Gadget*)obj)->u.count + 1; index++, p += 0x15b) {
         sprintf(gadget, "GADGET%d", index);
         sprintf(header, "[%s]", gadget);
         HAPI_WriteFile(out, header, strlen(header));
@@ -852,31 +853,31 @@ void __stdcall WriteGuiFile(char* obj, char* name)
             WritePanelFields((Obj_004ad4f0*)p, out, 1);
             break;
         case 1:
-            WriteKeyValue(out, "status", _itoa(*(short*)(p + 0x138), button, 10), 1);
+            WriteKeyValue(out, "status", _itoa(((Gadget*)p)->status, button, 10), 1);
             WriteKeyValue(out, "text", p + 0xb6, 1);
-            WriteKeyValue(out, "quickkey", _itoa(*(signed char*)(p + 0x13a), button, 10), 1);
-            WriteKeyValue(out, "grayedout", _itoa(*(unsigned char*)(p + 0x13c) & 1, button, 10), 1);
-            WriteKeyValue(out, "stages", _itoa(*(unsigned char*)(p + 0x136), button, 10), 1);
+            WriteKeyValue(out, "quickkey", _itoa((signed char)((Gadget*)p)->quickKey, button, 10), 1);
+            WriteKeyValue(out, "grayedout", _itoa(((Gadget*)p)->grayedout & 1, button, 10), 1);
+            WriteKeyValue(out, "stages", _itoa(((Gadget*)p)->stages, button, 10), 1);
             break;
         case 2:
-            WriteKeyValue(out, "itemheight", _itoa(*(short*)(p + 0xda), list, 10), 1);
+            WriteKeyValue(out, "itemheight", _itoa(((Gadget*)p)->u.list.scroll, list, 10), 1);
             break;
         case 3:
-            WriteKeyValue(out, "maxchars", _itoa(*(short*)(p + 0x138), edit, 10), 1);
+            WriteKeyValue(out, "maxchars", _itoa(((Gadget*)p)->status, edit, 10), 1);
             WriteKeyValue(out, "text", p + 0xb6, 1);
             break;
         case 4:
-            WriteKeyValue(out, "range", _itoa(*(short*)(p + 0x136), slider, 10), 1);
-            WriteKeyValue(out, "thick", _itoa(*(int*)(p + 0x13c), slider, 10), 1);
-            WriteKeyValue(out, "knobpos", _itoa(*(short*)(p + 0x140), slider, 10), 1);
-            WriteKeyValue(out, "knobsize", _itoa(*(short*)(p + 0x142), slider, 10), 1);
+            WriteKeyValue(out, "range", _itoa(((Gadget*)p)->range, slider, 10), 1);
+            WriteKeyValue(out, "thick", _itoa(((Gadget*)p)->max, slider, 10), 1);
+            WriteKeyValue(out, "knobpos", _itoa(((Gadget*)p)->knobPos, slider, 10), 1);
+            WriteKeyValue(out, "knobsize", _itoa(((Gadget*)p)->knobSize, slider, 10), 1);
             break;
         case 5:
             WriteKeyValue(out, "text", p + 0xb6, 1);
             WriteKeyValue(out, "link", p + 0x136, 1);
             break;
         case 6:
-            WriteKeyValue(out, "hotornot", _itoa(*(unsigned int*)(p + 0xc8) & 1, hot, 10), 1);
+            WriteKeyValue(out, "hotornot", _itoa(*(unsigned int*)&((Gadget*)p)->u.hotspot.flags & 1, hot, 10), 1);
             break;
         case 7:
             WriteKeyValue(out, "filename", p + 0xb6, 1);
@@ -885,7 +886,7 @@ void __stdcall WriteGuiFile(char* obj, char* name)
             WriteKeyValue(out, "filename", p + 0xb6, 1);
             break;
         case 10:
-            WriteKeyValue(out, "nuttin", _itoa(*(int*)(p + 0xb6), empty, 10), 1);
+            WriteKeyValue(out, "nuttin", _itoa(((Gadget*)p)->u.list.sortKey, empty, 10), 1);
             break;
         }
         {
@@ -1092,16 +1093,16 @@ void __stdcall LoadGafIntoSlot(Object_004aedd0* obj, char* name, int index)
         void* gaf = LoadGaf(path);
         obj->items[index] = gaf;
         Table_004aedd0* table = ((GafAnimFile*)gaf)->sequences;
-        char* e = (char*)GetGafFrame(table, 0x49);
+        GafFrame* e = (GafFrame*)GetGafFrame(table, 0x49);
         int d;
         if (e)
-            d = *(unsigned short*)(e + 2);
+            d = e->height;
         else
             d = unknown;
         for (int i = 0; i < table->count; i++) {
-            char* f = (char*)GetGafFrame(table, i);
+            GafFrame* f = (GafFrame*)GetGafFrame(table, i);
             if (f)
-                *(short*)(f + 6) -= d;
+                f->yOffset -= d;
         }
         obj->activeFontGaf = obj->items[index];
     } else {

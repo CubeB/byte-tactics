@@ -190,7 +190,9 @@ void CMemoryCache::DrawObjectPicture(int param_2, UnitObjectState* model, Vec3_4
     Vec3_459200 cv;
     Vec3_459200 d;
     // The copy must read through the argument list, not `v`: x delta reads v,
-    // z delta reads the copy, and the deltas are written into v itself.
+    // z delta reads the copy, and the deltas are written into v itself. The
+    // stack read stays an offset: &param_2 + 2 is v's own address in this
+    // __thiscall frame, which no member of a declared type can spell.
     cv = *(Vec3_459200*)(&param_2 + 2);
     v.v[0] = model->owner->pos_x - v.v[0];
     v.v[1] = model->owner->pos_y;

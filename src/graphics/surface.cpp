@@ -649,7 +649,7 @@ void __stdcall ResetClipRect(int* surface)
     q.top = 0;
     q.right = surface[0] - 1;
     q.bottom = surface[1] - 1;
-    *(Rect*)(surface + 7) = q;
+    ((Surface*)surface)->clip = q;
 }
 
 // Allocates an image of width x height bytes with its header (pixels follow

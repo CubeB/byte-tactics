@@ -478,6 +478,14 @@ int UnitTable::BuildObjectPicture(UnitObjectState* list, int param_2, int param_
 // Draws a unit model's pieces into a bitmap. With anti-aliasing on and the
 // unit flagged, it draws into the doubled shadow bitmap instead and then
 // downsamples that back into the caller's bitmap.
+// Only the colour byte is read through it here; network/player_info.h holds
+// the whole record. Declared this late: MeasureModel's register allocation
+// follows the ids before it (docs/c2-regalloc.md).
+struct PlayerInfo_004584d0 {
+    char unknown_0[0x96];
+    unsigned char color;               // +0x96
+};
+
 // FUNCTION: 0x459830
 void UnitTable::DrawPieces(GafFrame* bitmap, UnitObjectState* list,
     int kind, int useColor)
@@ -562,7 +570,7 @@ void UnitTable::DrawPieces(GafFrame* bitmap, UnitObjectState* list,
                                 if (fflags.bits.shaded) {
                                     int unit = g_game->playerSlots[kind].info;
                                     pic = GetGafFrame(face->color,
-                                        *(unsigned char*)(unit + 0x96));
+                                        ((PlayerInfo_004584d0*)unit)->color);
                                 } else if (useColor) {
                                     pic = GetGafFrame(face->color, 0);
                                 } else {
@@ -1354,7 +1362,7 @@ void CMemoryCache::DrawPiece(UnitObjectState* model, void* surface, Vec3* camera
             if (flags.bits.usePic) {
                 if (flags.bits.shaded) {
                     unit = g_game->playerSlots[palette & 0xff].info;
-                    pic = GetGafFrame(face->color, *(unsigned char*)(unit + 0x96));
+                    pic = GetGafFrame(face->color, ((PlayerInfo_004584d0*)unit)->color);
                 } else pic = useColor ? GetGafFrame(face->color, 0) : GetGafSequenceFrame(&face->pic);
             } else pic = face->pic;
             DrawFrameQuad(surface, pic, poly, 0);

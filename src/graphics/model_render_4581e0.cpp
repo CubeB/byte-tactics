@@ -149,9 +149,36 @@ struct UnitTable {
     void DrawLitPieces(GafFrame* bitmap, UnitObjectState* list, int kind, int useColor);
 };
 
+// Minimal views for the two records the shade bias and the team-tinted frame
+// read: the +0x241 flag word of the type (units/unit_def.h's flags1) and the
+// player slot table at g_game+0x1b63 (network/player.h's Player, 0x14b stride,
+// info pointer at +0x27; network/player_info.h's color at +0x96).
+#pragma pack(push, 1)
+struct UnitDefFlags_4581e0 {
+    char unknown_0[0x241];
+    unsigned int flags;                // +0x241, bit 30: the bright shade bias
+};
+
+struct PlayerSlot_4581e0 {
+    char unknown_0[0x27];
+    int info;                          // +0x27, the PlayerInfo
+    char unknown_2b[0x14b - 0x2b];
+};
+
+struct PlayerSlots_4581e0 {
+    char unknown_0[0x1b63];
+    PlayerSlot_4581e0 slots[10];       // +0x1b63, stride 0x14b
+};
+
+struct PlayerInfo_4581e0 {
+    char unknown_0[0x96];
+    unsigned char color;               // +0x96
+};
+#pragma pack(pop)
+
 static __inline int shade_bias(UnitInstance* owner)
 {
-    bool c = ((*(unsigned int*)(owner->def + 0x241) >> 30) & 1) != 0;
+    bool c = (((UnitDefFlags_4581e0*)owner->def)->flags >> 30 & 1) != 0;
     return c ? 125 : 50;
 }
 
@@ -159,7 +186,7 @@ static __inline int shade_bias(UnitInstance* owner)
 // doubled-bitmap test, once per projected vertex.
 static __inline int shade_bias(UnitObjectState* list)
 {
-    bool c = ((*(unsigned int*)(list->owner->def + 0x241) >> 30) & 1) != 0;
+    bool c = (((UnitDefFlags_4581e0*)list->owner->def)->flags >> 30 & 1) != 0;
     return c ? 125 : 50;
 }
 
@@ -323,9 +350,9 @@ void UnitTable::DrawLitPieces(GafFrame* bitmap, UnitObjectState* list,
                             void* pic;
                             if (face->flags.bits.usePic) {
                                 if (face->flags.bits.shaded) {
-                                    int unit = *(int*)(g_game + 0x1b8a + kind * 0x14b);
+                                    int unit = ((PlayerSlots_4581e0*)g_game)->slots[kind].info;
                                     pic = GetGafFrame(face->color,
-                                        *(unsigned char*)(unit + 0x96));
+                                        ((PlayerInfo_4581e0*)unit)->color);
                                 } else if (useColor) {
                                     pic = GetGafFrame(face->color, 0);
                                 } else {

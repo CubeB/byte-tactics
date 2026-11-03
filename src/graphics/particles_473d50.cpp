@@ -17,7 +17,15 @@
 void* __cdecl operator new(size_t n);
 void __cdecl operator delete(void* p);
 
-extern char* g_game;                   // 0x511de8, frame at +0x38a47
+// Own minimal view of the game object (game.h's Game): only the tick is read.
+#pragma pack(push, 1)
+struct Game {
+    char unknown_0[0x38a47];
+    unsigned int gameTick;             // +0x38a47, Thaldren's dwGameTick
+};
+#pragma pack(pop)
+
+extern Game* g_game;                   // 0x511de8
 
 // Own view, not vec3.h: it has operator-.
 struct Vec3_00473d50 {
@@ -185,7 +193,7 @@ public:
 // FUNCTION: 0x473d50
 void NanoParticles::Emit()
 {
-    int grow = deadline - *(int*)(g_game + 0x38a47) + 1;
+    int grow = deadline - (int)g_game->gameTick + 1;
     if (grow > 0)
         records.reserve(records.raw_size() + grow * 5);
 
@@ -209,7 +217,7 @@ void NanoParticles::Emit()
             e.vel.x = e.vel.x / s;
             e.vel.y = e.vel.y / s;
             e.vel.z = e.vel.z / s;
-            e.endTime = *(int*)(g_game + 0x38a47) + s;
+            e.endTime = (int)g_game->gameTick + s;
             e.unused = 0x100;
             e.flags = i % 7 + 0xa1;
             // push_back, not insert(end(), e): the insert position is copied out of ecx.
@@ -217,5 +225,5 @@ void NanoParticles::Emit()
         }
         i++;
     }
-    time = *(int*)(g_game + 0x38a47) + 1;
+    time = (int)g_game->gameTick + 1;
 }

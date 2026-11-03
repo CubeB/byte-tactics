@@ -147,7 +147,7 @@ void __stdcall DrawStringCentered(Surface* dst, unsigned char* text, int flag)
 {
     // Singleton held as char*, font read at +0x204 and passed straight in: sets the SIB order.
     char* single = (char*)GetDisplay();
-    int width = WidthTextCast(*(Font**)(single + 0x204), text);
+    int width = WidthTextCast(((DisplayContext*)single)->bitmapFont, text);
     if (dst == 0) {
         Surface r;
         if (LockScreen(&r) != 0) {

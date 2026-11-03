@@ -527,7 +527,7 @@ extern unsigned int g_liveAllocPeak;                                            
 extern unsigned char DAT_00528a20[8];                                                                           // 0x528a20, 8 bytes; nothing refers to it
 extern FreeBlockMap* g_freeBlockSet;                                                                            // 0x528a40, 4 bytes; 1 of 1 files
 extern void* g_blockMap;                                                                                        // 0x528a44, 4 bytes; 1 of 1 files
-extern unsigned char g_freedBlockRing[4];                                                                       // 0x528a48, 4 bytes; Container_004da9f0<int, std::allocator<int> >* by value in 1 of 1 files
+extern unsigned char g_freedBlockRing[4];                                                                       // 0x528a48, 4 bytes; FreedBlockRing<int, std::allocator<int> >* by value in 1 of 1 files
 extern int g_blockMapLiveCount;                                                                                 // 0x528a4c, 4 bytes; 1 of 1 files
 extern void* g_blockMapNil;                                                                                     // 0x528a50, 4 bytes; 1 of 1 files
 extern unsigned char DAT_00528a5c[4];                                                                           // 0x528a5c, 4 bytes; nothing refers to it
@@ -605,7 +605,7 @@ extern long g_squashThreadLockTicket;                                           
 //   0x4fcd98 g_dpspGuidIpx: defined in src/data/guids.cpp
 //   0x4fcda8 g_dpspGuidTcpip: defined in src/data/guids.cpp
 //   0x51e59c IUUnitSyncEntry::IU?$pair::?$_Tree::_Nilrefs: defined in src/network/unit_sync.cpp
-//   0x5292c4 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib.cpp
+//   0x5292c4 QBDUNameMapText::PBDU?$pair::?$_Tree::_Nil: defined in src/debug/debug_lib.cpp
 //   0x4fcfb8 DAT_004fcfb8: defined in src/data/guids.cpp
 //   0x4fd2f8 g_orderFxVtable: defined in src/data/vtables.cpp
 //   0x512344 g_missionOrderTableBegin: part of another global: g_missionOrderTableVec+0x4
@@ -664,7 +664,7 @@ extern long g_squashThreadLockTicket;                                           
 //   0x51f2e8 g_savegameSideList: int* (1), char* (1)
 //   0x51f2ec g_savegameRadarPreview: int* (1), char* (1)
 //   0x526ff4 g_squashWindow: void* (1), char* (1)
-//   0x529500 QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs: defined in src/debug/debug_lib.cpp
+//   0x529500 QBDUNameMapText::PBDU?$pair::?$_Tree::_Nilrefs: defined in src/debug/debug_lib.cpp
 //   0x529e00 g_pmcEvent0: PerformanceCounter (1), Entry_004df590[] (1)
 //   0x529e10 g_pmcEvent1: part of another global: g_pmcEvent0+0x10
 //   0x529f48 _tls_index: library

@@ -1564,9 +1564,9 @@ void* GetBlockMap()
 // dwords) allocated with a class operator new that calls GlobalAlloc.
 
 template <class T, class A = std::allocator<T> >
-class Container_004da9f0 {
+class FreedBlockRing {
 public:
-    explicit Container_004da9f0(const A& al = A())
+    explicit FreedBlockRing(const A& al = A())
         : allocator(al), field_4(0), field_8(0), field_c(0), field_10(0) {}
     static void* operator new(size_t size) { return GlobalAlloc(0, size); }
 
@@ -1577,15 +1577,15 @@ public:
     int field_10;      // +0x10
 };
 
-extern Container_004da9f0<int>* g_freedBlockRing;
+extern FreedBlockRing<int>* g_freedBlockRing;
 
 // The original calls this out of line from DescribeAddress and the allocator walk.
 #pragma auto_inline(off)
 // FUNCTION: 0x4da9f0
-Container_004da9f0<int>* GetFreedBlockRing()
+FreedBlockRing<int>* GetFreedBlockRing()
 {
     if (g_freedBlockRing == 0) {
-        g_freedBlockRing = new Container_004da9f0<int>;
+        g_freedBlockRing = new FreedBlockRing<int>;
     }
     return g_freedBlockRing;
 }
@@ -2244,7 +2244,7 @@ char IsBackAlign();
 int GetDebugFillPattern();
 AllocLock* GetAllocLock();
 void* GetBlockMap();
-Container_004da9f0<int>* GetFreedBlockRing();
+FreedBlockRing<int>* GetFreedBlockRing();
 unsigned int __cdecl RoundUpToPage(unsigned int size);
 unsigned int __cdecl RoundUpToDoublePage(unsigned int size);
 void __cdecl CountAlloc(unsigned int size);
@@ -4707,11 +4707,7 @@ struct Less_004e17c0 {
     }
 };
 
-struct Value_004e17c0 {
-    char text[500];
-};
-
-typedef std::pair<const char*, Value_004e17c0> ValueType_004e17c0;
+typedef std::pair<const char*, NameMapText> ValueType_004e17c0;
 
 // The pooled allocator; its _Charalloc is the out-of-line 0x4e2b60.
 class NameMapAllocator {
@@ -4743,7 +4739,7 @@ public:
     void* Allocate(size_type n);       // out of line at 0x4e2b60
 };
 
-typedef std::map<const char*, Value_004e17c0, Less_004e17c0, NameMapAllocator>
+typedef std::map<const char*, NameMapText, Less_004e17c0, NameMapAllocator>
     Map_004e17c0;
 
 class NameTable {
@@ -4964,16 +4960,12 @@ BOOL __stdcall PerformanceDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
 // The name table's tree nodes as 0x4df380 walks them: the same bytes as
 // Node_004df590 (key at +0xc, 500-byte text at +0x10, colour at +0x204).
-struct Value_004df380 {
-    char text[500];                     // +0x00
-};
-
 struct Node_004df380 {
     Node_004df380* left;               // +0x0
     Node_004df380* parent;             // +0x4
     Node_004df380* right;              // +0x8
     const char* first;                 // +0xc
-    Value_004df380 second;             // +0x10
+    NameMapText second;                // +0x10
     int color;                         // +0x204
 };
 
@@ -5466,6 +5458,8 @@ void NameMapIter::NextNode()
 // under their own node type, so it is declared as the untyped node pointer.
 extern void* DAT_005292c4;
 
+// Stays a separate spelling: FindLeftmostNode's parameter type is part of its
+// decorated name, and one type for both spellings moves SyncSelectedText.
 struct Node_004e04e0 {
     Node_004e04e0* left;               // +0x0
     Node_004e04e0* parent;             // +0x4

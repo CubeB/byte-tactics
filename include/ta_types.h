@@ -43,7 +43,7 @@ struct App_004bec70;
 struct App_004bed70;
 struct App_004c0b10;
 struct App_004c25e0;
-struct Arena_004da9f0;
+struct FreedBlockRing;
 struct Arg_00419670;
 struct Arg_004c6210;
 struct LobbyJoinInfo;
@@ -19079,7 +19079,7 @@ public:
     unsigned int max_size(void);
 };
 
-struct Arena_004da9f0 {  // 0x14 bytes, 1 view
+struct FreedBlockRing {  // 0x14 bytes, 1 view
     char unknown_0[16];
     unsigned int count;  // +0x10
 };

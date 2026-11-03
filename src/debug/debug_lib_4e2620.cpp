@@ -16,7 +16,7 @@ inline NameMapValue& NameMapValue::operator=(const NameMapValue& v)
 }
 
 // FUNCTION: 0x4e2620
-Iter_004e2620 NameMapTree::Insert(NameMapNode* _X, NameMapNode* _Y, const NameMapValue& _V)
+NameMapIter NameMapTree::Insert(NameMapNode* _X, NameMapNode* _Y, const NameMapValue& _V)
 {
     std::_Lockit _Lk;
     NameMapNode* _Z = (NameMapNode*)((NameMapAllocator*)this)->Allocate(0x208);
@@ -74,5 +74,5 @@ Iter_004e2620 NameMapTree::Insert(NameMapNode* _X, NameMapNode* _Y, const NameMa
         }
     }
     _Color(_Root()) = 1;
-    return Iter_004e2620(_Z);
+    return NameMapIter(_Z);
 }

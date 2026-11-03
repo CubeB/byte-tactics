@@ -4694,8 +4694,8 @@ address,name
 0x528ae4,g_msdevDirRead
 0x528ae8,g_crtSourceRoot
 0x528ed0,g_mfcSourceRoot
-0x5292c4,QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nil
-0x529500,QBDUValue_004e17c0::PBDU?$pair::?$_Tree::_Nilrefs
+0x5292c4,QBDUNameMapText::PBDU?$pair::?$_Tree::_Nil
+0x529500,QBDUNameMapText::PBDU?$pair::?$_Tree::_Nilrefs
 0x529508,g_pfnQueryWorkingSet
 0x529528,g_workingSetPrivate
 0x529530,g_memStatusProcess

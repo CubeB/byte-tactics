@@ -95,7 +95,7 @@ public:
     size_type max_size() const { return (size_type)(-1) / sizeof(value_type); }
 };
 
-struct Arena_004da9f0 {
+struct FreedBlockRing {
     std::vector<FreedRecord, FreedRecordAllocator> ring; // +0x0
     unsigned int count;                                  // +0x10
 };
@@ -131,7 +131,7 @@ inline void FreeBlockMap::AddFreeBlock(FreeBlock p)
 
 CRITICAL_SECTION* GetAllocLock();
 BlockMap* GetBlockMap();
-Arena_004da9f0* GetFreedBlockRing();
+FreedBlockRing* GetFreedBlockRing();
 FreeBlockMap* GetFreeBlockSet();
 char IsBackAlign();
 int GetDebugFillPattern();
@@ -161,7 +161,7 @@ void __cdecl FreeDebugBlock(void* p, int flags)
     else
         CheckFillPattern((char*)p + size, GetDebugFillPattern(), pad);
     FreedRecord* old = (FreedRecord*)&*it;
-    Arena_004da9f0* arena = GetFreedBlockRing();
+    FreedBlockRing* arena = GetFreedBlockRing();
     if (arena->count < 0x2000)
         arena->ring.push_back(*old);
     else

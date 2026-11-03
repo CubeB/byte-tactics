@@ -3091,7 +3091,7 @@ address,size,file,symbol,status,similarity
 0x4da8a0,17,src/debug/debug_lib.cpp,?RoundUpToDoublePage@@YAHH@Z,matched,100.0
 0x4da8c0,15,src/debug/debug_lib.cpp,?RoundUpToPage@@YAIH@Z,matched,100.0
 0x4da8d0,283,src/debug/debug_lib.cpp,?GetBlockMap@@YGPAXXZ,matched,100.0
-0x4da9f0,62,src/debug/debug_lib.cpp,?GetFreedBlockRing@@YGPAV?$Container_004da9f0@HV?$allocator@H@std@@@@XZ,matched,100.0
+0x4da9f0,62,src/debug/debug_lib.cpp,?GetFreedBlockRing@@YGPAV?$FreedBlockRing@HV?$allocator@H@std@@@@XZ,matched,100.0
 0x4daa30,214,src/debug/debug_lib.cpp,?FindBlocksAroundAddress@@YAXIPAVBlockInfo@@0@Z,matched,100.0
 0x4dab10,160,src/debug/debug_lib.cpp,?DescribeAddress@@YAXIPADH@Z,matched,100.0
 0x4dabb0,311,src/debug/debug_lib.cpp,?DescribeFreedBlocks@@YADIPADI@Z,matched,100.0
@@ -3221,7 +3221,7 @@ address,size,file,symbol,status,similarity
 0x4e2240,14,src/debug/debug_lib.cpp,?Begin@Class_004e2240@@QAE?AVIter_004e18c0@@XZ,matched,100.0
 0x4e2250,801,src/debug/debug_lib.cpp,?InsertOrFind@NameMapTree@@QAE?AVNameMapInsertResult@@ABU?$pair@VNameKey@@UNameMapText@@@std@@@Z,matched,100.0
 0x4e2580,146,src/debug/debug_lib_4e2580.cpp,?LowerBound@NameMapTree@@QAE?AVNameMapIter@@ABQBD@Z,matched,100.0
-0x4e2620,816,src/debug/debug_lib_4e2620.cpp,?Insert@NameMapTree@@QAE?AVIter_004e2620@@PAUNameMapNode@@0ABUNameMapValue@@@Z,matched,100.0
+0x4e2620,816,src/debug/debug_lib_4e2620.cpp,?Insert@NameMapTree@@QAE?AVNameMapIter@@PAUNameMapNode@@0ABUNameMapValue@@@Z,matched,100.0
 0x4e2950,90,src/debug/debug_lib.cpp,?RotateLeft@NameMapTree@@QAEXPAUNameMapNode@@@Z,matched,100.0
 0x4e29b0,92,src/debug/debug_lib.cpp,?RotateRight@NameMapTree@@QAEXPAUNameMapNode@@@Z,matched,100.0
 0x4e2a10,22,src/debug/debug_lib.cpp,?Assign@NameMapInsertResult@@QAEPAV1@PBUData1@@PBUData2@@@Z,matched,100.0

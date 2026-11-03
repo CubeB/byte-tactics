@@ -50,19 +50,13 @@ struct NameKeyLess {
     }
 };
 
-class Iter_004e2620 {
-public:
-    NameMapNode* ptr;
-
-    Iter_004e2620() {}
-    Iter_004e2620(NameMapNode* p) : ptr(p) {}
-};
-
 // The tree's iterator; its _Inc is out of line.
 class NameMapIter {
 public:
     NameMapNode* ptr;                  // +0x0
 
+    NameMapIter() {}
+    NameMapIter(NameMapNode* p) : ptr(p) {}
     void NextNode();
     NameMapIter& operator++() { NextNode(); return *this; }
     NameMapIter operator++(int)
@@ -128,7 +122,7 @@ public:
         _Parent(_X) = _Y;
     }
 
-    Iter_004e2620 Insert(NameMapNode* _X, NameMapNode* _Y, const NameMapValue& _V);
+    NameMapIter Insert(NameMapNode* _X, NameMapNode* _Y, const NameMapValue& _V);
 
     NameMapIter begin() const { NameMapIter i; i.ptr = _Head->left; return i; }
     NameMapIter end() const { NameMapIter i; i.ptr = _Head; return i; }

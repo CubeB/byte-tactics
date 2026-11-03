@@ -61,13 +61,18 @@ int RegisterUnitOrders();
 
 // Keeps its own view of the parser classes: the shared tdf.h has no
 // TdfFile::LoadBuffer, which this file calls, so it cannot take the header.
+// Packed so checksum lands on Thaldren's TdfSection dwChecksum at +0x25.
+#pragma pack(push, 1)
 class TdfRecord {
 public:
+    char unknown_0[0x25];
+    int checksum;                      // +0x25: TdfRecord's ctor stores ComputeChecksum there (Thaldren's TdfSection dwChecksum)
     int FindFieldValue(char* key);
     int GetFieldInt(char* key, int def);
     double GetFieldDouble(char* key, double def);
     int GetFieldString(char* dst, char* key, int size, char* def);
 };
+#pragma pack(pop)
 
 // A parsed TDF file; the getters read the current section.
 class TdfFile {
@@ -242,7 +247,7 @@ static inline int FindWeapon(char* name)
             TdfFile* tdf = &s_weaponTdfParsers[k];
             tdf->ResetCurrentRecord();
             if (tdf->SelectRecord(name))
-                return *(int*)((char*)tdf->current + 0x25);
+                return tdf->current->checksum;
         }
         return 0;
     }

@@ -543,8 +543,8 @@ void __stdcall AllocateUnitMemory(void)
 
     unsigned short n;
     for (n = 0; n < g_game->poolCount; n++) {
-        *(unsigned short*)(pool + n * 0x118 + 0xa8) = n;
-        *(UnitType**)(pool + n * 0x118 + 0x92) = g_game->unitDefs;
+        ((Unit*)(pool + n * 0x118))->id = n;
+        ((Unit*)(pool + n * 0x118))->def = g_game->unitDefs;
     }
 
     Player* v[10];
@@ -555,11 +555,14 @@ void __stdcall AllocateUnitMemory(void)
     std::sort(v, v + 10, ComparePlayers);
 
     pool[0xff] = 0xff;
-    *(unsigned int*)(pool + 0x96) = 0;
+    ((Unit*)pool)->player = 0;
     int i;
     for (i = 0; i < 10; i++) {
         Player* item = v[i];
         int c = g_game->maxUnits * i + 1;
+        // Stays a cast: the Player*/Unit* member spellings of these writes
+        // (unitsBegin, unitsEnd, firstIndex, lastIndex and the q loop) move
+        // FindHighestPointOnLine (0x4851c0) off its register window (#7078).
         *(unsigned char**)((char*)item + 0x67) = pool + c * 0x118;
         *(unsigned char**)((char*)item + 0x6b) =
             *(unsigned char**)((char*)item + 0x67) + g_game->maxUnits * 0x118 - 0x118;
@@ -595,6 +598,8 @@ void FreeUnitMemory(void)
 {
     Unit* u = g_game->units;
     Unit* end = g_game->unitsEnd;
+    // The 0x118 byte steps stay casts: u++ moves FindHighestPointOnLine
+    // (0x4851c0) (#7078).
     if (u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if (u->unitDefIndex != 0)
@@ -888,7 +893,7 @@ Unit* __stdcall CreateUnit(unsigned char player, unsigned short typeId, Pos_0048
                                       int param_5, int mode, unsigned short id)
 {
     int off = player * 0x14b;
-    Player* pl = (Player*)((char*)g_game + off + 0x1b63);
+    Player* pl = (Player*)((char*)g_game->players + off);
     if (typeId == 0)
         return 0;
     UnitType* type = &g_game->unitDefs[typeId];
@@ -1335,6 +1340,8 @@ void __stdcall KillUnitsOfType(short id)
 {
     Unit* u = g_game->units;
     Unit* end = g_game->unitsEnd;
+    // The 0x118 byte step stays a cast: u++ moves FindHighestPointOnLine
+    // (0x4851c0) (#7078).
     if (id != 0 && u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if ((short)u->unitDefIndex == id) {
@@ -1349,6 +1356,8 @@ void KillAllUnits(void)
 {
     Unit* u = g_game->units;
     Unit* end = g_game->unitsEnd;
+    // The 0x118 byte step stays a cast: u++ moves FindHighestPointOnLine
+    // (0x4851c0) (#7078).
     if (u != 0) {
         for (; u <= end; u = (Unit*)((char*)u + 0x118)) {
             if (u->unitDefIndex != 0) {

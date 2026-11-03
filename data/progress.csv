@@ -2554,7 +2554,7 @@ address,size,file,symbol,status,similarity
 0x4b8b90,91,src/graphics/gaf.cpp,?StepGafSequence@@YGHPAUHandle@@@Z,matched,100.0
 0x4b8bf0,101,src/graphics/gaf.cpp,?AdvanceGafSequence@@YGXPAURef_004b8bf0@@F@Z,matched,100.0
 0x4b8c60,216,src/graphics/gaf.cpp,?LoadGaf@@YGPAXPAD@Z,matched,100.0
-0x4b8d40,85,src/graphics/gaf.cpp,?FindGafEntry@@YGPAUGafEntry_004b8d40@@PAUGaf_004b8d40@@PBD@Z,matched,100.0
+0x4b8d40,85,src/graphics/gaf.cpp,?FindGafEntry@@YGPAUGafEntry_004b8d40@@PAUGaf@@PBD@Z,matched,100.0
 0x4b8da0,83,src/graphics/gaf.cpp,?AllocFrame@@YGPAUGafFrame@@PBDHH@Z,matched,100.0
 0x4b8e00,77,src/graphics/gaf.cpp,?AllocDepthFrame@@YGPAUGafFrame@@IHH@Z,matched,100.0
 0x4b8e50,104,src/graphics/gaf.cpp,?ClearFrame@@YGXPAUGafFrame@@H@Z,matched,100.0

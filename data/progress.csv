@@ -2281,7 +2281,7 @@ address,size,file,symbol,status,similarity
 0x4ab2b0,90,src/gui/dialogs.cpp,?AddButtonGadget@@YGHPAUGui@@PAURecord_004ab2b0@@@Z,matched,100.0
 0x4ab310,129,src/gui/dialogs.cpp,?AddHotspotGadget@@YGHPAUGui@@PAURecord_004ab310@@@Z,matched,100.0
 0x4ab3a0,90,src/gui/dialogs.cpp,?AddBarGadget@@YGHPAUGui@@PAURecord_004ab3a0@@@Z,matched,100.0
-0x4ab400,50,src/gui/dialogs.cpp,?SetCursorAnimation@@YGXPAUGui@@PAUSrc_004ab400@@@Z,matched,100.0
+0x4ab400,50,src/gui/dialogs.cpp,?SetCursorAnimation@@YGXPAUGui@@PAUGafEntry@@@Z,matched,100.0
 0x4ab440,122,src/gui/dialogs.cpp,?SetCursorHover@@YGXPAUGui@@H@Z,matched,100.0
 0x4ab4c0,26,src/gui/dialogs.cpp,?ApplySharedCursorFrame@@YGXPAUGui@@@Z,matched,100.0
 0x4ab4e0,47,src/gui/dialogs.cpp,?InitCursorFrames@@YGXPAUGui@@H@Z,matched,100.0

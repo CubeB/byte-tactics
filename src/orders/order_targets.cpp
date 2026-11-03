@@ -1553,8 +1553,9 @@ int PointMarker::FillWorldPos(int* out)
 {
     short avg = (short)MidX_44dc60(this);
     short z = (short)y2;
-    // The named view's mapPtr (+4) is the base class's owner field.
-    MapInfo_44dc60* info = *(MapInfo_44dc60**)((char*)source + 0xe);
+    // The source object's map pointer: Source_0044cf60 (+0xe), same shape as
+    // MapInfo_44dc60; source is the base class's owner field.
+    MapInfo_44dc60* info = (MapInfo_44dc60*)((Source_0044cf60*)source)->map;
     Pos16_44dc60 pos = info->pos;
     out[0] = (pos.x + avg * 2) << 0x13;
     out[2] = (pos.z + z * 2) << 0x13;

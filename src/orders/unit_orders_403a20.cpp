@@ -141,7 +141,9 @@ int __stdcall MobileBuildOrder(Unit* unit, Order* order, int flags)
         }
         unit->ClaimWeapons(3);
         SnapWorldPosToFootprint(def, &order->pos);
-        ((PathOrderAttach*)((char*)order + 0x12))->SetUnit(
+        // The order's embedded PathOrderAttach node sits at +0x12 (its owner
+        // field is target at +0x16); MSVC5 cannot spell the overlap as a member.
+        ((PathOrderAttach*)((char*)&order->flags + 0xc))->SetUnit(
             CreateUnit(unit->playerIndex, (short)order->type, order->pos, 0, 1, 0));
         if (!order->target) {
             QueueUnitSpeech(unit, 7, "Unable to create any more units");

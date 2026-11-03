@@ -103,7 +103,9 @@ struct Net_00443100 {
 
 // One 0x54-byte game description: its size and the offset of its block.
 struct Desc_004437c0 {
-    char unknown_0[0x4c];              // +0x00
+    char unknown_0[4];                 // +0x00
+    Group_00441220 group;              // +0x04, the 16 bytes the lobby messages send
+    char unknown_14[0x4c - 0x14];      // +0x14
     int size;                          // +0x4c
     int offset;                        // +0x50
 };
@@ -413,11 +415,13 @@ void __stdcall UpdateGameSelection(Gui* menu, Gadget* entry)
     unsigned short on;
     unsigned short r;
     int idx = entry->u.list.selected;
-    Group_00441220* rec = (Group_00441220*)((char*)entry->u.list.records + idx * 0x54 + 4);
+    Desc_004437c0* rec = (Desc_004437c0*)((char*)entry->u.list.records + idx * 0x54);
     Msg_00441220 msg;
-    msg.group = *rec;
+    msg.group = rec->group;
     memcpy(g_game->buffer, &msg, 185);
 
+    // Stays a cast: the +0xe read is a 4-byte int straddling the end of the
+    // 16-byte group, so no member of Group_00441220 spells it (#7078).
     unsigned short flags = *(unsigned short*)((char*)&msg.group + 2);
     int value = *(int*)((char*)&msg.group + 0xe);
 
@@ -1960,7 +1964,9 @@ void __stdcall HandleSelectGameClick(Gui* param_1)
         unsigned int b;
 
         *(Desc_004437c0*)g_game->game_info = g_game->desc[e->u.list.selected];
-        msg.group = *(Group_00441220*)((char*)g_game + 0x2b6e);
+        msg.group = ((Desc_004437c0*)g_game->game_info)->group;
+        // Stays a cast: as in UpdateGameSelection, the +0xe int straddles the
+        // end of the 16-byte group (#7078).
         flags = *(unsigned int*)((char*)&msg.group + 2);
         ver = *(unsigned int*)((char*)&msg.group + 0xe) & 0xff;
 

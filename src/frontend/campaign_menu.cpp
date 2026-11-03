@@ -84,7 +84,9 @@ struct Game {
     unsigned char localPlayer;         // +0x2a42
     char unknown_2a43[0x2bc0 - 0x2a43];
     unsigned char frontendSubstateRequest;  // +0x2bc0
-    char unknown_2bc1[0x37e1b - 0x2bc1];
+    char unknown_2bc1[0x143a7 - 0x2bc1];
+    char paletteRgba[0x400];           // +0x143a7, 256 RGB entries
+    char unknown_147a7[0x37e1b - 0x147a7];
     int offscreen;                     // +0x37e1b
     char unknown_37e1f[0x37eee - 0x37e1f];
     int difficulty;                    // +0x37eee
@@ -837,6 +839,9 @@ static inline void FillMissionListInline(Gui* menu, Gadget* unused)
 void __stdcall HandleNewGameClick(Gui* menu)
 {
     Gadget* entries = menu->layer->entries;
+    // Stays a byte walk: the base is g_game (not players), so the two info loads
+    // below sit at +0x1b8a/+0x1cd5; a PlayerEntry* local moves HandleNewGameClick
+    // (0x477ab0) (#7078).
     char* playerInfo = (char*)g_game + 0x14b * g_game->localPlayer;
     int index;
 
@@ -867,7 +872,7 @@ void __stdcall HandleNewGameClick(Gui* menu)
                 Gadget* e = FindGadgetChecked(entries, "Campaign");
                 name = SkipTextLines(e->u.list.listText, e->u.list.selected);
                 g_game->mapInfo->LoadCampaign(name);
-            } else if (*(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) == 0) {
+            } else if (((PlayerEntry_004777a0*)(playerInfo + 0x1b8a))->info->side == 0) {
                 g_game->mapInfo->LoadCampaign("Arm Campaign");
             } else {
                 g_game->mapInfo->LoadCampaign("Core Campaign");
@@ -922,10 +927,10 @@ void __stdcall HandleNewGameClick(Gui* menu)
         SetGadgetStatusByName(&g_game->gui, "Side1", 1);
         PlaySoundByName("SideSelect2", 0);
         index = FindGadgetIndex(entries, "Side1", 1);
-        *(int*)((char*)entries + index * 0x15b + 0x1f) = 0x1f;
+        entries[index].colours = 0x1f;
         g_game->flag_37ef2 = 1;
-        *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 1;
-        *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 0;
+        ((PlayerEntry_004777a0*)(playerInfo + 0x1b8a))->info->side = 1;
+        ((PlayerEntry_004777a0*)(playerInfo + 0x1cd5))->info->side = 0;
         if (g_campaignSimplifiedLayout == 0)
             FillCampaignListInline(g_game->players[g_game->localPlayer].info->side);
         if (g_anyMissionMode != 0) {
@@ -940,10 +945,10 @@ ArmSide:
         SetGadgetStatusByName(&g_game->gui, "Side0", 1);
         PlaySoundByName("SideSelect", 0);
         index = FindGadgetIndex(entries, "Side0", 1);
-        *(int*)((char*)entries + index * 0x15b + 0x1f) = 0x1f;
+        entries[index].colours = 0x1f;
         g_game->flag_37ef2 = 0;
-        *(unsigned char*)(*(int*)(playerInfo + 0x1b8a) + 0x95) = 0;
-        *(unsigned char*)(*(int*)(playerInfo + 0x1cd5) + 0x95) = 1;
+        ((PlayerEntry_004777a0*)(playerInfo + 0x1b8a))->info->side = 0;
+        ((PlayerEntry_004777a0*)(playerInfo + 0x1cd5))->info->side = 1;
         FillCampaignListInline(g_game->players[g_game->localPlayer].info->side);
         SetGadgetActiveByName(menu, "Campaign", g_campaignSimplifiedLayout == 0);
         if (g_anyMissionMode != 0)
@@ -1327,7 +1332,7 @@ void OpenMissionBriefing(void)
     dialog->data = g_game;
 
     LoadPictureCached(buf, 1, 1, 0);
-    RemapPaletteToClosestIndices(&g_game->gui, (char*)g_game + 0x143a7, (char*)g_game + 0x5cb);
+    RemapPaletteToClosestIndices(&g_game->gui, g_game->paletteRgba, g_game->gui.palette);
 
     gadgets = g_game->gui.layer->entries;
     strcpy((char*)&gadgets->u.text[22], "Start");
@@ -1479,12 +1484,12 @@ int __cdecl CountHumanSlots()
     int num = g_game->numSkirmishPlayers;
 
     if (num > 0) {
-        int* arr = *(int**)((char*)g_game + 0x29a0);
+        Item* slot = g_game->options;
         while (num != 0) {
-            if (*arr == 1) {
+            if (slot->id == 1) {
                 count++;
             }
-            arr = (int*)((char*)arr + 0x18);
+            slot = slot + 1;
             num--;
         }
     }

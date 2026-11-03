@@ -119,7 +119,7 @@ struct Game {
     Bits_00426e80 netGameFlags;        // +0x2a44
     char unknown_2a46[0x2aaf - 0x2a46];
     Bits_00426e80 dplayAddressDialogFlags;  // +0x2aaf
-    char unknown_2ab1[0x2b4c - 0x2ab1];
+    char selectedPlayerShared[0x2b4c - 0x2ab1];  // +0x2ab1, the selected player's shared block (Thaldren's aSelectedPlayerShared, 185 bytes; the view cuts it where flags_2b4c sits)
     Bits_00426e80 flags_2b4c;          // +0x2b4c
     char unknown_2b4e[0x2ba2 - 0x2b4e];
     V4i field_2ba2;                    // +0x2ba2
@@ -1424,7 +1424,7 @@ void RunFrontendStateMachine(void)
             unsigned char* q = &g_game->players[(unsigned char)g_game->localPlayer].keepaliveFlags;
             *q = (g_game->flags_2b4c.b4 << 1) | (*q & 0xfd);
             if (g_game->flags_2b4c.b4) {
-                g_game->mapInfo->LoadMissionByName((char*)g_game + 0x2ab1);
+                g_game->mapInfo->LoadMissionByName(g_game->selectedPlayerShared);
                 for (int i = 0; i < 10; i++) {
                     if (g_game->players[i].active) {
                         char t = g_game->players[i].type;

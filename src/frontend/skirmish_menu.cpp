@@ -1138,7 +1138,9 @@ void __stdcall HandleSkirmishClick(Gui* menu)
 #pragma pack(push, 1)
 struct CheatText {
     char unknown_0[4];
-    Gadget* target;
+    Gadget* target;                    // +0x4
+    char unknown_8[0x28 - 8];
+    char text[0x28];                   // +0x28, what is typed into the field
 };
 
 struct Cheat {
@@ -1166,27 +1168,27 @@ void __stdcall HandleSkirmishCheatText(Cheat* cheat)
 {
     int zero = 0;
     int code = 0;
-    if (strncmp((char*)cheat->text + 0x34, g_cheatFourPlayers, 3) == 0)
+    if (strncmp(cheat->text->text + 0xc, g_cheatFourPlayers, 3) == 0)
         code = 4;
-    else if (strncmp((char*)cheat->text + 0x35, g_cheatFivePlayers, 2) == 0)
+    else if (strncmp(cheat->text->text + 0xd, g_cheatFivePlayers, 2) == 0)
         code = 5;
-    else if (strncmp((char*)cheat->text + 0x34, g_cheatSixPlayers, 3) == 0)
+    else if (strncmp(cheat->text->text + 0xc, g_cheatSixPlayers, 3) == 0)
         code = 6;
-    else if (strncmp((char*)cheat->text + 0x33, g_cheatSevenPlayers, 4) == 0)
+    else if (strncmp(cheat->text->text + 0xb, g_cheatSevenPlayers, 4) == 0)
         code = 7;
-    else if (strncmp((char*)cheat->text + 0x32, g_cheatEightPlayers, 5) == 0)
+    else if (strncmp(cheat->text->text + 0xa, g_cheatEightPlayers, 5) == 0)
         code = 8;
-    else if (strncmp((char*)cheat->text + 0x33, g_cheatThreePlayers, 4) == 0)
+    else if (strncmp(cheat->text->text + 0xb, g_cheatThreePlayers, 4) == 0)
         code = 3;
-    else if (strncmp((char*)cheat->text + 0x34, g_cheatNinePlayers, 3) == 0)
+    else if (strncmp(cheat->text->text + 0xc, g_cheatNinePlayers, 3) == 0)
         code = 9;
-    else if (strncmp((char*)cheat->text + 0x35, g_cheatTenPlayers, 2) == 0)
+    else if (strncmp(cheat->text->text + 0xd, g_cheatTenPlayers, 2) == 0)
         code = 10;
 
     if (code != zero) {
         if (code == 3 || code == 4 || code == 8 || code == 9 || code == 10) {
             for (int i = 0; i < 0xf; i++)
-                ((char*)cheat->text)[i + 0x28] = (char)zero;
+                cheat->text->text[i] = (char)zero;
         }
         SaveSettings();
         g_game->numSkirmishPlayers = code;

@@ -187,8 +187,18 @@ union Flags_37f06 {
 class CMemoryCache;
 
 #pragma pack(push, 1)
+// One slot of the player table at g_game+0x1b63 (network/player.h's Player,
+// 0x14b bytes): only the info pointer is read here.
+struct PlayerSlot_004584d0 {
+    char unknown_0[0x27];
+    int info;                          // +0x27, the PlayerInfo (its color is at +0x96)
+    char unknown_2b[0x14b - 0x2b];
+};
+
 struct Game {
-    char unknown_0[0x2a43];
+    char unknown_0[0x1b63];
+    PlayerSlot_004584d0 playerSlots[10];  // +0x1b63, stride 0x14b
+    char unknown_2851[0x2a43 - 0x2851];
     unsigned char playerIndex;         // +0x2a43
     char unknown_2a44[0x1427f - 0x2a44];
     unsigned char seaLevel;            // +0x1427f
@@ -310,11 +320,10 @@ public:
 };
 
 // Unused here: the symbol ids these declarations take keep the allocation,
-// standing in for the four view classes merged into CMemoryCache above
+// standing in for the view classes merged into CMemoryCache above; two of the
+// four were freed when PlayerSlot_004584d0 took their 7 ids
 // (docs/c2-regalloc.md).
-int DirectionFromStep(int, int);
-void CountPacket(int, int, int);
-void SetCameraPosition(int, int, int);
+int SetCameraPosition(int, int, int);
 void StartScreenShake(int, int, int);
 
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
@@ -551,7 +560,7 @@ void UnitTable::DrawPieces(GafFrame* bitmap, UnitObjectState* list,
                             void* pic;
                             if (fflags.bits.usePic) {
                                 if (fflags.bits.shaded) {
-                                    int unit = *(int*)((char*)g_game + 0x1b8a + kind * 0x14b);
+                                    int unit = g_game->playerSlots[kind].info;
                                     pic = GetGafFrame(face->color,
                                         *(unsigned char*)(unit + 0x96));
                                 } else if (useColor) {
@@ -1344,7 +1353,7 @@ void CMemoryCache::DrawPiece(UnitObjectState* model, void* surface, Vec3* camera
             if (face->count != 4) goto skip0;
             if (flags.bits.usePic) {
                 if (flags.bits.shaded) {
-                    unit = *(int*)(((char*)g_game + 0x1b8a) + ((palette & 0xff) * 0x14b));
+                    unit = g_game->playerSlots[palette & 0xff].info;
                     pic = GetGafFrame(face->color, *(unsigned char*)(unit + 0x96));
                 } else pic = useColor ? GetGafFrame(face->color, 0) : GetGafSequenceFrame(&face->pic);
             } else pic = face->pic;

@@ -115,8 +115,9 @@ int __stdcall SetGafSequenceFrame(Handle* obj, int index)
 int __stdcall GetGafFrame(unsigned short* seq, int frame)
 {
     int result = 0;
+    GafEntry* s = (GafEntry*)seq;
     if (frame >= 0 && frame < (int)*seq && seq != 0) {
-        result = *(int*)((char*)seq + frame * 8 + 0x28);
+        result = s->entries[frame].frame;
     }
     return result;
 }

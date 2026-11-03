@@ -1897,7 +1897,7 @@ void __stdcall DumpPlayerAI(int player, FILE* file)
 // FUNCTION: 0x40c4f0
 int __stdcall HasSpecialUnit(int param_1)
 {
-    return *(int*)((char*)g_playerAI[param_1] + 0x79);
+    return g_playerAI[param_1]->hasSpecial;
 }
 
 // std::vector<Unit*>::vector(const allocator&) from MSVC 5's <vector>, out of

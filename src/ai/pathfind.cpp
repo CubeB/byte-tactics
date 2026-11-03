@@ -17,6 +17,7 @@ void RegisterGroundOrders(void);
 void SetMemFussyDefault(void);
 void AbortProgram(void);
 void NopAfterFeatureEnum(void);
+void FUN_00406f40(void);
 
 void* __cdecl operator new(unsigned int size);
 void __cdecl operator delete(void* p);
@@ -1088,7 +1089,7 @@ Pathfinder::Pathfinder()
     grid.dirty = (unsigned int*)GameAllocIgnoreTag("AISearch touched mapentries", n);
     // Only n - 1 bytes are filled; the last dword is zeroed separately.
     memset(grid.dirty, 0xff, n - 1);
-    *(int*)((char*)grid.dirty + n - 4) = 0;
+    grid.dirty[m - 1] = 0;
 
     for (unsigned int i = grid.count - 0x100; i < (unsigned int)grid.count; i++)
         grid.dirty[i >> 8] |= 1 << ((i >> 3) & 0x1f);

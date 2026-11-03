@@ -965,9 +965,10 @@ void __stdcall HandleBuildPanelClick(Gui* menu)
     }
 }
 
+// The gadget array starts at the +0x2 name field of the header entry.
 static inline Gadget* Entries(Gadget* t)
 {
-    return (Gadget*)((char*)t + 2);
+    return (Gadget*)&t->name;
 }
 
 // FUNCTION: 0x41ac90
@@ -1004,6 +1005,9 @@ static inline void UpdateCounts(Gui* menu)
     int i = 0;
     if (n <= 0)
         return;
+    // Stays a cast here: with the +0x2 spelled as &entry->name too, the two
+    // together shift the counter and AddBuildProgress (0x41ba60) loses its
+    // allocation (#7078).
     entry = (Gadget*)((char*)entry + 2);
     do {
         // +0x28 (Gadget::tab) holds the entry flags here: bit 2 marks an entry that

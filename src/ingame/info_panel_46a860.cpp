@@ -63,7 +63,9 @@ struct Unit_0046a860;
 // A unit, 0x118 bytes, the elements of the array at g_game+0x14357. The two
 // signednesses of +0x108 both appear in this file, so the field is a union.
 struct Unit_0046a860 {
-    char unknown_0[0x92];
+    char unknown_0[4];
+    char weaponSlots[3 * 0x1c];       // +0x4, Thaldren's UnitWeaponSlot rows: weapon +0xc, reloadTimer +0x14, flags +0x1b
+    char unknown_58[0x92 - 0x58];
     UnitDef* def;                     // +0x92
     Player* player;                   // +0x96
     char unknown_9a[0xa6 - 0x9a];
@@ -92,6 +94,8 @@ struct Unit_0046a860 {
 #include "../graphics/gaf_frame.h"
 
 #include "../gui/layer.h"
+
+#include "../gui/gadget.h"
 #include "../graphics/display_context.h"
 
 #pragma pack(pop)
@@ -274,7 +278,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
         snapshot.values[1] = f1;
         snapshot.values[2] = f2;
         snapshot.values[3] = f3;
-        char* slot = (char*)unit + 0x1f;
+        char* slot = &unit->weaponSlots[0x1b];  // each row's flags byte
         int* out = snapshot.weapons;
         // Keep both `*out = -1` stores (nested ifs): the extra use sets the register of out.
         for (int i = 0; i < 3; i++, out++, slot += 0x1c) {
@@ -325,7 +329,7 @@ void __stdcall DrawUnitInfoPanel(void* surface) {
     } while (y < g_game->screenWidth);
 
     if (snapshot.button != -1) {
-        strncpy(text, (char*)g_game->layer->entries + snapshot.button * 0x15b + 2, 0x10);
+        strncpy(text, g_game->layer->entries[snapshot.button].name, 0x10);
         text[0x10] = 0;
         unsigned short type = FindUnitTypeId(text);
         if (type != 0) {

@@ -236,12 +236,30 @@ struct Quad {
 // One order of a unit's mission queue (Thaldren's MissionOrder): the phase at
 // +0x5, the attach link's owner at +0x16 and the next order at +0x4a.
 struct MissionOrder {
-    char pad_0[5];
+    char pad_0[4];
+    unsigned char kind;                // +0x4, index into the order table (orders/order_list.cpp)
     unsigned char state;               // +0x5
     char pad_6[0x16 - 0x6];
     void* target;                      // +0x16
     char pad_1a[0x4a - 0x1a];
     void* next;                        // +0x4a
+};
+
+// A loaded GAF sequence's 8-byte frame rows (Thaldren's GafSequence::aEntries
+// at +0x28): the frame pointer and its duration. Only the frame pointer of a
+// row is read here; the rows come from the pointer in the Game view below.
+struct GafFrameRow {
+    GafFrame* frame;                   // +0x0 (Thaldren's GafFrameEntry::pFrame)
+    unsigned short duration;           // +0x4
+    unsigned short reserved;           // +0x6
+};
+
+// The team logo sequence at g_game->logos32 (+0x148db), Thaldren's GafSequence:
+// frame count and loop flag, the 32-byte name, then the frame rows from +0x28.
+struct GafSequence {
+    unsigned short count;              // +0x0
+    char unknown_2[0x28 - 2];
+    GafFrameRow rows[1];               // +0x28
 };
 
 // The order type table entry, the record orders/order_queue_4384a0.cpp's
@@ -508,7 +526,7 @@ void __stdcall DrawProgressBar(void* surface, int value, int max, Rect* rect, Co
 void __stdcall BlitSideLogoToRect(void* surf, Player* player, Rect* rect, int dy)
 {
     unsigned char idx = player->info->color;
-    GafFrame* entry = (GafFrame*)*(void**)((char*)g_game->logos32 + idx * 8 + 0x28);
+    GafFrame* entry = ((GafSequence*)g_game->logos32)->rows[idx].frame;
 
     Quad src;
     src.p[0].x = 0;
@@ -670,11 +688,11 @@ int __stdcall DrawUnitStateProbe(void* surface)
                  m = (MissionOrder*)m->next) {
                 if (m->target != 0)
                     sprintf(buf, "    '%s' state: %d  tgt: '%s'\n",
-                            ((OrderType*)((char*)m + 4))->GetTableEntry()->name,
-                            m->state, *(char**)((char*)m->target + 0x92));
+                            ((OrderType*)&m->kind)->GetTableEntry()->name,
+                            m->state, ((Unit*)m->target)->def->name);
                 else
                     sprintf(buf, "    '%s' state: %d\n",
-                            ((OrderType*)((char*)m + 4))->GetTableEntry()->name,
+                            ((OrderType*)&m->kind)->GetTableEntry()->name,
                             m->state);
                 DrawString(surface, buf, 0x86, y, -1);
                 y += lineH;
@@ -687,11 +705,11 @@ int __stdcall DrawUnitStateProbe(void* surface)
                  m = (MissionOrder*)m->next) {
                 if (m->target != 0)
                     sprintf(buf, "    '%s' state: %d  tgt: '%s'\n",
-                            ((OrderType*)((char*)m + 4))->GetTableEntry()->name,
-                            m->state, *(char**)((char*)m->target + 0x92));
+                            ((OrderType*)&m->kind)->GetTableEntry()->name,
+                            m->state, ((Unit*)m->target)->def->name);
                 else
                     sprintf(buf, "    '%s' state: %d\n",
-                            ((OrderType*)((char*)m + 4))->GetTableEntry()->name,
+                            ((OrderType*)&m->kind)->GetTableEntry()->name,
                             m->state);
                 DrawString(surface, buf, 0x86, y, -1);
                 y += lineH;
@@ -937,12 +955,12 @@ void __stdcall DrawStatusPanel(Surface* win)
 void FrameTimers::AccumulateProfileTime(int param_1)
 {
     unsigned int result = GetMilliseconds();
-    int edi = *(int*)((char*)this);
+    int edi = last;
     int edx = result - edi;
-    int field_val = *(int*)((char*)this + param_1 * 4 + 0x2c);
+    int field_val = acc[param_1];
     field_val = field_val + edx;
-    *(int*)((char*)this + param_1 * 4 + 0x2c) = field_val;
-    *(int*)((char*)this) = result;
+    acc[param_1] = field_val;
+    last = result;
 }
 
 // Hit point bar drawn under a unit: a 34x4 box in the frame colour, then a
@@ -1123,7 +1141,7 @@ void __stdcall DrawModel3doProjected(void* surface, Vec3* offset,
             if (e->count == 4) {
                 void* tex;
                 if (e->texIndexed)
-                    tex = (void*)GetGafSequenceFrame((short*)((char*)e + 0x10));
+                    tex = (void*)GetGafSequenceFrame((short*)&e->pic);
                 else
                     tex = (void*)e->pic;
                 DrawFrameQuad(surface, tex, g_game->assemPts, 0);

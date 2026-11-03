@@ -103,7 +103,7 @@ void __stdcall IssueOrderToSelection(OrderTypeEntry* entry, unsigned char mode,
         if (!g_game->hoverUnitId)
             except = 0;
         else
-            except = (Unit*)((char*)g_game->units + 280 * g_game->hoverUnitId);
+            except = g_game->units + g_game->hoverUnitId;
     }
     Player* p = &g_game->players[g_game->localPlayer];
     int count = 0;

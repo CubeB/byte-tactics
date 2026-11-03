@@ -107,6 +107,10 @@ struct UnitType {
     char unknown_245[0x249 - 0x245];
 };
 
+// Stays a byte walk in the two Draw* functions below: the frame table is
+// Thaldren's GafFrameEntry rows at +0x28, but naming them (a row member or a
+// void* table) moves the register allocation of DrawBuildFootprint (0x438c00)
+// and no idpad filler brings it back (#7078).
 struct Anim {
     unsigned short count;             // +0x0
     char unknown_2[0x2c - 2];

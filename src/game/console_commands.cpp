@@ -167,7 +167,9 @@ struct Game {
     char unknown_2851[0x2a42 - 0x2851];
     unsigned char localPlayer;         // +0x2a42
     unsigned char playerIndex;         // +0x2a43
-    char unknown_2a44[0x2c8e - 0x2a44];
+    char unknown_2a44[0x2c76 - 0x2a44];
+    int cursorScreenX;                 // +0x2c76, Thaldren's nCursorScreenX, the start of gui/mouse_event.h's MouseEvent (game.h's Game::view)
+    char unknown_2c7a[0x2c8e - 0x2c7a];
     Point16 point;                    // +0x2c8e
     char unknown_2c92[0x2caa - 0x2c92];
     Vec3 pos;                          // +0x2caa
@@ -596,7 +598,7 @@ void __stdcall CmdAssign(CommandArgs* args)
     if (kind.index) {
         int a = args->GetIntArg(1, 0);
         int b = args->GetIntArg(2, 0);
-        IssueOrderToSelection((char*)g_game + 0x2c76, 0, kind, 0, a, b);
+        IssueOrderToSelection(&g_game->cursorScreenX, 0, kind, 0, a, b);
     }
 }
 
@@ -1448,6 +1450,11 @@ void __stdcall DrawWorldSegmentLine(void* surface, Point16 from, short dx, short
     DrawLine(surface, sx1, sy1, sx2, sy2, color & 0xff);
 }
 
+// Unused here: the symbol ids these declarations take keep 0x4181d0 and
+// 0x418310 matching (docs/c2-regalloc.md).
+void FUN_00406f40(void);
+void ProtectUnitDefsReadOnly(void);
+
 // AiSearchGoal's override of slot 10 (vtable 0x4fd458). The rest of the
 // class is in order_targets_44f010.cpp; this one sits far from it in the exe,
 // compiled with the console code.
@@ -1459,7 +1466,7 @@ void __stdcall DrawWorldSegmentLine(void* surface, Point16 from, short dx, short
 void AiSearchGoal::DrawOnSurface(void* surface)
 {
     DrawMapTileSelectionOutline(surface, (short*)(this->owner + 0x76), *(int*)(this->owner + 0x7e), 0xf);
-    unsigned char color = *(unsigned char*)((char*)g_game + 0xdcb + ((this->active & 1) ? 9 : 12));
+    unsigned char color = g_game->colors[(this->active & 1) ? 9 : 12];
     for (int i = 0; i < this->count - 1; i++) {
         Pos_00417bb0 p1;
         *(int*)&p1.x_frac = this->points[i].x << 16;

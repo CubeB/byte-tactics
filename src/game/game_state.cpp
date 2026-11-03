@@ -381,6 +381,15 @@ struct CdLists_490f80 {
     unsigned char tracks[0xaa0 - 0x24]; // +0x24
 };
 
+// One disc row of the CD-lists table: 0x88 bytes, the disc serial at +0x20
+// (Thaldren's CdListsDiscEntry; DAT_0051e848 is g_cdListsDiscEntries' first
+// row's serial).
+struct CdListsDiscEntry {
+    char unused[0x20];                  // +0x00, Thaldren's aUnused
+    int discSerial;                     // +0x20, Thaldren's nDiscSerial
+    unsigned char trackTypes[100];      // +0x24, Thaldren's aTrackTypes
+};
+
 extern CdLists_490f80 g_cdListsDiscEntries;
 
 int __stdcall ReadGameRegistryValue(const char* key, void* buf, unsigned int* size);
@@ -454,13 +463,15 @@ void ReopenCdAudio()
 
     int id = g_game->sound->GetDiscSerial();
     int index = 0;
-    int* slot = &DAT_0051e848;
-    // Test *slot != id first, with the break as its own block: else the loop is rotated.
+    // One row's stride is 0x88: walk rows, testing each row's serial (the
+    // original walks the serial word itself, DAT_0051e848 to DAT_0051e848 + k * 0x88).
+    // Test the inequality first, with the break as its own block: else the loop is rotated.
+    CdListsDiscEntry* row = (CdListsDiscEntry*)&g_cdListsDiscEntries;
     while (1) {
-        if (*slot != id) {
-            slot = (int*)((char*)slot + 0x88);
+        if (row->discSerial != id) {
+            ++row;
             index++;
-            if ((int)slot < (int)&g_savegameSideList)
+            if ((int)&row->discSerial < (int)&g_savegameSideList)
                 continue;
             goto newdisc;
         }

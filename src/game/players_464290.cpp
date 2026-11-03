@@ -486,9 +486,11 @@ void FreePlayers()
 }
 
 // FUNCTION: 0x464ab0
+// The void* parameter is the exe's own (its decorated name spells PAX), so the
+// read goes through the file's Player view rather than the parameter type.
 float __stdcall GetEnergyIncome(void* param_1)
 {
-    return *(float*)((char*)param_1 + 0x90);
+    return ((Player*)param_1)->energyIncome;
 }
 
 // Unused here: the symbol ids these declarations take keep the allocation
@@ -507,19 +509,20 @@ float __stdcall GetEnergyUsage(Player* param_1)
 // FUNCTION: 0x464ad0
 float __stdcall GetNetEnergy(void* param_1)
 {
-    return *(float*)((char*)param_1 + 0x90) - *(float*)((char*)param_1 + 0x94);
+    Player* p = (Player*)param_1;
+    return p->energyIncome - p->energyUsage;
 }
 
 // FUNCTION: 0x464af0
 float __stdcall GetMetalIncome(void* param_1)
 {
-    return *(float*)((char*)param_1 + 0x9c);
+    return ((Player*)param_1)->metalIncome;
 }
 
 // FUNCTION: 0x464b00
 float __stdcall GetMetalUsage(void* param_1)
 {
-    return *(float*)((char*)param_1 + 0xa0);
+    return ((Player*)param_1)->metalUsage;
 }
 
 // FUNCTION: 0x464b10

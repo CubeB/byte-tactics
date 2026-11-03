@@ -571,6 +571,13 @@ struct Elem_0042a140 {
     int flags;                      // +0x1c
 };
 
+// What FindGafEntry returns: the GAF entry record, named by frontend/multi.cpp.
+struct GafEntry {
+    unsigned short count;               // +0x0
+    char unknown_2[0x28 - 2];
+    void* texture;                      // +0x28, Thaldren's GafFrameEntry pFrame
+};
+
 struct Model_0042a140 {
     char unknown_0[8];
     int count;                      // +0x8
@@ -626,7 +633,7 @@ void __stdcall BindModelTextures(Model_0042a140* model, const char* name)
                 continue;
             }
             // Texture stored before the flag 2 clear.
-            elem->name = *(void**)((char*)entry + 0x28);
+            elem->name = ((GafEntry*)entry)->texture;
             elem->flags &= ~2;
         }
     }

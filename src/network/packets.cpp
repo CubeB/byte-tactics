@@ -124,7 +124,7 @@ void ResetCameraState();
 // sender and recipient ids of the packet just received (hapinet.cpp has the
 // whole object).
 #pragma pack(push, 1)
-struct Net_00462f30 {
+struct HapinetSession {
     char unknown_0[0x4b5];
     int from;                          // +0x4b5
     int to;                            // +0x4b9
@@ -1546,7 +1546,7 @@ int PacketReceiver::ResetReceiveBuffer()
 // FUNCTION: 0x462f30
 int PacketReceiver::ReceiveFrame(void* net, unsigned char* data, int* size)
 {
-    Net_00462f30* hnet = (Net_00462f30*)net;
+    HapinetSession* hnet = (HapinetSession*)net;
     int tick = g_game->gameTick;
     PlayerFrameInfo* entry;
     unsigned int i;

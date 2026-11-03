@@ -349,7 +349,7 @@ address,name,section,size,size_from,kind,type,type_files,other_files,types,verdi
 0x511ddc,g_byteRatesTick,.bss,4,type,data,unsigned int,1,0,1,one type,1,,UINT_00511ddc,,,
 0x511de0,g_cdBypassDriveScan,.bss,4,type,data,int,2,0,1,one type,2,,INT_00511de0,,,
 0x511de4,g_cdPathMismatch,.bss,4,type,data,int,1,0,1,one type,1,,INT_00511de4,,,
-0x511de8,g_game,.bss,4,type,data,Game*,135,8,8,conflicting: shape,143,,DAT_00511de8,,,
+0x511de8,g_game,.bss,4,type,data,Game*,136,7,8,conflicting: shape,143,,DAT_00511de8,,,
 0x511dec,g_endGameGlamourSoundStarted,.bss,4,type,data,int,1,0,1,one type,1,,INT_00511dec,,,
 0x511df0,g_explodedPieces,.bss,400,type,data,ExplodedPiece*[100],1,0,1,one type,1,0x190,DAT_00511df0,,,
 0x511f80,g_debrisMemCache,.bss,16,gap,data,CMemoryCache,2,0,1,one type,2,,DAT_00511f80,,,

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #pragma pack(push, 1)
-struct Net_0044f9c0 {
+struct HapinetSession {
     char unknown_0[0x4b5];
     int from;                        // +0x4b5
 };
@@ -145,7 +145,7 @@ int NetCondenser::ReceivePacket(void* net, char* data, int* size)
 
     CondensedHeader* received = (CondensedHeader*)data;
     int result = HAPINET_receivepacket(net, data, size);
-    if (((Net_0044f9c0*)net)->from != 0) {
+    if (((HapinetSession*)net)->from != 0) {
         if (result == 0) {
             CountPacket(*size, 0, 0);
             if (received->kind != 3 && received->kind != 4)

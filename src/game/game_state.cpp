@@ -658,7 +658,7 @@ void InitGame()
 // CD-list buffers, the track buffer and the rest of the game state.
 struct Obj_004aeda0;
 struct Obj_004aef80;
-struct Class_00452370;
+struct Class_00451fd0;
 
 void FreePictureCache();
 void __stdcall FreeGafSlot(Obj_004aeda0* obj, int i);
@@ -671,7 +671,7 @@ void ShutdownSound();
 void FreeAnimFiles();
 void ClearOrderTypeTable();
 void FreeUnitInfo();
-void __stdcall ReleasePacketData(Class_00452370* obj);
+void __stdcall ReleasePacketData(Class_00451fd0* obj);
 void FreeOtaEnumCacheAndMission();
 
 // FUNCTION: 0x4916a0
@@ -699,7 +699,7 @@ void ShutdownGame(void)
     GameFreeThunk((int*)g_game->options);
     g_game->options = 0;
     FreeUnitInfo();
-    ReleasePacketData((Class_00452370*)g_game->chatHudRing);
+    ReleasePacketData((Class_00451fd0*)g_game->chatHudRing);
     FreeOtaEnumCacheAndMission();
 }
 

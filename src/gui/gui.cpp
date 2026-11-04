@@ -60,6 +60,19 @@ int GetDebugLibVersion(void);
 extern Gui* g_guiContext;
 
 #include "../graphics/rect.h"
+// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
+void ResetFrontendState(void);
+void EmptyPostSimStepHook_B(void);
+int MainLoopContinueStub(void);
+void EmptyMainLoopHook(void);
+void EmptyMainLoopHook_B(void);
+void EnsureOptionsPanelGadget(void);
+void BlitOptionsPanel(void);
+int __cdecl OpenOptionsLayout(void);
+void TickMusicOptions(void);
+void UpdateMusicGadgets(void);
+void OpenMusicOptions(void);
+void UpdateSoundGadgets(void);
 // Unused here: the symbol id this declaration takes keeps the functions after
 // ClearChanged matching (docs/c2-regalloc.md).
 void FUN_004161f0(void);
@@ -1348,28 +1361,11 @@ void __stdcall RedrawGadgetRect(Gui* obj, int index)
 
 #include "../graphics/gaf_frame.h"
 
-struct Language_004a1b40 {
-    char unknown_0[0xc];
-    unsigned short* glyphs;             // +0xc
-};
-
-struct LanguageRoot_004a1b40 {
-    int current;                        // +0x0
-    char unknown_04[0x14 - 0x04];
-    Language_004a1b40* language;        // +0x14
-};
-
 // Kept, not util/point.h: including it moves 0x4a2580 and 0x4a3eb0 out of
 // their symbol-id windows, and no padding up to 540 ids brings all 128 back
 // (docs/c2-regalloc.md). The view below stays with this one.
 struct Point_004a1b40 { int x; int y; };
 struct Quad_004a1b40 { Point_004a1b40 points[4]; };
-
-// Unused here: real functions declared to keep the file's symbol count.
-void __stdcall AccumulateScreenShake(int dx, int dy, int value);
-void __stdcall ActivatePlayerGadgets(char* prefix);
-void AddDownloadBuildOptions();
-void ResetFrontendState();
 
 struct Item_004a1b40 {
     char unknown_0[0x28];
@@ -1793,12 +1789,6 @@ struct Font_004a2580 {
     void* glyphs;                      // +0x0c
 };
 
-struct Dialog_4a2580 {
-    int group;                         // +0x00
-    char unknown_04[0x14 - 0x04];
-    Font_004a2580* font;               // +0x14
-};
-
 void __stdcall SetFont(int id);
 void __stdcall GetSliderRects(Gadget* base, int index, Rect* bar, Rect* knob);
 void __stdcall DrawRaisedBox(Surface* surface, Rect* rect, int light, int dark, int fill);
@@ -2218,17 +2208,6 @@ void EnableEndMissionButtons();
 void ShowEndMissionScreen();
 void OpenCdCheckDialog();
 
-struct Font_004a30c0 {
-    char unknown_0[0xc];
-    void* glyphs;                      // +0x0c
-};
-
-struct Dialog_4a30c0 {
-    int group;                         // +0x00
-    char unknown_04[0x14 - 0x04];
-    Font_004a30c0* font;               // +0x14
-};
-
 // Unused here: these declarations keep the symbol count the functions below
 // need (docs/c2-regalloc.md).
 void ClampCameraPosition();
@@ -2564,38 +2543,6 @@ void __stdcall SetGadgetItems(Table_004a36a0* table, char* name, int* items, int
 // Unused here: the symbol ids these declarations take keep the allocation (docs/c2-regalloc.md).
 int DrawTriangleContours(int, int, int, int, int, int, int);
 int DrawLitLine(int, int, int, int, int, int);
-
-// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
-void EnsureOptionsPanelGadget(void);
-void BlitOptionsPanel(void);
-int __cdecl OpenOptionsLayout(void);
-void TickMusicOptions(void);
-void UpdateMusicGadgets(void);
-void OpenMusicOptions(void);
-void UpdateSoundGadgets(void);
-void OpenSoundOptions(void);
-void OpenSpeedOptions(void);
-void ShowGameSettingsDialog(void);
-void OpenBriefingDialog(void);
-void OpenHelpDialog(void);
-void ClearScreenWithHudPalette(void);
-void CloseOptionsPanel(void);
-void OpenOptionsPanel(void);
-void OpenRestartDialog(void);
-void OpenSurrenderDialog(void);
-void OpenExitMenu(void);
-void OpenInGameOptions(void);
-void RestoreSoundOptions(void);
-void LoadingScreenFrame(void);
-void CreateOffscreenSurface(void);
-void FreeOffscreenSurface(void);
-void __cdecl UpdateWind(void);
-void ResetGameSpeed(void);
-void IncreaseGameSpeed(void);
-void SaveCdLists(void);
-// Unused here: the symbol ids this declaration takes keep the allocation after
-// the Rect_004a3780 view was dropped (docs/c2-regalloc.md).
-int ScanDirectory(int, int, int, int, int, int);
 
 #include "mouse_event.h"
 
@@ -3157,8 +3104,6 @@ char* __stdcall BuildScrollItems2(char* names, int a, int b);
 void* __stdcall AllocZeroedWithTickOffset(unsigned int size);
 void ApplyDefaultSoundOptions();
 
-struct Language_004a4660 { char unknown_0[0xc]; unsigned short *glyphs; };
-struct LanguageRoot_004a4660 { char unknown_0[0x14]; Language_004a4660 *language; };
 
 int __stdcall LockScreen(Surface *);
 void __stdcall FillBevelBox(Surface *, Rect *, int, int, int);
@@ -3616,22 +3561,6 @@ struct List_004a4d70 {
     unsigned short* glyphs;            // +0x0c
 };
 
-// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
-void LoadBattleAssets(void);
-void Force640x480Surfaces(void);
-void ShutdownIngameSystems(void);
-void ShutdownIngameAndQuit(void);
-void OutOfMemoryHandler(void);
-void AtexitNoOp(void);
-void ChdirToExeDirectory(void);
-int GetPreferredLanguage(void);
-void MainLoopTick(void);
-void InitFrame(void);
-void ReturnToMainMenuFrame(void);
-void MenuFrame(void);
-void PreBattleFrame(void);
-void CampaignSetupFrame(void);
-
 // Unused here: the symbol ids this declaration takes keep the allocation after
 // the Rect_004a4d70 view was dropped (docs/c2-regalloc.md).
 int CalcAimAngles(int, int, int, int, int, int);
@@ -3640,11 +3569,6 @@ void __stdcall CenterCameraOnPoint(int a, int b, int c);
 void __stdcall AnnouncePlayerLeft(int id);
 void ApplyDefaultUiOptions();
 
-struct LanguageRoot_004a4d70 {
-    int current;                       // +0x00
-    char unknown_04[0x14 - 0x04];
-    List_004a4d70* language;           // +0x14
-};
 #pragma pack(pop)
 
 void __stdcall SetFont(int id);

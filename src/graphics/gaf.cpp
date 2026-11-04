@@ -750,8 +750,8 @@ struct GafEntry_004b8d40 {
     char name[1];                      // +0x8
 };
 
-// The loaded GAF file: its entry count and the entry pointers.
-struct Gaf_004b8d40 {
+// The loaded GAF file (gui.cpp's Gaf, Thaldren's GafAnim): its entry count and the entry pointers.
+struct Gaf {
     char unknown_0[4];
     short count;                       // +0x4
     char unknown_6[6];
@@ -761,7 +761,7 @@ struct Gaf_004b8d40 {
 // Looks up a GAF entry by name (case-insensitive); returns 0 when the file is
 // missing or no entry has that name.
 // FUNCTION: 0x4b8d40
-GafEntry_004b8d40* __stdcall FindGafEntry(Gaf_004b8d40* gaf, const char* name)
+GafEntry_004b8d40* __stdcall FindGafEntry(Gaf* gaf, const char* name)
 {
     if (gaf) {
         GafEntry_004b8d40** p = gaf->entries;

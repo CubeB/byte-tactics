@@ -23,16 +23,8 @@ void RegisterUnitOrders(void);
 // allocates in the same block, right behind the header.
 #include "layer.h"
 
-struct Src_004ab400;
-
 // The animation reference at +0x30 of a dialog (gui.h's cursorIndex to cursorSrc).
-struct Ref_004ab400 {
-    unsigned short index;          // +0x0
-    unsigned short value;          // +0x2
-    unsigned char kind;            // +0x4
-    char unknown_5[3];
-    Src_004ab400* src;             // +0x8
-};
+#include "../graphics/handle.h"
 
 // Unused here: the bitfield view of gui.h's cursorFlags; its symbol ids keep
 // the allocation (docs/c2-regalloc.md).
@@ -128,12 +120,12 @@ extern int __stdcall PointInRect(Rect* r, int x, int y);
 extern int __stdcall RectsOverlap(Rect* a, Rect* b);
 extern void __stdcall DrawSurface(void* dest, void* image, int x, int y);
 
-extern void __stdcall InitGafSequence(Ref_004ab400* ref, Src_004ab400* src, int index);
-extern int __stdcall GetGafSequenceFrame(Ref_004ab400* ref);
+extern void __stdcall InitGafSequence(Handle* ref, GafEntry* src, int index);
+extern int __stdcall GetGafSequenceFrame(Handle* ref);
 extern void __stdcall SetCursorSprite(int handle);
 int GetCursorSprite();
 
-extern void __stdcall AdvanceGafSequence(Ref_004ab400* ref, int step);
+extern void __stdcall AdvanceGafSequence(Handle* ref, int step);
 extern int __stdcall PeekMouseEvent(MouseEvent* out);
 extern void __stdcall GetCurrentMouseEvent(MouseEvent* out);
 extern int __stdcall PopMouseEvent(MouseEvent* out);
@@ -551,12 +543,12 @@ int __stdcall AddBarGadget(Gui* obj, Record_004ab3a0* record)
 // first entry, sets the active flag and passes the entry's value on to
 // SetCursorSprite.
 // FUNCTION: 0x4ab400
-void __stdcall SetCursorAnimation(Gui* p, Src_004ab400* src)
+void __stdcall SetCursorAnimation(Gui* p, GafEntry* src)
 {
     p->src_2c = src;
-    InitGafSequence((Ref_004ab400*)&p->cursorIndex, src, 0);
+    InitGafSequence((Handle*)&p->cursorIndex, src, 0);
     p->cursorFlags |= 1;
-    SetCursorSprite(GetGafSequenceFrame((Ref_004ab400*)&p->cursorIndex));
+    SetCursorSprite(GetGafSequenceFrame((Handle*)&p->cursorIndex));
 }
 
 // Picks the source at +0x28 (alt) or +0x2c; with a source, points the
@@ -564,12 +556,12 @@ void __stdcall SetCursorAnimation(Gui* p, Src_004ab400* src)
 // otherwise passes the plain value at +0x24 or +0x20 on to SetCursorSprite
 // (compare 0x4ab4e0) and clears the flag. Nothing happens when the source
 // or value is already current.
-static inline void SetSource(Gui* p, Src_004ab400* src)
+static inline void SetSource(Gui* p, GafEntry* src)
 {
-    if ((Src_004ab400*)p->cursorSrc == src)
+    if ((GafEntry*)p->cursorSrc == src)
         return;
-    InitGafSequence((Ref_004ab400*)&p->cursorIndex, src, 0);
-    SetCursorSprite(GetGafSequenceFrame((Ref_004ab400*)&p->cursorIndex));
+    InitGafSequence((Handle*)&p->cursorIndex, src, 0);
+    SetCursorSprite(GetGafSequenceFrame((Handle*)&p->cursorIndex));
     p->cursorFlags |= 1;
 }
 
@@ -587,12 +579,12 @@ void __stdcall SetCursorHover(Gui* p, int alt)
 {
     if (alt) {
         if (p->src_28)
-            SetSource(p, (Src_004ab400*)p->src_28);
+            SetSource(p, (GafEntry*)p->src_28);
         else
             SetValue(p, p->cursorHoverFrame);
     } else {
         if (p->src_2c)
-            SetSource(p, (Src_004ab400*)p->src_2c);
+            SetSource(p, (GafEntry*)p->src_2c);
         else
             SetValue(p, p->cursorDefaultFrame);
     }
@@ -678,9 +670,9 @@ void __stdcall UpdateCursorAndMouse(Gui* p)
 {
     if (p->cursorFlags & 1) {
         int old = p->cursorIndex;
-        AdvanceGafSequence((Ref_004ab400*)&p->cursorIndex, p->animTimer);
+        AdvanceGafSequence((Handle*)&p->cursorIndex, p->animTimer);
         if (p->cursorIndex != old)
-            SetCursorSprite(GetGafSequenceFrame((Ref_004ab400*)&p->cursorIndex));
+            SetCursorSprite(GetGafSequenceFrame((Handle*)&p->cursorIndex));
     }
 
     MouseEvent e;

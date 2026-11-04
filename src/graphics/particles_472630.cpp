@@ -408,19 +408,6 @@ public:
     void Init(Vec3_004742c0* p, Vec3_004742c0* q, int a, int b);
 };
 
-// The pool allocator of the vector members below, to call their out-of-line
-// insert under this name.
-class Class_00476210 {
-public:
-    void insert(std::vector<SmokeParticle>::iterator p, unsigned int m,
-                 const SmokeParticle& x);
-};
-
-class Vec_00476490 {
-public:
-    void insert(TimedSubParticle* pos, int count, const TimedSubParticle* src);
-};
-
 // The vector's own out-of-line size() (0x475840) under the name
 // data/symbols.csv gives that address.
 class NanoParticleVector {
@@ -447,14 +434,6 @@ typedef void (Vec_00473500::*UfillFn_00473500)(
     Vec_00473500::iterator, Vec_00473500::size_type, const Elem_00473500&);
 typedef void (Vec_00473500::*DestroyFn_00473500)(Vec_00473500::iterator, Vec_00473500::iterator);
 
-// _Ucopy, _Ufill and _Destroy are protected: a derived class takes their
-// addresses to emit them out of line.
-struct Access_00473500 : Vec_00473500 {
-    static UcopyFn_00473500 ucopy;
-    static UfillFn_00473500 ufill;
-    static DestroyFn_00473500 destroy;
-};
-
 // Taking the member's address emits the out-of-line copy.
 SizeFn_00473500 g_size_00473500 = &Vec_00473500::size;
 
@@ -468,22 +447,6 @@ typedef Vec_004739b0::iterator (Vec_004739b0::*UcopyFn_004739b0)(
 typedef void (Vec_004739b0::*UfillFn_004739b0)(
     Vec_004739b0::iterator, Vec_004739b0::size_type, const NanoParticle&);
 typedef void (Vec_004739b0::*DestroyFn_004739b0)(Vec_004739b0::iterator, Vec_004739b0::iterator);
-
-struct Access_00475770 : Vec_004739b0 {
-    static ReserveFn_004739b0 fn;
-};
-
-struct Access_00475870 : Vec_004739b0 {
-    static DestroyFn_004739b0 fn;
-};
-
-struct Access_00475880 : Vec_004739b0 {
-    static UcopyFn_004739b0 fn;
-};
-
-struct Access_00476710 : Vec_004739b0 {
-    static UfillFn_004739b0 fn;
-};
 
 // FUNCTION: 0x472630
 void __stdcall EmitSmoke(Vec3* pos, int emitPeriod, int lifetime, short index)

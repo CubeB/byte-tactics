@@ -586,31 +586,6 @@ struct Lists_00472530 {
     }
 };
 
-// Own views, not vec3.h: their ids keep the wake draw (0x4745e0) matching.
-struct Vec3_00472630 {
-    int x;
-    int y;
-    int z;
-};
-
-struct Vec3_00472720 {
-    int x;
-    int y;
-    int z;
-};
-
-struct Vec3_00472810 {
-    int x;
-    int y;
-    int z;
-};
-
-struct Vec3_00474cd0 {
-    int x;
-    int y;
-    int z;
-};
-
 // Declarations only: their ids keep the wake draw (0x4745e0) matching.
 int AreAllPlayersReady(void);
 int CountActiveAIPlayers(void);

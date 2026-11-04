@@ -64,10 +64,6 @@ struct Vector3s {
     short z;                           // +0x4
 };
 
-// A 16-byte rectangle: a projected vertex with its shade, or a point of a
-// 16.16 polygon.
-struct Poly_459c70 { int x; int y; int z; int shade; };
-
 #include "../util/point.h"
 
 // A 12-byte 16.16 position with its constructor.

@@ -2866,23 +2866,6 @@ struct Pad_a3eb0_0 { int field; };
 struct Pad_a3eb0_1 { int field; };
 struct Pad_a3eb0_2 { int field; };
 
-// Unused here: the symbol ids these declarations take keep 0x4a3eb0, 0x4a4620,
-// 0x4a4890, 0x4a4930, 0x4a5f40, 0x4a96d0, 0x4a9780 and 0x4a99c0 matching
-// (docs/c2-regalloc.md).
-void GetEnumSessionsErrorText(void);
-void SendNetHeartbeat(void);
-unsigned char FindHostSlot(void);
-void __stdcall SendLoadProgress(void);
-int BroadcastPendingViewState(void);
-void OnlineUnload(void);
-int IsOnlineConfigLoaded(void);
-void FUN_0046c8d0(void);
-void __fastcall DeleteUnitSync(void);
-int IsWindowsSoundAvailable(void);
-void ResumeLoopingWav(void);
-void StopWindowsSound(void);
-int NullStubRet0(void);
-
 // FUNCTION: 0x4a3eb0
 void __stdcall FUN_004a3eb0(Gui* obj, int i)
 {
@@ -3785,16 +3768,6 @@ void __stdcall DrawTextInput(Gui* obj, int index)
 }
 // The glyph of a character in the current font (see 0x4a5030).
 
-struct Font_004a5010 {
-    char unknown_0[0xc];
-    void* glyphs;                      // +0xc
-};
-
-struct Dialog_4a5010 {
-    char unknown_0[0x14];
-    Font_004a5010* font;               // +0x14
-};
-
 char* __stdcall GetGafFrame(void* glyphs, int c);
 // FUNCTION: 0x4a5010
 void* __stdcall GetCharGlyph(unsigned char c)
@@ -3803,16 +3776,6 @@ void* __stdcall GetCharGlyph(unsigned char c)
 }
 // Width of a string in pixels: the sum of the glyph widths of the current
 // font, or GetTextWidth's measurement when no font is loaded.
-
-struct Font_004a5030 {
-    char unknown_0[0xc];
-    void* glyphs;                      // +0xc
-};
-
-struct Dialog_4a5030 {
-    char unknown_0[0x14];
-    Font_004a5030* font;               // +0x14
-};
 
 char* __stdcall GetGafFrame(void* glyphs, int c);
 int GetFont();
@@ -3843,16 +3806,6 @@ void __cdecl CheckFillPattern(unsigned int* block, unsigned int fill, unsigned i
 void __stdcall AppendToDebugFile(char* text);
 void ApplyDefaultVisualOptions();
 
-struct Font_004a50b0 {
-    char unknown_0[0xc];
-    void* glyphs;                      // +0xc
-};
-
-struct Dialog_4a50b0 {
-    char unknown_0[0x14];
-    Font_004a50b0* font;               // +0x14
-};
-
 char* __stdcall GetGafFrame(void* glyphs, int c);
 int GetFontHeight();
 
@@ -3868,16 +3821,6 @@ int GetFontLineHeight()
 int __stdcall CloakOffOrder(char* unit, int unused1, int unused2);
 int __stdcall BroadcastPlayerLeft(int id);
 void ApplyDifficultyButtons();
-
-struct Font_004a50e0 {
-    char unknown_0[0xc];
-    void* glyphs;                      // +0xc
-};
-
-struct Dialog_4a50e0 {
-    char unknown_0[0x14];
-    Font_004a50e0* font;               // +0x14
-};
 
 char* __stdcall GetGafFrame(void* glyphs, int c);
 void __stdcall DrawFrame(void* surface, void* glyph, int x, int y);
@@ -3921,16 +3864,6 @@ void __stdcall DrawTextClipped(void* surface, char* text, int x, int y, int maxw
 int __stdcall CloakOnOrder(char* param1, int unused1, int unused2);
 void __stdcall CalcRadarViewportRect(int* param_1);
 int ApplyPalette();
-
-struct Font_004a51d0 {
-    char unknown_0[0xc];
-    void* glyphs;                      // +0xc
-};
-
-struct Dialog_4a51d0 {
-    char unknown_0[0x14];
-    Font_004a51d0* font;               // +0x14
-};
 
 char* __stdcall GetGafFrame(void* glyphs, int c);
 int GetFont();
@@ -4168,24 +4101,6 @@ static inline int LineHeightDirect()
         return GetFontHeight();
     return (int)GetGafFrame(g_guiContext->language->entries[0], 0x49)->height + 2;
 }
-
-// Unused here: real declarations that keep the file's symbol count (docs/c2-regalloc.md).
-void FreeFeaturePool(void);
-void LoadFeatureFileList(void);
-void FreeFeatureFileList(void);
-void ResolveFeatureLinks(void);
-void PlaceMissionFeatures(void);
-void UpdateFeatures(void);
-void RemoveAllFeatures(void);
-void EmptyPostSimStepHook_B(void);
-int MainLoopContinueStub(void);
-void EmptyMainLoopHook(void);
-void EmptyMainLoopHook_B(void);
-void LoadTextureGafs(void);
-void FreeTextureGafs(void);
-void SelectUnitsOfSameTypes(void);
-void SelectAllVisibleUnits(void);
-void ClearUnitSelectFlags(void);
 
 // The body of SelectFontForEntry at 0x4a1810, which the compiler inlined into LayoutLabelText.
 static inline int SelectLabelFont(Gadget* entries, int index)
